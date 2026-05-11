@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>逆ボカロスタジオ</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <!-- z-index: 10  HTML UI レイヤー -->
+    <div id="ui">
+      <button id="play-btn">▶ Play</button>
+      <span id="score">0</span>
+    </div>
+
+    <!-- Three.js レンダラー（z-index: 0）と Canvas 2D（z-index: 1）は JS 側で生成・挿入 -->
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
