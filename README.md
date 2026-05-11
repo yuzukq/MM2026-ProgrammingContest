@@ -1,6 +1,7 @@
 ## 開発参加手順（pnpm）
 Node.js / pnpm のセットアップがまだの場合は下記を先に行ってね
 
+### pnpmの導入
 <details>
 <summary>macOS: Node.js / pnpm セットアップ手順</summary>
 
@@ -27,16 +28,27 @@ Node.js / pnpm のセットアップがまだの場合は下記を先に行っ�
 
 </details>
 
+### 開発環境の起動まで
 1. このリポジトリをクローンする  
-   `git clone <repository-url>`
+```
+git clone <repository-url>
+```
 2. プロジェクトディレクトリへ移動する  
-   `cd MM2026-ProgrammingContest`
+```
+cd MM2026-ProgrammingContest
+```
 3. 依存パッケージをインストールする  
-   `pnpm install`
+```
+pnpm install
+```
 4. 開発サーバーを起動する  
-   `pnpm dev`
+```
+pnpm dev
+```
 5. local で開発中のページを確認する  
-   `http://localhost:5173`
+```
+http://localhost:5173
+```
 
 
 
