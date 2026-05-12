@@ -31,7 +31,7 @@ Node.js / pnpm のセットアップがまだの場合は下記を先に行っ�
 ### 開発環境の起動まで
 1. このリポジトリをクローンする  
 ```
-git clone <repository-url>
+git clone https://github.com/yuzukq/MM2026-ProgrammingContest.git
 ```
 2. プロジェクトディレクトリへ移動する  
 ```
