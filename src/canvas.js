@@ -43,9 +43,28 @@ export function toNormalizedY(canvasY) {
   return 1 - canvasY / canvas.height;
 }
 
+// ワードブロックをスクロール描画する（drawFrame 内部からのみ呼ぶ）
+function drawWordBlocks(position, wordBlocks) {
+  const judgmentX = canvas.width * JUDGMENT_X_RATIO;
+  const blockHeight = canvas.height * BLOCK_HEIGHT_RATIO;
+
+  ctx.fillStyle = "#20B2AA";
+  for (const block of wordBlocks) {
+    // startTime は固定値, position は増加し続けるためx座標は減少(左に移動)していく
+    const x = judgmentX + (block.startTime - position) * PIXELS_PER_MS;
+    const w = (block.endTime - block.startTime) * PIXELS_PER_MS;
+    if (x + w < 0 || x > canvas.width) continue; // 画面外はスキップ
+
+    const y = toCanvasY(block.normalizedAmp) - blockHeight / 2;
+    ctx.beginPath();
+    ctx.roundRect(x, y, w, blockHeight, 4);
+    ctx.fill();
+  }
+}
+
 // 1フレーム分の描画　メインループonTimeUpdateで毎フレーム呼び出す
 export function drawFrame({ position, wordBlocks, touchedY }) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  // TODO: 単語ブロックのスクロール描画（過去・現在・先読みゴースト）
+  drawWordBlocks(position, wordBlocks);
   // TODO: プレイヤーのカーソル/指の位置を描画
 }
