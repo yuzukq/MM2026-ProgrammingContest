@@ -6,7 +6,7 @@
 import { Player } from "textalive-app-api";
 import { initScene, updateScene } from "./scene.js";
 import { buildWordBlocks, updateGame, getWordBlocks, getNormalizedScore } from "./game.js";
-import { initCanvas, drawFrame } from "./canvas.js";
+import { initCanvas, drawFrame, getTouchedY } from "./canvas.js";
 import { initUI, updateUI } from "./ui.js";
 
 initScene();
@@ -41,7 +41,7 @@ player.addListener({
   },
   // 毎フレーム呼ばれるメインのゲームループ
   onTimeUpdate(position) {
-    const touchedY = 0.5; // TODO: マウス/タッチのY座標を 0〜1 に正規化した値
+    const touchedY = getTouchedY(); // canvas.js：正規化済みY座標（上=1, 下=0）
 
     updateGame(position, touchedY); // game.js：スコア計算
     drawFrame({ position, wordBlocks: getWordBlocks(), touchedY }); // canvas.js：Canvas描画
