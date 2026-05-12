@@ -1,6 +1,10 @@
 // canvas.js
 // Canvas 2D への描画のみ。ロジックや状態は持たず、受け取ったデータを描くだけ。
 
+const PIXELS_PER_MS = 0.4; // 1ms あたりのピクセル数（スクロール倍率）
+const JUDGMENT_X_RATIO = 0.2; // 判定ラインのX位置（canvas幅の何割かで）
+const BLOCK_HEIGHT_RATIO = 0.03; // ブロックの高さ(縦幅,canvas高さの何割か）
+
 let canvas, ctx;
 let touchedY = 0; // 正規化済みY座標（上=1, 下=0)
 
@@ -51,13 +55,14 @@ function drawWordBlocks(position, wordBlocks) {
   ctx.fillStyle = "#20B2AA";
   for (const block of wordBlocks) {
     // startTime は固定値, position は増加し続けるためx座標は減少(左に移動)していく
-    const x = judgmentX + (block.startTime - position) * PIXELS_PER_MS;
-    const w = (block.endTime - block.startTime) * PIXELS_PER_MS;
-    if (x + w < 0 || x > canvas.width) continue; // 画面外はスキップ
+    const blockPosX = judgmentX + (block.startTime - position) * PIXELS_PER_MS;
+    const blockWidth = (block.endTime - block.startTime) * PIXELS_PER_MS;
+    // 画面外はスキップ
+    if (blockPosX + blockWidth < 0 || blockPosX > canvas.width) continue;
 
-    const y = toCanvasY(block.normalizedAmp) - blockHeight / 2;
+    const blockPosY = toCanvasY(block.normalizedAmp) - blockHeight / 2;
     ctx.beginPath();
-    ctx.roundRect(x, y, w, blockHeight, 4);
+    ctx.roundRect(blockPosX, blockPosY, blockWidth, blockHeight, 4); // 左上X,左上Y,横幅,縦幅,角丸4px
     ctx.fill();
   }
 }
@@ -66,5 +71,5 @@ function drawWordBlocks(position, wordBlocks) {
 export function drawFrame({ position, wordBlocks, touchedY }) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawWordBlocks(position, wordBlocks);
-  // TODO: プレイヤーのカーソル/指の位置を描画
+  // TODO: プレイヤーのカーソル/指の位置(touchedY)を描画
 }
