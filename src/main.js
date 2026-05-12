@@ -12,6 +12,13 @@ import { initUI, updateUI } from "./ui.js";
 initScene();
 initCanvas();
 
+// =============デバッグ用=========
+const debugEl = document.createElement("div");
+debugEl.style.cssText =
+  "position:fixed;bottom:16px;left:16px;z-index:100;color:white;font-size:14px;font-family:monospace;pointer-events:none;";
+document.body.appendChild(debugEl);
+// =============================
+
 // TextAlive のイニシャライズ
 const player = new Player({
   app: { token: "test" }, // TODO: 本番トークンに差し替える
@@ -42,6 +49,11 @@ player.addListener({
   // 毎フレーム呼ばれるメインのゲームループ
   onTimeUpdate(position) {
     const touchedY = getTouchedY(); // canvas.js：正規化済みY座標（上=1, 下=0）
+
+    // ---デバッグ表示---
+    debugEl.textContent = `touchedY: ${touchedY.toFixed(3)}`;
+    console.log(`[debug] position: ${position} | touchedY: ${touchedY.toFixed(3)}`);
+    // ---------------
 
     updateGame(position, touchedY); // game.js：スコア計算
     drawFrame({ position, wordBlocks: getWordBlocks(), touchedY }); // canvas.js：Canvas描画
