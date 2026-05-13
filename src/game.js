@@ -12,10 +12,10 @@ export function buildWordBlocks(player) {
   let word = player.video.firstWord;
   while (word) {
     wordBlocks.push({
-      startTime: word.startTime,
-      endTime: word.endTime,
-      text: word.text,
-      normalizedAmp: player.getVocalAmplitude(word.startTime) / maxAmp, // 0〜1
+      startTime: word.startTime, // 単語開始時刻
+      endTime: word.endTime, // 単語終了時刻
+      text: word.text, // 単語の文字列
+      normalizedAmp: player.getVocalAmplitude(word.startTime) / maxAmp, // 単語開始時の声量(1単語を声量ブロックの変化の区切りとするため)
     });
     word = word.next;
   }
