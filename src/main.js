@@ -13,10 +13,7 @@ initScene();
 initCanvas();
 
 // =============デバッグ用=========
-const debugEl = document.createElement("div");
-debugEl.style.cssText =
-  "position:fixed;bottom:16px;left:16px;z-index:100;color:white;font-size:14px;font-family:monospace;pointer-events:none;";
-document.body.appendChild(debugEl);
+let lastUpdateTime = null;
 // =============================
 
 // TextAlive のイニシャライズ
@@ -51,8 +48,10 @@ player.addListener({
     const touchedY = getTouchedY(); // canvas.js：正規化済みY座標（上=1, 下=0）
 
     // ---デバッグ表示---
-    debugEl.textContent = `touchedY: ${touchedY.toFixed(3)}`;
-    console.log(`[debug] position: ${position} | touchedY: ${touchedY.toFixed(3)}`);
+    const now = performance.now();
+    const interval = lastUpdateTime !== null ? now - lastUpdateTime : 0;
+    lastUpdateTime = now;
+    console.log(`[debug] interval: ${interval.toFixed(1)}ms | touchedY: ${touchedY.toFixed(3)}`);
     // ---------------
 
     updateGame(position, touchedY); // game.js：スコア計算
