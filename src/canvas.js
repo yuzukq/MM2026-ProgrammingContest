@@ -6,7 +6,12 @@ const JUDGMENT_X_RATIO = 0.2; // 判定ラインのX位置（canvas幅の何割�
 const BLOCK_HEIGHT_RATIO = 0.03; // ブロックの高さ(縦幅,canvas高さの何割か）
 
 let canvas, ctx;
-let touchedY = 0; // 正規化済みY座標（上=1, 下=0)
+let touchedY = 0; // 正規化済みY座標（上=1, 下=0）
+
+// RAFループ用
+let lastPosition = 0; // 曲の開始を0とした再生時刻
+let lastReceivedAt = 0; // ブラウザ起動を0とした壁時計時刻
+let storedWordBlocks = [];
 
 // canvasを生成してDOMに挿入する main側でinit呼び出し
 export function initCanvas() {
@@ -29,6 +34,19 @@ export function initCanvas() {
   canvas.addEventListener("touchmove", (e) => {
     touchedY = toNormalizedY(e.touches[0].clientY);
   });
+
+  // mainの方のonTimeUpdate(~20fps)とは独立した描画ループ(16ms間隔60FPS程度)
+  function canvasRenderLoop() {
+    requestAnimationFrame(canvasRenderLoop);
+    // (前回の曲の再生位置ms) + (その後の経過時間ms)でポジション補完
+    const estimatedPosition = lastPosition + (performance.now() - lastReceivedAt);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawWordBlocks(estimatedPosition, storedWordBlocks);
+    // TODO: プレイヤーのカーソル/指の位置(touchedY)を描画
+    // メモ: touchedYはこのスコープの範囲内なので誤ってmainからupdateCanvasStateに渡してくるみたいなことをしないように。
+    // 現状pauseしても補完が回り続けるのでブロック描画が止まらないのでここも後々対応してね。
+  }
+  canvasRenderLoop();
 }
 
 // 正規化済みのtouchedYを返す
@@ -78,9 +96,9 @@ function drawWordBlocks(position, wordBlocks) {
   }
 }
 
-// 1フレーム分の描画　メインループonTimeUpdateで毎フレーム呼び出す
-export function drawFrame({ position, wordBlocks, touchedY }) {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  drawWordBlocks(position, wordBlocks);
-  // TODO: プレイヤーのカーソル/指の位置(touchedY)を描画
+// onTimeUpdateから呼び、描画せず状態だけ保存する（描画はcanvasRenderLoopに集約）
+export function updateCanvasState({ position, wordBlocks }) {
+  lastPosition = position; // 曲の再生位置(ms)
+  lastReceivedAt = performance.now(); // ブラウザ内でのグローバル到達時刻(ms)
+  storedWordBlocks = wordBlocks; // 描画対象のブロック特定用
 }

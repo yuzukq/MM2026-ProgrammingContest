@@ -6,14 +6,14 @@
 import { Player } from "textalive-app-api";
 import { initScene, updateScene } from "./scene.js";
 import { buildWordBlocks, updateGame, getWordBlocks, getNormalizedScore } from "./game.js";
-import { initCanvas, drawFrame, getTouchedY } from "./canvas.js";
+import { initCanvas, updateCanvasState, getTouchedY } from "./canvas.js";
 import { initUI, updateUI } from "./ui.js";
 
 initScene();
 initCanvas();
 
 // =============デバッグ用=========
-let lastUpdateTime = null;
+// let lastUpdateTime = null;
 // =============================
 
 // TextAlive のイニシャライズ
@@ -48,14 +48,14 @@ player.addListener({
     const touchedY = getTouchedY(); // canvas.js：正規化済みY座標（上=1, 下=0）
 
     // ---デバッグ表示---
-    const now = performance.now();
-    const interval = lastUpdateTime !== null ? now - lastUpdateTime : 0;
-    lastUpdateTime = now;
-    console.log(`[debug] interval: ${interval.toFixed(1)}ms | touchedY: ${touchedY.toFixed(3)}`);
+    // const now = performance.now();
+    // const interval = lastUpdateTime !== null ? now - lastUpdateTime : 0;
+    // lastUpdateTime = now;
+    // console.log(`[debug] interval: ${interval.toFixed(1)}ms | touchedY: ${touchedY.toFixed(3)}`);
     // ---------------
 
     updateGame(position, touchedY); // game.js：スコア計算
-    drawFrame({ position, wordBlocks: getWordBlocks(), touchedY }); // canvas.js：Canvas描画
+    updateCanvasState({ position, wordBlocks: getWordBlocks() }); // canvas.js：描画用の状態を更新
     updateScene({
       position,
       duration: player.video.duration,
