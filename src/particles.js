@@ -9,14 +9,14 @@ const RESULT_CONFIG = {
 
 class ParticleSystem {
   #particles = [];
+  #ripples = [];
 
   // 正しく触れている間、毎フレーム呼ぶ
   spawnTouchingFlash(normalizedY, judgmentX, canvasHeight) {
     const y = (1 - normalizedY) * canvasHeight;
-    // 少数の粒子を右方向に広げる（接触中の継続演出）
     for (let i = 0; i < 2; i++) {
-      const angle = (Math.random() - 0.5) * Math.PI * 0.6; // 右向き扇形
-      const speed = 1 + Math.random() * 2;
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 1.5 + Math.random() * 2;
       this.#particles.push({
         x: judgmentX,
         y,
@@ -27,6 +27,10 @@ class ParticleSystem {
         color: "#FFFFFF",
         size: 2 + Math.random() * 2,
       });
+    }
+    // 波紋は毎フレーム生成すると重なりすぎるので間引き
+    if (Math.random() < 0.2) {
+      this.#ripples.push({ x: judgmentX, y, radius: 2, life: 1.0 });
     }
   }
 
@@ -52,19 +56,36 @@ class ParticleSystem {
 
   // 毎フレーム呼ぶ。更新・描画・寿命切れ削除を一括処理
   update(ctx) {
+    ctx.shadowBlur = 8;
+
     this.#particles = this.#particles.filter((p) => p.life > 0);
     for (const p of this.#particles) {
       p.x += p.vx;
       p.y += p.vy;
-      p.vy += 0.05; // 重力
       p.life -= p.decay;
       ctx.globalAlpha = Math.max(0, p.life);
+      ctx.shadowColor = p.color;
       ctx.fillStyle = p.color;
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
       ctx.fill();
     }
+
+    this.#ripples = this.#ripples.filter((r) => r.life > 0);
+    for (const r of this.#ripples) {
+      r.radius += 2.4; // 毎フレーム拡大
+      r.life -= 0.05;
+      ctx.globalAlpha = Math.max(0, r.life);
+      ctx.shadowColor = "#FFFFFF";
+      ctx.strokeStyle = "#FFFFFF";
+      ctx.lineWidth = 2.5; // 淵の幅
+      ctx.beginPath();
+      ctx.arc(r.x, r.y, r.radius, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
     ctx.globalAlpha = 1;
+    ctx.shadowBlur = 0; // 以降の描画に影響しないようリセット
   }
 }
 
