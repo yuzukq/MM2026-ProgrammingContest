@@ -2,9 +2,9 @@
 // パーティクルエフェクトの生成・更新・描画を担当する。状態は ParticleSystem クラスに閉じる。
 
 const RESULT_CONFIG = {
-  PERFECT: { color: "#FFD700", count: 18, speed: 1.8 },
-  GOOD: { color: "#20B2AA", count: 10, speed: 1.3 },
-  BAD: { color: "#888888", count: 5, speed: 0.8 },
+  PERFECT: { color: "#ce206e", count: 18, speed: 1.5 },
+  GOOD: { color: "#20ce3d", count: 10, speed: 1.1 },
+  BAD: { color: "#888888", count: 5, speed: 0.5 },
 };
 
 class ParticleSystem {
@@ -30,7 +30,7 @@ class ParticleSystem {
     }
     // 波紋は毎フレーム生成すると重なりすぎるので間引き
     if (Math.random() < 0.2) {
-      this.#ripples.push({ x: judgmentX, y, radius: 2, life: 1.0 });
+      this.#ripples.push({ x: judgmentX, y, radius: 2, life: 1.0, color: "#FFFFFF" });
     }
   }
 
@@ -49,9 +49,11 @@ class ParticleSystem {
         life: 1.0,
         decay: 0.03,
         color: cfg.color,
-        size: 3 + Math.random() * 3,
+        size: 1.5 + Math.random() * 2,
       });
     }
+    this.#ripples.push({ x: judgmentX, y, radius: 2, life: 1.0, color: cfg.color });
+    this.#ripples.push({ x: judgmentX, y, radius: 2, life: 0.7, color: cfg.color }); // 少し遅れて広がる2重波紋
   }
 
   // 毎フレーム呼ぶ。更新・描画・寿命切れ削除を一括処理
@@ -76,8 +78,8 @@ class ParticleSystem {
       r.radius += 2.4; // 毎フレーム拡大
       r.life -= 0.05;
       ctx.globalAlpha = Math.max(0, r.life);
-      ctx.shadowColor = "#FFFFFF";
-      ctx.strokeStyle = "#FFFFFF";
+      ctx.shadowColor = r.color;
+      ctx.strokeStyle = r.color;
       ctx.lineWidth = 2.5; // 淵の幅
       ctx.beginPath();
       ctx.arc(r.x, r.y, r.radius, 0, Math.PI * 2);
