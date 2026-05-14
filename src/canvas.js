@@ -17,6 +17,7 @@ let storedWordBlocks = [];
 let effectsQueue = []; // game.js から渡されたブロック評価エフェクトPERFECT/GOOD/BADのキュー
 let storedIsOnBeat = false; // 現フレームでブロックに正確に触れているか（game.js が判定）
 let storedTouchNormalizedY = null; // 接触中ブロックのY座標
+let judgmentX = 0; // onResize で更新
 
 // canvasを生成してDOMに挿入する main側でinit呼び出し
 export function initCanvas() {
@@ -28,6 +29,7 @@ export function initCanvas() {
   function onResize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+    judgmentX = canvas.width * JUDGMENT_X_RATIO;
   }
   window.addEventListener("resize", onResize);
   onResize();
@@ -45,7 +47,6 @@ export function initCanvas() {
     requestAnimationFrame(canvasRenderLoop);
     // (前回の曲の再生位置ms) + (その後の経過時間ms)でポジション補完
     const estimatedPosition = lastPosition + (performance.now() - lastReceivedAt);
-    const judgmentX = canvas.width * JUDGMENT_X_RATIO;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawWordBlocks(estimatedPosition, storedWordBlocks);
 
@@ -85,7 +86,6 @@ export function toNormalizedY(canvasY) {
 
 // ワードブロックを描画する（drawFrame 内部からのみ呼ぶ）
 function drawWordBlocks(position, wordBlocks) {
-  const judgmentX = canvas.width * JUDGMENT_X_RATIO;
   const blockHeight = canvas.height * BLOCK_HEIGHT_RATIO;
 
   // ======== 判定ラインから右端までの矩形を書き込み可能な領域としてクリップ ======
