@@ -12,6 +12,7 @@ let touchedY = 0; // 正規化済みY座標（上=1, 下=0）
 let lastPosition = 0; // 曲の開始を0とした再生時刻
 let lastReceivedAt = 0; // ブラウザ起動を0とした壁時計時刻
 let storedWordBlocks = [];
+let effectsQueue = []; // game.js から渡されたブロック評価エフェクトPERFECT/GOOD/BADのキュー
 
 // canvasを生成してDOMに挿入する main側でinit呼び出し
 export function initCanvas() {
@@ -42,6 +43,8 @@ export function initCanvas() {
     const estimatedPosition = lastPosition + (performance.now() - lastReceivedAt);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawWordBlocks(estimatedPosition, storedWordBlocks);
+    // TODO: effectsQueue を消費して火花エフェクトを描画（{ normalizedY, rating } を使う）
+    effectsQueue = []; // 演出を描画したらからにする
     // TODO: プレイヤーのカーソル/指の位置(touchedY)を描画
     // メモ: touchedYはこのスコープの範囲内なので誤ってmainからupdateCanvasStateに渡してくるみたいなことをしないように。
     // 現状pauseしても補完が回り続けるのでブロック描画が止まらないのでここも後々対応してね。
@@ -97,8 +100,9 @@ function drawWordBlocks(position, wordBlocks) {
 }
 
 // onTimeUpdateから呼び、描画せず状態だけ保存する（描画はcanvasRenderLoopに集約）
-export function updateCanvasState({ position, wordBlocks }) {
+export function updateCanvasState({ position, wordBlocks, effects = [] }) {
   lastPosition = position; // 曲の再生位置(ms)
   lastReceivedAt = performance.now(); // ブラウザ内でのグローバル到達時刻(ms)
   storedWordBlocks = wordBlocks; // 描画対象のブロック特定用
+  effectsQueue.push(...effects); // renderLoop が消費するまでキューに積む
 }

@@ -5,7 +5,7 @@
 
 import { Player } from "textalive-app-api";
 import { initScene, updateScene } from "./scene.js";
-import { buildWordBlocks, updateGame, getWordBlocks, getNormalizedScore } from "./game.js";
+import { buildWordBlocks, updateGame, getWordBlocks, getScore, getLatestRating, popPendingEffects } from "./game.js";
 import { initCanvas, updateCanvasState, getTouchedY } from "./canvas.js";
 import { initUI, updateUI } from "./ui.js";
 
@@ -54,13 +54,13 @@ player.addListener({
     // console.log(`[debug] interval: ${interval.toFixed(1)}ms | touchedY: ${touchedY.toFixed(3)}`);
     // ---------------
 
-    updateGame(position, touchedY); // game.js：スコア計算
-    updateCanvasState({ position, wordBlocks: getWordBlocks() }); // canvas.js：描画用の状態を更新
+    updateGame(position, touchedY); // game.js：スコア計算・ブロック評価
+    updateCanvasState({ position, wordBlocks: getWordBlocks(), effects: popPendingEffects() }); // canvas.js：描画用の状態を更新
     updateScene({
       position,
       duration: player.video.duration,
-      score: getNormalizedScore(),
+      score: getScore(),
     }); // scene.js：3D更新
-    updateUI(getNormalizedScore()); // ui.js：スコア表示更新
+    updateUI(getScore(), getLatestRating()); // ui.js：スコア・レーティング表示更新
   },
 });

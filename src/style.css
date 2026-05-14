@@ -7,6 +7,18 @@ body {
   background-position: center;
 }
 
+/* 判定ライン仮置き：本番ではインラインSVG鍵盤に差し替える */
+#judgment-line {
+  position: fixed;
+  left: 20%; /* JUDGMENT_X_RATIO = 0.2 に合わせて変更する */
+  top: 0;
+  width: 2px;
+  height: 100vh;
+  background: rgba(255, 255, 255, 0.6);
+  z-index: 2;
+  pointer-events: none;
+}
+
 /* z-index: 10  HTML UI レイヤー */
 #ui {
   position: fixed;
