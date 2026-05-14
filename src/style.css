@@ -2,7 +2,7 @@ body {
   margin: 0;
   width: 100%;
   height: 100vh;
-  background-color: steelblue; /* 背景は Three.js レンダラー層で作成するため仮置き */
+  background-color: #202020; /* 背景は Three.js レンダラー層で作成するため仮置き */
   background-size: cover;
   background-position: center;
 }

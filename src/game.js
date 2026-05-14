@@ -74,9 +74,12 @@ export function updateGame(position, touchedY) {
     }
 
     const distance = Math.abs(touchedY - block.normalizedAmp);
-    accumAccuracy += 1 - distance; // 1=ピッタリ, 0=最大ズレ
+    const frameAccuracy = 1 - distance; // 1=ピッタリ, 0=最大ズレ
+    accumAccuracy += frameAccuracy;
     accumFrames++;
+    return { isOnBeat: frameAccuracy >= RATING_THRESHOLDS.PERFECT, normalizedY: block.normalizedAmp };
   }
+  return { isOnBeat: false, normalizedY: null };
 }
 
 // =====ゲッターメソッド系=====

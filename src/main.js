@@ -54,8 +54,8 @@ player.addListener({
     // console.log(`[debug] interval: ${interval.toFixed(1)}ms | touchedY: ${touchedY.toFixed(3)}`);
     // ---------------
 
-    updateGame(position, touchedY); // game.js：スコア計算・ブロック評価
-    updateCanvasState({ position, wordBlocks: getWordBlocks(), effects: popPendingEffects() }); // canvas.js：描画用の状態を更新
+    const { isOnBeat, normalizedY: touchNormalizedY } = updateGame(position, touchedY); // game.js：スコア計算・ブロック評価
+    updateCanvasState({ position, wordBlocks: getWordBlocks(), effects: popPendingEffects(), isOnBeat, touchNormalizedY }); // canvas.js：描画用の状態を更新
     updateScene({
       position,
       duration: player.video.duration,
