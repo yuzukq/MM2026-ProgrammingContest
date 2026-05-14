@@ -4,8 +4,10 @@
 
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { VRMLoaderPlugin } from "@pixiv/three-vrm";
 
-let scene, camera, renderer;
+let scene, camera, renderer, vrm;
 // updateScene から操作するオブジェクトはここに宣言する
 // let sunMesh, flowerInstancedMesh;
 
@@ -14,7 +16,8 @@ export function initScene() {
   // =============シーン初期化=================
   scene = new THREE.Scene();
   renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true }); // 透過：HTML/UI層を重ねるため
-  camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+  camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 1000); //FOV,アスペクト比,near,far,near
+  vrm = null;
 
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -26,20 +29,45 @@ export function initScene() {
   camera.position.set(0, 0, 7); // 横, 縦, 距離
 
   // =============ライト=================
-  const ambientLight = new THREE.AmbientLight(0xf5fffa, 4); // 色, 強さ
-  scene.add(ambientLight);
+  //環境光
+  //const ambientLight = new THREE.AmbientLight(0xf5fffa, 4); // 色, 強さ
+  //scene.add(ambientLight);
+
+  //太陽光
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 6); // 色, 強さ
+  directionalLight.position.set(-5.0, 3.0, 1.0);
+  scene.add(directionalLight);
+  //ヘルパー
+  //const directionalHelper = new THREE.DirectionalLightHelper(directionalLight, 1);
+  //scene.add(directionalHelper);
 
   // =============オブジェクト（仮）=================
+  /*
   // ミクだよー（仮：シリンダー）
   const cylinderGeometry = new THREE.CylinderGeometry(1, 1, 3);
   const cylinderMaterial = new THREE.MeshStandardMaterial({ color: 0x00cabc });
   const cylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
   cylinder.position.set(4, 0, 0);
   scene.add(cylinder);
+  */
+  // VRMローダー
+
+  const loader = new GLTFLoader();
+
+  loader.register((parser) => new VRMLoaderPlugin(parser));
+
+  loader.load("./assets/models/MMmiku/MMmiku.vrm", (gltf) => {
+    vrm = gltf.userData.vrm;
+    vrm.scene.position.set(0.8, -1.12, 5.0);
+    vrm.scene.rotation.set(0, THREE.MathUtils.degToRad(-50), 0);
+    scene.add(vrm.scene);
+    console.log(vrm);
+  });
 
   // =============コントロール=================
   // 動的なカメラ制御（参考: https://ics.media/tutorial-three/camera_orbitcontrols/）
   const controls = new OrbitControls(camera, renderer.domElement);
+  controls.target.set(0, 0, 0);
 
   // =============リサイズ対応=================
   // ウィンドウリサイズ時にアスペクト比を再計算（カメラ比率も変えないと物体が伸びて見える）
