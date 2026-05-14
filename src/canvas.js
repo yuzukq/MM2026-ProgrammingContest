@@ -68,35 +68,44 @@ export function toNormalizedY(canvasY) {
   return 1 - canvasY / canvas.height;
 }
 
-// ワードブロックをスクロール描画する（drawFrame 内部からのみ呼ぶ）
+// ワードブロックを描画する（drawFrame 内部からのみ呼ぶ）
 function drawWordBlocks(position, wordBlocks) {
   const judgmentX = canvas.width * JUDGMENT_X_RATIO;
   const blockHeight = canvas.height * BLOCK_HEIGHT_RATIO;
+
+  // ======== 判定ラインから右端までの矩形を書き込み可能な領域としてクリップ ======
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(judgmentX, 0, canvas.width - judgmentX, canvas.height);
+  ctx.clip();
 
   ctx.fillStyle = "#20B2AA";
   ctx.font = `${blockHeight * 0.7}px sans-serif`;
   ctx.textBaseline = "middle";
 
+  // クリップ内で画面内に映る全ブロックを取得後描画
+  // Ruby: wordBlocks.each do | block | {}
   for (const block of wordBlocks) {
     // startTime は固定値, position は増加し続けるためx座標は減少(左に移動)していく
     const blockPosX = judgmentX + (block.startTime - position) * PIXELS_PER_MS;
     const blockWidth = (block.endTime - block.startTime) * PIXELS_PER_MS;
-    // 画面外はスキップ
-    if (blockPosX + blockWidth < 0 || blockPosX > canvas.width) continue;
+    // 右端が判定ラインより左 or 左端が画面右端より右はスキップ
+    if (blockPosX + blockWidth < judgmentX || blockPosX > canvas.width) continue;
 
     const blockPosY = toCanvasY(block.normalizedAmp) - blockHeight / 2;
     ctx.beginPath();
-    ctx.roundRect(blockPosX, blockPosY, blockWidth, blockHeight, 4); // 左上X,左上Y,横幅,縦幅,角丸4px
+    ctx.roundRect(blockPosX, blockPosY, blockWidth, blockHeight, 4);
     ctx.fill();
 
-    // ブロック幅に収まる場合だけテキストを描画(サビ前でテキストがはみ出す部分があるため暫定対処)
     const textWidth = ctx.measureText(block.text).width;
     if (textWidth < blockWidth - 16) {
       ctx.fillStyle = "white";
       ctx.fillText(block.text, blockPosX + 8, blockPosY + blockHeight / 2);
-      ctx.fillStyle = "#20B2AA"; // 次のブロックのために戻す
+      ctx.fillStyle = "#20B2AA";
     }
   }
+
+  ctx.restore(); // クリップ解放
 }
 
 // onTimeUpdateから呼び、描画せず状態だけ保存する（描画はcanvasRenderLoopに集約）
