@@ -5,7 +5,7 @@ import { particleSystem } from "./particles.js";
 
 const PIXELS_PER_MS = 0.4; // 1ms あたりのピクセル数（スクロール倍率）
 const JUDGMENT_X_RATIO = 0.2; // 判定ラインのX位置（canvas幅の何割かで）
-const BLOCK_HEIGHT_RATIO = 0.03; // ブロックの高さ(縦幅,canvas高さの何割か）
+const BLOCK_HEIGHT_RATIO = 0.04; // ブロックの高さ(縦幅,canvas高さの何割か）
 
 let canvas, ctx;
 let touchedY = 0; // 正規化済みY座標（上=1, 下=0）

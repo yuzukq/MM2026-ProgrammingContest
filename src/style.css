@@ -8,6 +8,15 @@ body {
   background-position: center;
   user-select: none; /* 長押しによるテキスト範囲選択を無効化 */
   -webkit-user-select: none;
+  cursor:
+    url("/cursor.png") 8 8,
+    auto;
+}
+
+*:active {
+  cursor:
+    url("/cursor-active.png") 8 8,
+    auto;
 }
 
 /* 判定ライン仮置き：本番ではインラインSVG鍵盤に差し替える */
