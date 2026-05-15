@@ -94,7 +94,9 @@ function drawWordBlocks(position, wordBlocks) {
   ctx.rect(judgmentX, 0, canvas.width - judgmentX, canvas.height);
   ctx.clip();
 
-  ctx.fillStyle = "#20B2AA";
+  ctx.strokeStyle = "#20B2AA"; // 淵色
+  ctx.fillStyle = "#17605b"; // 塗り
+  ctx.lineWidth = 1.8;
   ctx.font = `${blockHeight * 0.7}px sans-serif`;
   ctx.textBaseline = "middle";
 
@@ -111,12 +113,13 @@ function drawWordBlocks(position, wordBlocks) {
     ctx.beginPath();
     ctx.roundRect(blockPosX, blockPosY, blockWidth, blockHeight, 4);
     ctx.fill();
+    ctx.stroke();
 
     const textWidth = ctx.measureText(block.text).width;
     if (textWidth < blockWidth - 16) {
       ctx.fillStyle = "white";
       ctx.fillText(block.text, blockPosX + 8, blockPosY + blockHeight / 2);
-      ctx.fillStyle = "#20B2AA";
+      ctx.fillStyle = "#17605b"; // 次のブロックのために塗り色を戻す
     }
   }
 
