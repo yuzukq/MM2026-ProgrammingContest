@@ -8,9 +8,11 @@ import { initScene, updateScene } from "./scene.js";
 import { buildWordBlocks, updateGame, getWordBlocks, getScore, getLatestRating, popPendingEffects } from "./game.js";
 import { initCanvas, updateCanvasState, getTouchedY } from "./canvas.js";
 import { initUI, updateUI } from "./ui.js";
+import { initKeyboard } from "./keyboard.js";
 
 initScene();
 initCanvas();
+initKeyboard();
 
 // =============デバッグ用=========
 // let lastUpdateTime = null;

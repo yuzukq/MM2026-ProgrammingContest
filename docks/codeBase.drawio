@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net">
   <diagram name="ページ-1" id="xFZ01a8VrHvUgMOBXa2E">
-    <mxGraphModel dx="3420" dy="2170" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1710" dy="1085" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -152,7 +152,7 @@
           <mxGeometry height="27" width="687" y="615.8510638297872" as="geometry" />
         </mxCell>
         <mxCell id="51" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=53.53846153846154;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="&lt;&lt;パーティクルエフェクト&gt;&gt;&#xa;particles_js" vertex="1">
-          <mxGeometry height="241.53846153846155" width="746" x="761" y="1068" as="geometry" />
+          <mxGeometry height="241.53846153846155" width="746" x="361" y="1195" as="geometry" />
         </mxCell>
         <mxCell id="52" parent="51" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- particles: Array 「飛散するパーティクルのリスト」" vertex="1">
           <mxGeometry height="36" width="746" y="53.53846153846154" as="geometry" />
@@ -173,7 +173,7 @@
           <mxGeometry height="36" width="746" y="205.53846153846155" as="geometry" />
         </mxCell>
         <mxCell id="58" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=51.2;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="&lt;&lt;Three.js 3Dシーン&gt;&gt;&#xa;scene_js" vertex="1">
-          <mxGeometry height="263.2" width="826" x="1527" y="514" as="geometry" />
+          <mxGeometry height="263.2" width="826" x="1752" y="518" as="geometry" />
         </mxCell>
         <mxCell id="59" parent="58" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- scene: THREE.Scene 「3Dシーン」" vertex="1">
           <mxGeometry height="34" width="826" y="51.2" as="geometry" />
@@ -197,7 +197,7 @@
           <mxGeometry height="34" width="826" y="229.2" as="geometry" />
         </mxCell>
         <mxCell id="66" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=62.25;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="&lt;&lt;HTML UI&gt;&gt;&#xa;ui_js" vertex="1">
-          <mxGeometry height="146.25" width="525" x="2403" y="559" as="geometry" />
+          <mxGeometry height="146.25" width="525" x="2723" y="512" as="geometry" />
         </mxCell>
         <mxCell id="68" parent="66" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ initUI(player) : 「再生・一時停止ボタンのイベント登録」" vertex="1">
           <mxGeometry height="42" width="525" y="62.25" as="geometry" />
@@ -237,6 +237,42 @@
           <mxGeometry relative="1" as="geometry">
             <Array as="points" />
           </mxGeometry>
+        </mxCell>
+        <mxCell id="75" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=50;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;fillColor=#dae8fc;strokeColor=#6c8ebf;swimlaneFillColor=none;" value="&lt;&lt;インラインSVG鍵盤&gt;&gt;&#xa;keyboard_js" vertex="1">
+          <mxGeometry height="282" width="620" x="1327" y="1222" as="geometry" />
+        </mxCell>
+        <mxCell id="76" parent="75" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- KEY_COUNT: number 「1オクターブ = 12音」" vertex="1">
+          <mxGeometry height="28" width="620" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="77" parent="75" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- HIGHLIGHT_COLOR: string 「触れているキーのハイライト色」" vertex="1">
+          <mxGeometry height="28" width="620" y="78" as="geometry" />
+        </mxCell>
+        <mxCell id="78" parent="75" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- svgEl: SVGElement 「インライン展開したSVG要素」" vertex="1">
+          <mxGeometry height="28" width="620" y="106" as="geometry" />
+        </mxCell>
+        <mxCell id="79" parent="75" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- lastKeyIndex: number 「前フレームのキーインデックス（変化検出用）」" vertex="1">
+          <mxGeometry height="28" width="620" y="134" as="geometry" />
+        </mxCell>
+        <mxCell id="80" parent="75" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" vertex="1">
+          <mxGeometry height="8" width="620" y="162" as="geometry" />
+        </mxCell>
+        <mxCell id="81" parent="75" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ initKeyboard() : 「SVGフェッチ・DOM挿入・RAFループ開始」" vertex="1">
+          <mxGeometry height="28" width="620" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="82" parent="75" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- getKeyRect(index) : 「指定インデックスのrect要素を返す」" vertex="1">
+          <mxGeometry height="28" width="620" y="198" as="geometry" />
+        </mxCell>
+        <mxCell id="83" parent="75" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- resetKey(index) : 「キーをデフォルト色に戻す」" vertex="1">
+          <mxGeometry height="28" width="620" y="226" as="geometry" />
+        </mxCell>
+        <mxCell id="84" parent="75" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- highlightKey(index) : 「キーをハイライト色に変える」" vertex="1">
+          <mxGeometry height="28" width="620" y="254" as="geometry" />
+        </mxCell>
+        <mxCell id="85" edge="1" parent="1" source="2" style="curved=1;startArrow=none;endArrow=open;endSize=12;" target="75" value="「initKeyboard」">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="86" edge="1" parent="1" source="75" style="curved=1;startArrow=none;endArrow=open;endSize=12;dashed=1;" target="27" value="「getTouchedY (main経由なし・直結)」">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
