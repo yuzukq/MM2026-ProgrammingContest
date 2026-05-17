@@ -1,0 +1,244 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="ページ-1" id="xFZ01a8VrHvUgMOBXa2E">
+    <mxGraphModel dx="3420" dy="2170" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="2" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=56.727272727272734;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;fillColor=#dae8fc;strokeColor=#6c8ebf;swimlaneFillColor=none;" value="&lt;&lt;ゲームマネージャ／起動エントリポイント&gt;&gt;&#xa;main_js" vertex="1">
+          <mxGeometry height="216.72727272727275" width="697" x="1189" y="8" as="geometry" />
+        </mxCell>
+        <mxCell id="3" parent="2" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ player: Player 「TextAlive Playerインスタンス」" vertex="1">
+          <mxGeometry height="38" width="697" y="56.727272727272734" as="geometry" />
+        </mxCell>
+        <mxCell id="4" parent="2" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" vertex="1">
+          <mxGeometry height="8" width="697" y="94.72727272727273" as="geometry" />
+        </mxCell>
+        <mxCell id="5" parent="2" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ onAppReady(app) : 「曲URLをセットしてロード開始」" vertex="1">
+          <mxGeometry height="38" width="697" y="102.72727272727273" as="geometry" />
+        </mxCell>
+        <mxCell id="6" parent="2" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ onVideoReady() : 「ブロック構築・UIイベント登録」" vertex="1">
+          <mxGeometry height="38" width="697" y="140.72727272727275" as="geometry" />
+        </mxCell>
+        <mxCell id="7" parent="2" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ onTimeUpdate(position) : 「毎フレーム：各モジュールへ状態を配布」" vertex="1">
+          <mxGeometry height="38" width="697" y="178.72727272727275" as="geometry" />
+        </mxCell>
+        <mxCell id="8" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=42.16216216216216;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;fillColor=#dae8fc;strokeColor=#6c8ebf;swimlaneFillColor=none;" value="&lt;&lt;ゲームロジック／スコア計算&gt;&gt;&#xa;game_js" vertex="1">
+          <mxGeometry height="526.1621621621622" width="732" x="8" y="382" as="geometry" />
+        </mxCell>
+        <mxCell id="9" parent="8" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- wordBlocks: Array 「全単語ブロックのリスト」" vertex="1">
+          <mxGeometry height="28" width="732" y="42.16216216216216" as="geometry" />
+        </mxCell>
+        <mxCell id="10" parent="8" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- maxAmp: number 「最大声量（正規化の分母）」" vertex="1">
+          <mxGeometry height="28" width="732" y="70.16216216216216" as="geometry" />
+        </mxCell>
+        <mxCell id="11" parent="8" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- score: number 「現在の累積スコア」" vertex="1">
+          <mxGeometry height="28" width="732" y="98.16216216216216" as="geometry" />
+        </mxCell>
+        <mxCell id="12" parent="8" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- maxScore: number 「全PERFECT時の理論最大スコア」" vertex="1">
+          <mxGeometry height="28" width="732" y="126.16216216216216" as="geometry" />
+        </mxCell>
+        <mxCell id="13" parent="8" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- activeBlock: Object 「判定中のブロック（なければnull）」" vertex="1">
+          <mxGeometry height="28" width="732" y="154.16216216216216" as="geometry" />
+        </mxCell>
+        <mxCell id="14" parent="8" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- accumAccuracy: number 「ブロック区間内の精度累積値」" vertex="1">
+          <mxGeometry height="28" width="732" y="182.16216216216216" as="geometry" />
+        </mxCell>
+        <mxCell id="15" parent="8" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- accumFrames: number 「精度累積のフレーム数（平均算出用）」" vertex="1">
+          <mxGeometry height="28" width="732" y="210.16216216216216" as="geometry" />
+        </mxCell>
+        <mxCell id="16" parent="8" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- hitBlockIds: Set 「到着済みブロックID（二重発火防止）」" vertex="1">
+          <mxGeometry height="28" width="732" y="238.16216216216216" as="geometry" />
+        </mxCell>
+        <mxCell id="17" parent="8" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- pendingEffects: Array 「canvas.jsへ渡す演出イベントのキュー」" vertex="1">
+          <mxGeometry height="28" width="732" y="266.1621621621622" as="geometry" />
+        </mxCell>
+        <mxCell id="18" parent="8" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- latestRating: string 「直近の判定結果（UI表示用）」" vertex="1">
+          <mxGeometry height="28" width="732" y="294.1621621621622" as="geometry" />
+        </mxCell>
+        <mxCell id="19" parent="8" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" vertex="1">
+          <mxGeometry height="8" width="732" y="322.1621621621622" as="geometry" />
+        </mxCell>
+        <mxCell id="20" parent="8" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ buildWordBlocks(player) : 「声量ブロックを事前構築（onVideoReadyで1回）」" vertex="1">
+          <mxGeometry height="28" width="732" y="330.1621621621622" as="geometry" />
+        </mxCell>
+        <mxCell id="21" parent="8" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ updateGame(position, touchedY) : 「毎フレーム：精度計算・スコア更新・判定」" vertex="1">
+          <mxGeometry height="28" width="732" y="358.1621621621622" as="geometry" />
+        </mxCell>
+        <mxCell id="22" parent="8" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ popPendingEffects() : 「演出イベントを取り出しキューをクリア」" vertex="1">
+          <mxGeometry height="28" width="732" y="386.1621621621622" as="geometry" />
+        </mxCell>
+        <mxCell id="23" parent="8" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ getWordBlocks() : 「ブロック配列を返す」" vertex="1">
+          <mxGeometry height="28" width="732" y="414.1621621621622" as="geometry" />
+        </mxCell>
+        <mxCell id="24" parent="8" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ getScore() : 「現在スコアを返す」" vertex="1">
+          <mxGeometry height="28" width="732" y="442.1621621621622" as="geometry" />
+        </mxCell>
+        <mxCell id="25" parent="8" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ getMaxScore() : 「理論最大スコアを返す」" vertex="1">
+          <mxGeometry height="28" width="732" y="470.1621621621622" as="geometry" />
+        </mxCell>
+        <mxCell id="26" parent="8" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ getLatestRating() : 「直近レーティングを返す」" vertex="1">
+          <mxGeometry height="28" width="732" y="498.1621621621622" as="geometry" />
+        </mxCell>
+        <mxCell id="27" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40.851063829787236;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;fillColor=#dae8fc;strokeColor=#6c8ebf;swimlaneFillColor=none;" value="&lt;&lt;Canvas 2D描画／入力受付&gt;&gt;&#xa;canvas_js" vertex="1">
+          <mxGeometry height="642.8510638297872" width="687" x="790" y="322" as="geometry" />
+        </mxCell>
+        <mxCell id="28" parent="27" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;" value="- PIXELS_PER_MS: number 「1msあたりのスクロール速度（ピクセル）」" vertex="1">
+          <mxGeometry height="27" width="687" y="40.851063829787236" as="geometry" />
+        </mxCell>
+        <mxCell id="29" parent="27" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- JUDGMENT_X_RATIO: number 「判定ラインX位置（canvas幅に対する比率）」" vertex="1">
+          <mxGeometry height="27" width="687" y="67.85106382978724" as="geometry" />
+        </mxCell>
+        <mxCell id="30" parent="27" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- BLOCK_HEIGHT_RATIO: number 「ブロック高さ（canvas高さに対する比率）」" vertex="1">
+          <mxGeometry height="27" width="687" y="94.85106382978724" as="geometry" />
+        </mxCell>
+        <mxCell id="31" parent="27" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- PLAY_AREA_TOP: number 「プレイエリア上端（canvas高さ比率）」" vertex="1">
+          <mxGeometry height="27" width="687" y="121.85106382978724" as="geometry" />
+        </mxCell>
+        <mxCell id="32" parent="27" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- PLAY_AREA_BOTTOM: number 「プレイエリア下端（canvas高さ比率）」" vertex="1">
+          <mxGeometry height="27" width="687" y="148.85106382978722" as="geometry" />
+        </mxCell>
+        <mxCell id="33" parent="27" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- canvas: HTMLCanvasElement 「描画対象のcanvas要素」" vertex="1">
+          <mxGeometry height="27" width="687" y="175.85106382978722" as="geometry" />
+        </mxCell>
+        <mxCell id="34" parent="27" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- ctx: CanvasRenderingContext2D 「2D描画コンテキスト」" vertex="1">
+          <mxGeometry height="27" width="687" y="202.85106382978722" as="geometry" />
+        </mxCell>
+        <mxCell id="35" parent="27" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- touchedY: number 「正規化済みY座標（上=1, 下=0）」" vertex="1">
+          <mxGeometry height="27" width="687" y="229.85106382978722" as="geometry" />
+        </mxCell>
+        <mxCell id="36" parent="27" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- lastPosition: number 「直近のonTimeUpdateで受けた再生位置ms」" vertex="1">
+          <mxGeometry height="27" width="687" y="256.8510638297872" as="geometry" />
+        </mxCell>
+        <mxCell id="37" parent="27" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- lastReceivedAt: number 「lastPosition受信時の壁時計ms（補間用）」" vertex="1">
+          <mxGeometry height="27" width="687" y="283.8510638297872" as="geometry" />
+        </mxCell>
+        <mxCell id="38" parent="27" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- storedWordBlocks: Array 「描画用に保持したブロック配列」" vertex="1">
+          <mxGeometry height="27" width="687" y="310.8510638297872" as="geometry" />
+        </mxCell>
+        <mxCell id="39" parent="27" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- effectsQueue: Array 「消費待ちの演出イベントキュー」" vertex="1">
+          <mxGeometry height="27" width="687" y="337.8510638297872" as="geometry" />
+        </mxCell>
+        <mxCell id="40" parent="27" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- storedIsOnBeat: boolean 「現フレームでブロックに正確に触れているか」" vertex="1">
+          <mxGeometry height="27" width="687" y="364.8510638297872" as="geometry" />
+        </mxCell>
+        <mxCell id="41" parent="27" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- storedTouchNormalizedY: number 「接触中ブロックのY座標」" vertex="1">
+          <mxGeometry height="27" width="687" y="391.8510638297872" as="geometry" />
+        </mxCell>
+        <mxCell id="42" parent="27" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- judgmentX: number 「判定ラインのX座標（ピクセル）」" vertex="1">
+          <mxGeometry height="27" width="687" y="418.8510638297872" as="geometry" />
+        </mxCell>
+        <mxCell id="43" parent="27" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" vertex="1">
+          <mxGeometry height="8" width="687" y="445.8510638297872" as="geometry" />
+        </mxCell>
+        <mxCell id="44" parent="27" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ initCanvas() : 「canvas生成・イベント登録・RAFループ開始」" vertex="1">
+          <mxGeometry height="27" width="687" y="453.8510638297872" as="geometry" />
+        </mxCell>
+        <mxCell id="45" parent="27" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ getTouchedY() : 「正規化済みtouchedYを返す」" vertex="1">
+          <mxGeometry height="27" width="687" y="480.8510638297872" as="geometry" />
+        </mxCell>
+        <mxCell id="46" parent="27" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ toNormalizedY(canvasY) : 「canvasピクセルY→プレイエリア正規化座標」" vertex="1">
+          <mxGeometry height="27" width="687" y="507.8510638297872" as="geometry" />
+        </mxCell>
+        <mxCell id="47" parent="27" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ updateCanvasState(state) : 「onTimeUpdateから描画状態を受け取り保存」" vertex="1">
+          <mxGeometry height="27" width="687" y="534.8510638297872" as="geometry" />
+        </mxCell>
+        <mxCell id="48" parent="27" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- toPlayAreaCanvasY(normalizedAmp) : 「正規化座標→canvasピクセルY」" vertex="1">
+          <mxGeometry height="27" width="687" y="561.8510638297872" as="geometry" />
+        </mxCell>
+        <mxCell id="49" parent="27" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- drawWordBlocks(position, wordBlocks) : 「ブロックをcanvasに描画」" vertex="1">
+          <mxGeometry height="27" width="687" y="588.8510638297872" as="geometry" />
+        </mxCell>
+        <mxCell id="50" parent="27" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- canvasRenderLoop() : 「60fps RAFループ（補間・描画・パーティクル）」" vertex="1">
+          <mxGeometry height="27" width="687" y="615.8510638297872" as="geometry" />
+        </mxCell>
+        <mxCell id="51" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=53.53846153846154;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="&lt;&lt;パーティクルエフェクト&gt;&gt;&#xa;particles_js" vertex="1">
+          <mxGeometry height="241.53846153846155" width="746" x="761" y="1068" as="geometry" />
+        </mxCell>
+        <mxCell id="52" parent="51" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- particles: Array 「飛散するパーティクルのリスト」" vertex="1">
+          <mxGeometry height="36" width="746" y="53.53846153846154" as="geometry" />
+        </mxCell>
+        <mxCell id="53" parent="51" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- ripples: Array 「広がる波紋のリスト」" vertex="1">
+          <mxGeometry height="36" width="746" y="89.53846153846155" as="geometry" />
+        </mxCell>
+        <mxCell id="54" parent="51" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" vertex="1">
+          <mxGeometry height="8" width="746" y="125.53846153846155" as="geometry" />
+        </mxCell>
+        <mxCell id="55" parent="51" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ spawnTouchingFlash(pixelY, judgmentX) : 「なぞり中の毎フレームパーティクル生成」" vertex="1">
+          <mxGeometry height="36" width="746" y="133.53846153846155" as="geometry" />
+        </mxCell>
+        <mxCell id="56" parent="51" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ spawnResult(pixelY, rating, judgmentX) : 「ブロック判定確定時のパーティクル生成」" vertex="1">
+          <mxGeometry height="36" width="746" y="169.53846153846155" as="geometry" />
+        </mxCell>
+        <mxCell id="57" parent="51" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ update(ctx) : 「パーティクル・波紋の更新と描画（毎フレーム）」" vertex="1">
+          <mxGeometry height="36" width="746" y="205.53846153846155" as="geometry" />
+        </mxCell>
+        <mxCell id="58" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=51.2;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="&lt;&lt;Three.js 3Dシーン&gt;&gt;&#xa;scene_js" vertex="1">
+          <mxGeometry height="263.2" width="826" x="1527" y="514" as="geometry" />
+        </mxCell>
+        <mxCell id="59" parent="58" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- scene: THREE.Scene 「3Dシーン」" vertex="1">
+          <mxGeometry height="34" width="826" y="51.2" as="geometry" />
+        </mxCell>
+        <mxCell id="60" parent="58" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- camera: THREE.PerspectiveCamera 「透視投影カメラ」" vertex="1">
+          <mxGeometry height="34" width="826" y="85.2" as="geometry" />
+        </mxCell>
+        <mxCell id="61" parent="58" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- renderer: THREE.WebGLRenderer 「WebGLレンダラー」" vertex="1">
+          <mxGeometry height="34" width="826" y="119.2" as="geometry" />
+        </mxCell>
+        <mxCell id="62" parent="58" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- vrm: VRM 「ミクのVRMモデル」" vertex="1">
+          <mxGeometry height="34" width="826" y="153.2" as="geometry" />
+        </mxCell>
+        <mxCell id="63" parent="58" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" vertex="1">
+          <mxGeometry height="8" width="826" y="187.2" as="geometry" />
+        </mxCell>
+        <mxCell id="64" parent="58" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ initScene() : 「Three.js初期化・VRMロード・RAFループ開始」" vertex="1">
+          <mxGeometry height="34" width="826" y="195.2" as="geometry" />
+        </mxCell>
+        <mxCell id="65" parent="58" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ updateScene(position, duration, score) : 「3Dオブジェクトの状態更新（レンダリングは行わない）」" vertex="1">
+          <mxGeometry height="34" width="826" y="229.2" as="geometry" />
+        </mxCell>
+        <mxCell id="66" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=62.25;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="&lt;&lt;HTML UI&gt;&gt;&#xa;ui_js" vertex="1">
+          <mxGeometry height="146.25" width="525" x="2403" y="559" as="geometry" />
+        </mxCell>
+        <mxCell id="68" parent="66" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ initUI(player) : 「再生・一時停止ボタンのイベント登録」" vertex="1">
+          <mxGeometry height="42" width="525" y="62.25" as="geometry" />
+        </mxCell>
+        <mxCell id="69" parent="66" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ updateUI(score, rating) : 「スコア・レーティング表示を更新」" vertex="1">
+          <mxGeometry height="42" width="525" y="104.25" as="geometry" />
+        </mxCell>
+        <mxCell id="70" edge="1" parent="1" source="2" style="curved=1;startArrow=none;endArrow=open;endSize=12;exitX=0;exitY=0.72;entryX=0.5;entryY=0;" target="8" value="「updateGame / buildWordBlocks / getters」">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="374" y="273" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="71" edge="1" parent="1" source="2" style="curved=1;startArrow=none;endArrow=open;endSize=12;exitX=0.1;exitY=1;entryX=0.5;entryY=0;" target="27" value="「updateCanvasState / getTouchedY」">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1134" y="273" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="72" edge="1" parent="1" source="2" style="curved=1;startArrow=none;endArrow=open;endSize=12;exitX=0.9;exitY=1;entryX=0.5;entryY=0;" target="58" value="「updateScene」">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1940" y="273" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="73" edge="1" parent="1" source="2" style="curved=1;startArrow=none;endArrow=open;endSize=12;exitX=1;exitY=0.72;entryX=0.5;entryY=0;" target="66" value="「initUI / updateUI」">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2666" y="273" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="74" edge="1" parent="1" source="27" style="curved=1;startArrow=none;endArrow=open;endSize=12;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="51" value="「spawnTouchingFlash / spawnResult / update」">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
