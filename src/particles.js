@@ -12,8 +12,7 @@ class ParticleSystem {
   #ripples = [];
 
   // 正しく触れている間、毎フレーム呼ぶ
-  spawnTouchingFlash(normalizedY, judgmentX, canvasHeight) {
-    const y = (1 - normalizedY) * canvasHeight;
+  spawnTouchingFlash(y, judgmentX) {
     for (let i = 0; i < 2; i++) {
       const angle = Math.random() * Math.PI * 2;
       const speed = 1.5 + Math.random() * 2;
@@ -35,9 +34,8 @@ class ParticleSystem {
   }
 
   // ブロック判定確定時に1回呼ぶ
-  spawnResult(normalizedY, rating, judgmentX, canvasHeight) {
+  spawnResult(y, rating, judgmentX) {
     const cfg = RESULT_CONFIG[rating] ?? RESULT_CONFIG.BAD;
-    const y = (1 - normalizedY) * canvasHeight;
     for (let i = 0; i < cfg.count; i++) {
       const angle = Math.random() * Math.PI * 2;
       const speed = (0.5 + Math.random() * 1.5) * cfg.speed;
