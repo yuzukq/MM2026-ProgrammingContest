@@ -27,7 +27,7 @@ let judgmentX = 0; // onResize で更新
 // canvasを生成してDOMに挿入する main側でinit呼び出し
 export function initCanvas() {
   canvas = document.createElement("canvas");
-  canvas.style.cssText = "position:fixed;top:0;left:0;z-index:1;pointer-events:auto;";
+  canvas.style.cssText = "position:fixed;top:0;left:0;z-index:2;pointer-events:auto;";
   document.body.appendChild(canvas);
   ctx = canvas.getContext("2d"); // 描画ツール
 
