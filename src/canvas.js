@@ -7,6 +7,11 @@ const PIXELS_PER_MS = 0.4; // 1ms あたりのピクセル数（スクロール�
 const JUDGMENT_X_RATIO = 0.2; // 判定ラインのX位置（canvas幅の何割かで）
 const BLOCK_HEIGHT_RATIO = 0.04; // ブロックの高さ(縦幅,canvas高さの何割か）
 
+// プレイエリアの上下境界（canvas高さに対する比率）
+// SVG UI が入った時はここだけ調整する
+const PLAY_AREA_TOP    = 0.1; // 上端から10%はUI領域
+const PLAY_AREA_BOTTOM = 0.9; // 下端から10%は操作しにくい領域
+
 let canvas, ctx;
 let touchedY = 0; // 正規化済みY座標（上=1, 下=0）
 
@@ -52,11 +57,11 @@ export function initCanvas() {
 
     // エフェクト1: ブロックに正確に触れている間のフラッシュ
     if (storedIsOnBeat && storedTouchNormalizedY !== null) {
-      particleSystem.spawnTouchingFlash(storedTouchNormalizedY, judgmentX, canvas.height);
+      particleSystem.spawnTouchingFlash(toPlayAreaCanvasY(storedTouchNormalizedY), judgmentX);
     }
     // エフェクト2: ブロック判定確定時の結果パーティクル
     for (const effect of effectsQueue) {
-      particleSystem.spawnResult(effect.normalizedY, effect.rating, judgmentX, canvas.height);
+      particleSystem.spawnResult(toPlayAreaCanvasY(effect.normalizedY), effect.rating, judgmentX);
     }
     effectsQueue = [];
 
@@ -73,15 +78,18 @@ export function getTouchedY() {
   return touchedY;
 }
 
-// 正規化座標（上=1, 下=0）をcanvasピクセルY座標(左上が原点)に変換する
-// 触れている位置のフィードバック描画やブロック描画時に使う
-export function toCanvasY(normalizedY) {
-  return (1 - normalizedY) * canvas.height;
+// normalizedAmp(0-1) をプレイエリア内のcanvasピクセルY座標に変換する
+// ブロック描画・パーティクル生成時に使う
+function toPlayAreaCanvasY(normalizedAmp) {
+  const range = PLAY_AREA_BOTTOM - PLAY_AREA_TOP;
+  return (PLAY_AREA_TOP + (1 - normalizedAmp) * range) * canvas.height;
 }
 
-// タッチ座標系を声量座標系と揃える。入力検出時に内部で使う
+// canvasピクセルY座標をプレイエリア内の正規化座標（上=1, 下=0）に変換する
+// touchedY の取得時に使う。プレイエリア外は0未満・1超えになる
 export function toNormalizedY(canvasY) {
-  return 1 - canvasY / canvas.height;
+  const range = PLAY_AREA_BOTTOM - PLAY_AREA_TOP;
+  return 1 - (canvasY / canvas.height - PLAY_AREA_TOP) / range;
 }
 
 // ワードブロックを描画する（drawFrame 内部からのみ呼ぶ）
@@ -109,7 +117,7 @@ function drawWordBlocks(position, wordBlocks) {
     // 右端が判定ラインより左 or 左端が画面右端より右はスキップ
     if (blockPosX + blockWidth < judgmentX || blockPosX > canvas.width) continue;
 
-    const blockPosY = toCanvasY(block.normalizedAmp) - blockHeight / 2;
+    const blockPosY = toPlayAreaCanvasY(block.normalizedAmp) - blockHeight / 2;
     ctx.beginPath();
     ctx.roundRect(blockPosX, blockPosY, blockWidth, blockHeight, 4);
     ctx.fill();
