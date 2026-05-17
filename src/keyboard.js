@@ -1,5 +1,7 @@
 // keyboard.js
 // インラインSVG鍵盤の初期化・タッチハイライト更新を担当する
+// タッチ入力の起点は canvas.js のため、main.js を経由せず直接 getTouchedY を参照する
+// （main.js 経由では 20fpsに制限されうのでので鍵盤ハイライトは RAFループ60fps の応答性を重視）
 
 import { getTouchedY } from "./canvas.js";
 
