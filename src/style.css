@@ -19,15 +19,33 @@ body {
     auto;
 }
 
-/* 判定ライン仮置き：本番ではインラインSVG鍵盤に差し替える */
-#judgment-line {
+/* インラインSVG鍵盤：プレイエリア内に敷き詰め */
+#keyboard-wrapper {
   position: fixed;
-  left: 20%; /* JUDGMENT_X_RATIO = 0.2 に合わせて変更する */
-  top: 0;
-  width: 2px;
-  height: 100dvh;
-  background: rgba(255, 255, 255, 0.6);
-  z-index: 2;
+  left: 0;
+  top: 10%; /* PLAY_AREA_TOPに合わせる */
+  width: 20%; /* JUDGMENT_X_RATIO に合わせる*/
+  height: 80%; /* PLAY_AREA_BOTTOM - PLAY_AREA_TOP */
+  z-index: 1;
+  pointer-events: none;
+}
+
+#keyboard-wrapper svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* インラインSVG鍵盤：プレイエリア外下部のリピートスタイル */
+#keyboard-bg {
+  position: fixed;
+  left: 0;
+  top: 90%; /* 上端PLAY_AREA_BOTTOMから */
+  bottom: 0; /* 下端を画面下まで */
+  width: 20%; /* JUDGMENT_X_RATIO */
+  background-image: url("/assets/keyboard.svg");
+  background-repeat: repeat-y;
+  background-size: 100% auto;
+  z-index: 1;
   pointer-events: none;
 }
 
