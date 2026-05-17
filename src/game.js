@@ -26,16 +26,22 @@ let latestRating = null;
 
 // 声量ブロックを事前構築 main側からonVideoReady1回呼ぶ
 // （毎フレーム getVocalAmplitude を呼ぶと波形がぶれるため、単語の先頭時刻で固定する）
+// 『こたえて』のコーラス区間の1msダミーワードを除外する閾値
+// コーラス部分を判定や演出で使う場合は「こたえて」のみ配布されたjsonを利用する。
+const CHORUS_NOISE_THRESHOLD = 50;
+
 export function buildWordBlocks(player) {
   maxAmp = player.getMaxVocalAmplitude() || 1;
   let word = player.video.firstWord;
   while (word) {
-    wordBlocks.push({
-      startTime: word.startTime, // 単語開始時刻
-      endTime: word.endTime, // 単語終了時刻
-      text: word.text, // 単語の文字列
-      normalizedAmp: player.getVocalAmplitude(word.startTime) / maxAmp, // 単語開始時の声量(1単語を声量ブロックの変化の区切りとするため)
-    });
+    if (word.endTime - word.startTime >= CHORUS_NOISE_THRESHOLD) {
+      wordBlocks.push({
+        startTime: word.startTime,
+        endTime: word.endTime,
+        text: word.text,
+        normalizedAmp: player.getVocalAmplitude(word.startTime) / maxAmp,
+      });
+    }
     word = word.next;
   }
   maxScore = wordBlocks.length * RATING_MULTIPLIER.PERFECT; // 全ブロック PERFECT 時の理論最大値
@@ -77,7 +83,10 @@ export function updateGame(position, touchedY) {
     const frameAccuracy = 1 - distance; // 1=ピッタリ, 0=最大ズレ
     accumAccuracy += frameAccuracy;
     accumFrames++;
-    return { isOnBeat: frameAccuracy >= RATING_THRESHOLDS.PERFECT, normalizedY: block.normalizedAmp };
+    return {
+      isOnBeat: frameAccuracy >= RATING_THRESHOLDS.PERFECT,
+      normalizedY: block.normalizedAmp,
+    };
   }
   return { isOnBeat: false, normalizedY: null };
 }

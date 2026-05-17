@@ -3,13 +3,13 @@
 
 import { particleSystem } from "./particles.js";
 
-const PIXELS_PER_MS = 0.4; // 1ms あたりのピクセル数（スクロール倍率）
+const PIXELS_PER_MS = 0.65; // 1ms あたりのピクセル数（スクロール倍率）
 const JUDGMENT_X_RATIO = 0.2; // 判定ラインのX位置（canvas幅の何割かで）
 const BLOCK_HEIGHT_RATIO = 0.04; // ブロックの高さ(縦幅,canvas高さの何割か）
 
 // プレイエリアの上下境界（canvas高さに対する比率）
 // SVG UI が入った時はここだけ調整する
-const PLAY_AREA_TOP    = 0.1; // 上端から10%はUI領域
+const PLAY_AREA_TOP = 0.1; // 上端から10%はUI領域
 const PLAY_AREA_BOTTOM = 0.9; // 下端から10%は操作しにくい領域
 
 let canvas, ctx;
@@ -124,9 +124,10 @@ function drawWordBlocks(position, wordBlocks) {
     ctx.stroke();
 
     const textWidth = ctx.measureText(block.text).width;
-    if (textWidth < blockWidth - 16) {
+    // 鬼ヒューリスティックでPIXELS_PER_MS = 0.65環境下,一単語duration60msくらいまでは入り切りそうだったので変更するときは要注意
+    if (textWidth < blockWidth - 2) {
       ctx.fillStyle = "white";
-      ctx.fillText(block.text, blockPosX + 8, blockPosY + blockHeight / 2);
+      ctx.fillText(block.text, blockPosX + 4, blockPosY + blockHeight / 2);
       ctx.fillStyle = "#17605b"; // 次のブロックのために塗り色を戻す
     }
   }
