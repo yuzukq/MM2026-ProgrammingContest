@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="piano" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 721">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #e6e6e6;
+      }
+
+      .cls-2, .cls-3 {
+        fill: none;
+        stroke: gray;
+        stroke-miterlimit: 10;
+      }
+
+      .cls-4 {
+        fill: #fff;
+      }
+
+      .cls-3 {
+        stroke-width: 2px;
+      }
+
+      .cls-5 {
+        fill: #333;
+      }
+    </style>
+  </defs>
+  <g id="white">
+    <g id="_11" data-name="11">
+      <rect class="cls-4" x="0" y=".5" width="384" height="60"/>
+    </g>
+    <g id="_10" data-name="10">
+      <rect class="cls-1" x="0" y="60.5" width="384" height="60"/>
+    </g>
+    <g id="_9" data-name="9">
+      <rect class="cls-4" x="0" y="120.5" width="384" height="60"/>
+    </g>
+    <g id="_8" data-name="8">
+      <rect class="cls-1" x="0" y="180.5" width="384" height="60"/>
+    </g>
+    <g id="_7" data-name="7">
+      <rect class="cls-4" x="0" y="240.5" width="384" height="60"/>
+    </g>
+    <g id="_6" data-name="6">
+      <rect class="cls-1" x="0" y="300.5" width="384" height="60"/>
+    </g>
+    <g id="_5" data-name="5">
+      <rect class="cls-4" x="0" y="360.5" width="384" height="60"/>
+    </g>
+    <g id="_4" data-name="4">
+      <rect class="cls-4" x="0" y="420.5" width="384" height="60"/>
+    </g>
+    <g id="_3" data-name="3">
+      <rect class="cls-1" x="0" y="480.5" width="384" height="60"/>
+    </g>
+    <g id="_2" data-name="2">
+      <rect class="cls-4" x="0" y="540.5" width="384" height="60"/>
+    </g>
+    <g id="_1" data-name="1">
+      <rect class="cls-1" x="0" y="600.5" width="384" height="60"/>
+    </g>
+    <g id="_0" data-name="0">
+      <rect class="cls-4" x="0" y="660.5" width="384" height="60"/>
+    </g>
+  </g>
+  <g id="_黒鍵" data-name="黒鍵">
+    <g id="A_" data-name="A#">
+      <rect class="cls-5" y="60.5" width="192" height="60"/>
+    </g>
+    <g id="G_" data-name="G#">
+      <rect class="cls-5" x="0" y="180.5" width="192" height="60"/>
+    </g>
+    <g id="F_" data-name="F#">
+      <rect class="cls-5" x="0" y="300.5" width="192" height="60"/>
+    </g>
+    <g id="D_" data-name="D#">
+      <rect class="cls-5" x="0" y="480.5" width="192" height="60"/>
+    </g>
+    <g id="C_" data-name="C#">
+      <rect class="cls-5" x="0" y="600.5" width="192" height="60"/>
+    </g>
+  </g>
+  <g id="_区切れ線" data-name="区切れ線">
+    <line id="C" class="cls-2" x1="0" y1="720.5" x2="384" y2="720.5"/>
+    <line id="EF" class="cls-3" x1="0" y1="419.17" x2="384" y2="419.17"/>
+    <line id="B" class="cls-2" x1="0" y1=".5" x2="384" y2=".5"/>
+  </g>
+</svg>
