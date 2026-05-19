@@ -14,9 +14,10 @@ import {
   popPendingEffects,
 } from "./game.js";
 import { initCanvas, updateCanvasState, getTouchedY } from "./canvas.js";
-import { initUI, updateUI } from "./ui.js";
+import { updateUI } from "./ui.js";
 import { initKeyboard } from "./keyboard.js";
 import { initSelection, showSelectionScreen, hideSelectionScreen } from "./selection.js";
+import { initLoading, showLoadingScreen, hideLoadingScreen, setLoadingReady } from "./loading.js";
 
 // ===============ステートマシン===============
 const STATE = {
@@ -43,6 +44,7 @@ function enter(s, ctx) {
       break;
     case STATE.LOADING:
       hideSelectionScreen();
+      showLoadingScreen();
       player.createFromSongUrl(ctx.song.url, { video: ctx.song.video });
       break;
     case STATE.PLAYING:
@@ -55,6 +57,9 @@ function enter(s, ctx) {
 
 function exit(s) {
   switch (s) {
+    case STATE.LOADING:
+      hideLoadingScreen();
+      break;
     default:
       break;
   }
@@ -75,6 +80,12 @@ function initPlayScene() {
 // 選曲画面を初期化（DOM構築のみ。表示は onAppReady → transition(SELECTION) のタイミング）
 initSelection((song) => transition(STATE.LOADING, { song }));
 
+// ロード画面を初期化（タップされたらユーザージェスチャー中に requestPlay してプレイへ遷移）
+initLoading(() => {
+  player.requestPlay();
+  transition(STATE.PLAYING);
+});
+
 // TextAlive のイニシャライズ
 const player = new Player({
   app: { token: "test" }, // TODO: 本番トークンに差し替える
@@ -88,11 +99,14 @@ player.addListener({
       transition(STATE.SELECTION);
     }
   },
-  // 楽曲データの読み込みが完了したら呼ばれる
+  // 歌詞・タイミングデータの読み込みが完了したら呼ばれる
   onVideoReady() {
     buildWordBlocks(player); // game.js：単語単位の声量ブロックを事前構築
-    initUI(player); // ui.js：ボタンにイベントを登録
-    transition(STATE.PLAYING); // 状態更新
+    // 音声（Songle）のロードはまだ続いているため、タップ有効化は onTimerReady へ
+  },
+  // 音声（Songleタイマー）の準備が完了したら呼ばれる
+  onTimerReady() {
+    setLoadingReady(); // ここで初めてタップを有効化する
   },
   // 毎フレーム呼ばれるメインのゲームループ
   onTimeUpdate(position) {
