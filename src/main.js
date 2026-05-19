@@ -16,7 +16,7 @@ import {
 import { initCanvas, updateCanvasState, getTouchedY } from "./canvas.js";
 import { initUI, updateUI } from "./ui.js";
 import { initKeyboard } from "./keyboard.js";
-import { SONGS } from "./songs.js";
+import { initSelection, showSelectionScreen, hideSelectionScreen } from "./selection.js";
 
 // ===============ステートマシン===============
 const STATE = {
@@ -36,13 +36,13 @@ function transition(to, ctx = {}) {
 }
 
 function enter(s, ctx) {
+  // ステートに合わせてinit
   switch (s) {
     case STATE.SELECTION:
-      // TODO: selection.js の showSelectionScreen() に差し替える
-      // 暫定：先頭曲で直接ロードへ遷移
-      transition(STATE.LOADING, { song: SONGS[0] });
+      showSelectionScreen();
       break;
     case STATE.LOADING:
+      hideSelectionScreen();
       player.createFromSongUrl(ctx.song.url, { video: ctx.song.video });
       break;
     case STATE.PLAYING:
@@ -71,6 +71,9 @@ function initPlayScene() {
   initKeyboard();
   playSceneInitialized = true;
 }
+
+// 選曲画面を初期化（DOM構築のみ。表示は onAppReady → transition(SELECTION) のタイミング）
+initSelection((song) => transition(STATE.LOADING, { song }));
 
 // TextAlive のイニシャライズ
 const player = new Player({
