@@ -117,6 +117,8 @@ function moveTo(index) {
   updateCards();
 }
 
+// 確定時にコールバックとして入れておいたmainのtransitionを呼び出す
+// transition(STATE.LOADING, { song: SONGS[selectedIndex] });
 function confirmSelection() {
   onSongSelectedCallback?.(SONGS[selectedIndex]);
 }

@@ -61,6 +61,7 @@ function buildDOM() {
   );
 }
 
+// player.requestPlay()とtransition(STATE.PLAYING)を実行
 function handleTap() {
   if (!isReady) return;
   onStartCallback?.();
