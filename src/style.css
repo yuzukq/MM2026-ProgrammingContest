@@ -49,6 +49,77 @@ body {
   pointer-events: none;
 }
 
+/* z-index: 20  ロード画面（選曲後〜タップ開始まで） */
+#loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 20;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #202020;
+  cursor: default;
+}
+
+#loading-image {
+  max-width: 100%;
+  max-height: 85%;
+  object-fit: contain;
+}
+
+#loading-hint {
+  margin: 16px 0 0;
+  color: white;
+  font-size: 18px;
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+}
+
+/* z-index: 20  選曲画面（プレイシーン開始前のみ表示） */
+#selection-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 20;
+  display: none; /* showSelectionScreen() で flex に切り替える */
+  align-items: left;
+  justify-content: left;
+  background: rgba(0, 0, 0, 0.85);
+}
+
+#selection-cards {
+  position: relative;
+  /* SVG縦幅120pxのアスペクト比（1425.93/303.29≈4.7）から算出 */
+  width: 564px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.song-card {
+  position: absolute;
+  cursor: pointer;
+  transition:
+    transform 0.25s ease,
+    opacity 0.25s ease;
+  will-change: transform, opacity;
+  line-height: 0; /* SVG下の隙間をなくす */
+}
+
+/* SVGは縦幅を基準にアスペクト比を維持して表示 */
+.song-card svg {
+  display: block;
+  height: 120px;
+  width: auto;
+}
+
 /* z-index: 10  HTML UI レイヤー */
 #ui {
   position: fixed;
