@@ -95,40 +95,29 @@ body {
 
 #selection-cards {
   position: relative;
-  width: 360px;
+  /* SVG縦幅120pxのアスペクト比（1425.93/303.29≈4.7）から算出 */
+  width: 564px;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-/* TODO: SVGカードに差し替える */
 .song-card {
   position: absolute;
-  width: 100%;
-  padding: 20px 28px;
-  background: #1a2a2a;
-  border: 2px solid #20b2aa;
-  border-radius: 12px;
-  color: white;
   cursor: pointer;
   transition:
     transform 0.25s ease,
     opacity 0.25s ease;
   will-change: transform, opacity;
-  box-sizing: border-box;
+  line-height: 0; /* SVG下の隙間をなくす */
 }
 
-.card-title {
-  margin: 0 0 6px;
-  font-size: 22px;
-  font-weight: bold;
-}
-
-.card-artist {
-  margin: 0;
-  font-size: 13px;
-  color: #20b2aa;
+/* SVGは縦幅を基準にアスペクト比を維持して表示 */
+.song-card svg {
+  display: block;
+  height: 120px;
+  width: auto;
 }
 
 /* z-index: 10  HTML UI レイヤー */

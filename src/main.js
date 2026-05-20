@@ -78,9 +78,9 @@ function initPlayScene() {
   playSceneInitialized = true;
 }
 
-// 選曲画面を初期化（DOM構築のみ。表示は onAppReady → transition(SELECTION) のタイミング）
+// 選曲画面を初期化（SVGフェッチ完了まで await。表示は onAppReady → transition(SELECTION) のタイミング）
 // selection.js の onSongSelectedCallbackに曲が決まったら呼ぶ関数を渡す
-initSelection((song) => transition(STATE.LOADING, { song }));
+await initSelection((song) => transition(STATE.LOADING, { song }));
 
 // ロード画面を初期化
 // ロード完了画面のタップにrequestPlayをコールバックとして仕込むため

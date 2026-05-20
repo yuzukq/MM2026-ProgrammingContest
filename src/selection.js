@@ -4,6 +4,7 @@
 
 import { SONGS } from "./songs.js";
 
+const CARD_SVG_SRC = "/assets/selectcard.svg";
 const CARD_STEP = 140; // 隣カードまでの縦オフセット(px)
 const SCALE_STEP = 0.15; // 1段離れるごとのスケール減少量
 const MIN_SCALE = 0.55; // スケールの下限
@@ -15,10 +16,12 @@ let cardElements = [];
 let screenEl = null;
 let onSongSelectedCallback = null;
 
-// main.js から呼ぶ。onSelected(song) は曲確定時のコールバック
-export function initSelection(onSelected) {
+// main.js から await で呼ぶ。SVGフェッチが完了してからDOMを構築する
+export async function initSelection(onSelected) {
   onSongSelectedCallback = onSelected;
-  buildDOM();
+  const res = await fetch(CARD_SVG_SRC);
+  const svgTemplate = await res.text();
+  buildDOM(svgTemplate);
   bindEvents();
 }
 
@@ -31,7 +34,7 @@ export function hideSelectionScreen() {
 }
 
 // ======== DOM構築 ========
-function buildDOM() {
+function buildDOM(svgTemplate) {
   screenEl = document.createElement("div");
   screenEl.id = "selection-screen";
 
@@ -41,12 +44,23 @@ function buildDOM() {
   SONGS.forEach((song, i) => {
     const card = document.createElement("div");
     card.className = "song-card";
-    // TODO: カードSVGに差し替える（一旦テキストはここで注入するかな）
-    // SVG側で<text>タグ入れてもらって書き換え
-    card.innerHTML = `
-      <p class="card-title">${song.title}</p>
-      <p class="card-artist">${song.artist}</p>
-    `;
+
+    // SVGテンプレートをカードに埋め込む
+    card.innerHTML = svgTemplate;
+    const svg = card.querySelector("svg");
+
+    // tspan分割して属性と値で改行
+    svg.querySelector("#title").innerHTML =
+      `<tspan x="0" y="0">SONG NAME</tspan><tspan x="0" dy="1.2em" font-size="34px" font-weight="bold">${song.title}</tspan>`;
+    svg.querySelector("#artist").innerHTML =
+      `<tspan x="0" y="0">ARTIST</tspan><tspan x="0" dy="1.2em" font-size="34px" font-weight="bold">${song.artist}</tspan>`;
+    svg.querySelector("#score").innerHTML =
+      `<tspan x="0" y="0">HIGH SCORE</tspan><tspan x="0" dy="1.2em" font-size="34px" font-weight="bold">${getHighScore(song.id)}</tspan>`;
+
+    // image_holder の rect をジャケット画像に差し替え
+    const holder = svg.querySelector("#image_holder");
+    holder.innerHTML = `<image href="${song.jacket}" x="0" y="0" width="303.28" height="303.28" preserveAspectRatio="xMidYMid slice"/>`;
+
     card.addEventListener("click", () => {
       if (i === selectedIndex) {
         confirmSelection(); // フォーカス中のカードをタップ→確定
@@ -54,6 +68,7 @@ function buildDOM() {
         moveTo(i); // 別カードをタップ→フォーカス移動
       }
     });
+
     cardsContainer.appendChild(card);
     cardElements.push(card);
   });
@@ -131,4 +146,11 @@ function updateCards() {
     card.style.transform = `translateY(${distance * CARD_STEP}px) scale(${scale})`;
     card.style.opacity = String(Math.max(0.4, scale));
   });
+}
+
+// [仮実装]localStorage から曲ごとのハイスコアを取得する
+// TODO: game.js でゲーム終了時に localStorage.setItem(`highscore_${song.id}`, score) を呼ぶ
+function getHighScore(songId) {
+  const stored = localStorage.getItem(`highscore_${songId}`);
+  return stored !== null ? stored : "---";
 }

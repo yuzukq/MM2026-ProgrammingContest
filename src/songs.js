@@ -3,6 +3,7 @@ export const SONGS = [
     id: "kotaete",
     title: "こたえて",
     artist: "imie",
+    jacket: "/assets/jackets/kotaete.jpg", // TODO: ジャケット画像を配置
     url: "https://piapro.jp/t/6W2N/20251215164617",
     video: {
       beatId: 4827293,
@@ -16,6 +17,7 @@ export const SONGS = [
     id: "after-the-curtain",
     title: "アフター・ザ・カーテン",
     artist: "Rulmry",
+    jacket: "/assets/jackets/after-the-curtain.jpg",
     url: "https://piapro.jp/t/zoqO/20251214200738",
     video: {
       beatId: 4827294,
@@ -29,6 +31,7 @@ export const SONGS = [
     id: "shutter-chance",
     title: "シャッターチャンス",
     artist: "夜未アガリ",
+    jacket: "/assets/jackets/shutter-chance.jpg",
     url: "https://piapro.jp/t/PNpQ/20251209170719",
     video: {
       beatId: 4827295,
@@ -42,6 +45,7 @@ export const SONGS = [
     id: "sekai-saigo",
     title: "世界最後の音楽隊",
     artist: "夏山よつぎ×ど～ぱみん",
+    jacket: "/assets/jackets/sekai-saigo.jpg",
     url: "https://piapro.jp/t/B3yJ/20251215061727",
     video: {
       beatId: 4827296,
@@ -55,6 +59,7 @@ export const SONGS = [
     id: "toritsukrology",
     title: "トリツクロジー",
     artist: "鶴三",
+    jacket: "/assets/jackets/toritsukrology.jpg",
     url: "https://piapro.jp/t/QBdL/20251215094303",
     video: {
       beatId: 4827297,
@@ -68,6 +73,7 @@ export const SONGS = [
     id: "takeover",
     title: "TAKEOVER",
     artist: "Twinfield",
+    jacket: "/assets/jackets/takeover.jpg",
     url: "https://piapro.jp/t/E2i3/20251215092113",
     video: {
       beatId: 4827298,
