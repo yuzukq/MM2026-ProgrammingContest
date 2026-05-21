@@ -3,6 +3,7 @@
 // 全モジュールを import して各種 init・接続するだけで、それ自身はロジックを持たない。
 // TextAlive の onTimeUpdate がここに集約され、各モジュールへ振り分ける。
 
+// ===============モジュール集約================
 import { Player } from "textalive-app-api";
 import { initScene, updateScene } from "./scene.js";
 import {
@@ -10,7 +11,9 @@ import {
   updateGame,
   getWordBlocks,
   getScore,
+  getMaxScore,
   getLatestRating,
+  getRatingCounts,
   popPendingEffects,
 } from "./game.js";
 import { initCanvas, updateCanvasState, getTouchedY, stopCanvasLoop } from "./canvas.js";
@@ -18,6 +21,7 @@ import { updateUI } from "./ui.js";
 import { initKeyboard } from "./keyboard.js";
 import { initSelection, showSelectionScreen, hideSelectionScreen } from "./selection.js";
 import { initLoading, showLoadingScreen, hideLoadingScreen, setLoadingReady } from "./loading.js";
+import { initResult, showResultScreen, hideResultScreen } from "./result.js";
 
 // ===============ステートマシン===============
 const STATE = {
@@ -52,6 +56,11 @@ function enter(s, ctx) {
       initPlayScene();
       break;
     case STATE.RESULT:
+      showResultScreen({
+        score: getScore(),
+        maxScore: getMaxScore(),
+        ratingCounts: getRatingCounts(),
+      });
       break;
   }
 }
@@ -63,6 +72,9 @@ function exit(s) {
       break;
     case STATE.PLAYING:
       stopCanvasLoop();
+      break;
+    case STATE.RESULT:
+      hideResultScreen();
       break;
     default:
       break;
@@ -92,12 +104,21 @@ initLoading(() => {
   transition(STATE.PLAYING);
 });
 
+// リザルト画面を初期化
+// タップで選曲画面に戻るコールバックを渡す
+initResult(() => transition(STATE.SELECTION));
+
 // TextAlive のイニシャライズ
 const player = new Player({
   app: { token: "test" }, // TODO: 本番トークンに差し替える
   vocalAmplitudeEnabled: true,
 });
 
+// =======デバッグ用後で消す（曲の90%地点にシーク）=====================
+window.__debugSkip = () => {
+  if (player.video?.duration) player.requestMediaSeek(player.video.duration * 0.9);
+};
+// ==============================================================
 player.addListener({
   // TextAlive の準備ができたら呼ばれる
   onAppReady(app) {
@@ -121,7 +142,7 @@ player.addListener({
 
     // onStopは自然終了で発火しないようなので再生位置と終端比較で検知
     if (position >= player.video.duration) {
-      console.log("[song end] position:", position, "duration:", player.video.duration);
+      console.log("自然終了", position, player.video.duration);
       transition(STATE.RESULT);
       return;
     }

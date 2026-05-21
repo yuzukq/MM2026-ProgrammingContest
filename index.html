@@ -12,6 +12,8 @@
     <div id="ui">
       <span id="score">score: 0</span>
       <span id="rating"></span>
+      <!-- デバッグ用：曲の90%地点にシーク -->
+      <button id="debug-skip" onclick="window.__debugSkip?.()">⏭ skip</button>
     </div>
 
 <!-- Three.js レンダラー（z-index: 0）と Canvas 2D（z-index: 1）は JS 側で生成・挿入 -->
