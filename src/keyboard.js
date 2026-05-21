@@ -1,15 +1,18 @@
 // keyboard.js
 // インラインSVG鍵盤の初期化・タッチハイライト更新を担当する
-// タッチ入力の起点は canvas.js のため、main.js を経由せず直接 getTouchedY を参照する
-// （main.js 経由では 20fpsに制限されうのでので鍵盤ハイライトは RAFループ60fps の応答性を重視）
+// タッチ入力の起点は canvas.js のため、main.js を経由せず直接 getPlayAreaY を参照する
+// （main.js 経由では 20fpsに制限されうるので鍵盤ハイライトは RAFループ60fps の応答性を重視）
 
-import { getTouchedY } from "./canvas.js";
+import { getPlayAreaY } from "./canvas.js";
 
 const KEY_COUNT = 12;
 const HIGHLIGHT_COLOR = "#20B2AA";
+// キー幅に対する割合。この値以内なら隣接キーも点灯させる
+const BOUNDARY_THRESHOLD = 0.35;
 
 let svgEl = null;
 let lastKeyIndex = -1;
+let lastNeighborIndex = -1; // 前フレームで隣接ハイライトしたキー（なければ-1）
 
 export async function initKeyboard() {
   // SVGファイルをテキストとして取得
@@ -34,14 +37,33 @@ export async function initKeyboard() {
   function loop() {
     requestAnimationFrame(loop);
     if (!svgEl) return;
-    // touchedY（0-1）を12分割して対応するキーインデックス（0-11）に変換
-    const rawIndex = Math.floor(getTouchedY() * KEY_COUNT);
-    // プレイエリア外（touchedYが0未満・1超え）でも0-11に収まるようクランプ
-    const keyIndex = Math.max(0, Math.min(KEY_COUNT - 1, rawIndex));
-    if (keyIndex === lastKeyIndex) return; // 変化がなければDOM操作をスキップ
+
+    // プレイエリア内（0-1）を12分割
+    const exactPos = getPlayAreaY() * KEY_COUNT;
+    // 少数切り捨ててメインのindexを計算
+    const keyIndex = Math.min(KEY_COUNT - 1, Math.floor(exactPos));
+    const fraction = exactPos - Math.floor(exactPos); // 少数部: キーの中での高さ
+
+    // 境界に近い側の隣接キーを計算（キー幅の BOUNDARY_THRESHOLD 以内なら点灯）
+    let neighborIndex = -1;
+    if (fraction > 1 - BOUNDARY_THRESHOLD && keyIndex < KEY_COUNT - 1) {
+      neighborIndex = keyIndex + 1; // 上の隣
+    } else if (fraction < BOUNDARY_THRESHOLD && keyIndex > 0) {
+      neighborIndex = keyIndex - 1; // 下の隣
+    }
+
+    if (keyIndex === lastKeyIndex && neighborIndex === lastNeighborIndex) return;
+
+    // 前フレームのハイライトをリセット
     resetKey(lastKeyIndex);
+    resetKey(lastNeighborIndex);
+
+    // 新しいハイライトを適用
     highlightKey(keyIndex);
-    lastKeyIndex = keyIndex; // 現ループのキーindexを保存
+    if (neighborIndex !== -1) highlightKey(neighborIndex);
+
+    lastKeyIndex = keyIndex;
+    lastNeighborIndex = neighborIndex;
   }
   loop();
 }
