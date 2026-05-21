@@ -70,8 +70,7 @@ function canvasRenderLoop() {
   effectsQueue = [];
 
   particleSystem.update(ctx);
-  // TODO: プレイヤーのカーソル/指の位置(touchedY)を描画
-  // メモ: touchedYはこのスコープの範囲内なので誤ってmainからupdateCanvasStateに渡してくるみたいなことをしないように。
+  // TODO:
   // 現状pauseしても補完が回り続けるのでブロック描画が止まらないのでここも後々対応してね。
 }
 
