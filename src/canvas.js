@@ -13,7 +13,8 @@ const PLAY_AREA_TOP = 0.1; // 上端から10%はUI領域
 const PLAY_AREA_BOTTOM = 0.9; // 下端から10%は操作しにくい領域
 
 let canvas, ctx;
-let touchedY = 0; // 正規化済みY座標（上=1, 下=0）
+let touchedY = 0;
+let rafId = null; // 正規化済みY座標（上=1, 下=0）
 
 // RAFループ用
 let lastPosition = 0; // 曲の開始を0とした再生時刻
@@ -48,7 +49,6 @@ export function initCanvas() {
   });
 
   // mainの方のonTimeUpdate(~20fps)とは独立した描画ループ(16ms間隔60FPS程度)
-  let rafId = null;
   function canvasRenderLoop() {
     rafId = requestAnimationFrame(canvasRenderLoop);
     // (前回の曲の再生位置ms) + (その後の経過時間ms)でポジション補完
