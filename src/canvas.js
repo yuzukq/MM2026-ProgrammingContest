@@ -78,6 +78,12 @@ export function getTouchedY() {
   return touchedY;
 }
 
+// touchedY をプレイエリア内（0-1）にクランプして返す
+// keyboard.js など「エリア外を考慮しなくていいモジュール」向け
+export function getPlayAreaY() {
+  return Math.max(0, Math.min(1, touchedY));
+}
+
 // normalizedAmp(0-1) をプレイエリア内のcanvasピクセルY座標に変換する
 // ブロック描画・パーティクル生成時に使う
 function toPlayAreaCanvasY(normalizedAmp) {
