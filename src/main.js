@@ -17,7 +17,13 @@ import {
   getRatingCounts,
   popPendingEffects,
 } from "./game.js";
-import { initCanvas, startCanvasLoop, stopCanvasLoop, updateCanvasState, getTouchedY } from "./canvas.js";
+import {
+  initCanvas,
+  startCanvasLoop,
+  stopCanvasLoop,
+  updateCanvasState,
+  getTouchedY,
+} from "./canvas.js";
 import { updateUI } from "./ui.js";
 import { initKeyboard, showKeyboard, hideKeyboard } from "./keyboard.js";
 import { initSelection, showSelectionScreen, hideSelectionScreen } from "./selection.js";
@@ -33,6 +39,7 @@ const STATE = {
 };
 // 選曲シーンがエントリ
 let state = STATE.SELECTION;
+let currentSong = null; // 現在プレイ中の曲（ハイスコア保存に使う）
 
 // state遷移のトリガー
 // (遷移先, 遷移時に必要な情報(引数なしでは空オブジェクト))
@@ -51,6 +58,7 @@ function enter(s, ctx) {
     case STATE.LOADING:
       hideSelectionScreen();
       showLoadingScreen();
+      currentSong = ctx.song;
       resetGame();
       player.createFromSongUrl(ctx.song.url, { video: ctx.song.video });
       break;
@@ -59,13 +67,19 @@ function enter(s, ctx) {
       startCanvasLoop();
       showKeyboard();
       break;
-    case STATE.RESULT:
-      showResultScreen({
-        score: getScore(),
-        maxScore: getMaxScore(),
-        ratingCounts: getRatingCounts(),
-      });
+    case STATE.RESULT: {
+      const score = getScore();
+      if (currentSong) {
+        const key = `highscore_${currentSong.id}`;
+        const prev = Number(localStorage.getItem(key)) || 0;
+        if (score > prev) {
+          localStorage.setItem(key, score);
+          console.log(`db書き込み: ${score} (${currentSong.title})`);
+        }
+      }
+      showResultScreen({ score, maxScore: getMaxScore(), ratingCounts: getRatingCounts() });
       break;
+    }
   }
 }
 
