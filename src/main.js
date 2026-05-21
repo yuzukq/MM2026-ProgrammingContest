@@ -116,6 +116,11 @@ player.addListener({
     // プレイシーン以外ではスキップ
     if (state !== STATE.PLAYING) return;
 
+    // onStopは自然終了で発火しないようなので再生位置と終端比較で検知
+    if (position >= player.video.duration) {
+      console.log("[song end] position:", position, "duration:", player.video.duration);
+    }
+
     const touchedY = getTouchedY(); // canvas.js：正規化済みY座標（上=1, 下=0）
     const { isOnBeat, normalizedY: touchNormalizedY } = updateGame(position, touchedY); // game.js：スコア計算・ブロック評価
     updateCanvasState({
