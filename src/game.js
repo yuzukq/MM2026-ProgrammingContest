@@ -33,6 +33,21 @@ const ratingCounts = { PERFECT: 0, GOOD: 0, BAD: 0 };
 // コーラス部分を判定や演出で使う場合は「こたえて」のみ配布されたjsonを利用する。
 const CHORUS_NOISE_THRESHOLD = 50;
 
+export function resetGame() {
+  wordBlocks = [];
+  score = 0;
+  maxScore = 0;
+  activeBlock = null;
+  accumAccuracy = 0;
+  accumFrames = 0;
+  hitBlockIds.clear();
+  pendingEffects = [];
+  latestRating = null;
+  ratingCounts.PERFECT = 0;
+  ratingCounts.GOOD = 0;
+  ratingCounts.BAD = 0;
+}
+
 export function buildWordBlocks(player) {
   maxAmp = player.getMaxVocalAmplitude() || 1;
   let word = player.video.firstWord;

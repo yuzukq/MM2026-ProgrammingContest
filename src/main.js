@@ -8,6 +8,7 @@ import { Player } from "textalive-app-api";
 import { initScene, updateScene } from "./scene.js";
 import {
   buildWordBlocks,
+  resetGame,
   updateGame,
   getWordBlocks,
   getScore,
@@ -16,9 +17,9 @@ import {
   getRatingCounts,
   popPendingEffects,
 } from "./game.js";
-import { initCanvas, updateCanvasState, getTouchedY, stopCanvasLoop } from "./canvas.js";
+import { initCanvas, startCanvasLoop, stopCanvasLoop, updateCanvasState, getTouchedY } from "./canvas.js";
 import { updateUI } from "./ui.js";
-import { initKeyboard } from "./keyboard.js";
+import { initKeyboard, showKeyboard, hideKeyboard } from "./keyboard.js";
 import { initSelection, showSelectionScreen, hideSelectionScreen } from "./selection.js";
 import { initLoading, showLoadingScreen, hideLoadingScreen, setLoadingReady } from "./loading.js";
 import { initResult, showResultScreen, hideResultScreen } from "./result.js";
@@ -50,10 +51,13 @@ function enter(s, ctx) {
     case STATE.LOADING:
       hideSelectionScreen();
       showLoadingScreen();
+      resetGame();
       player.createFromSongUrl(ctx.song.url, { video: ctx.song.video });
       break;
     case STATE.PLAYING:
       initPlayScene();
+      startCanvasLoop();
+      showKeyboard();
       break;
     case STATE.RESULT:
       showResultScreen({
@@ -72,6 +76,7 @@ function exit(s) {
       break;
     case STATE.PLAYING:
       stopCanvasLoop();
+      hideKeyboard();
       break;
     case STATE.RESULT:
       hideResultScreen();

@@ -48,34 +48,41 @@ export function initCanvas() {
     touchedY = toNormalizedY(e.touches[0].clientY);
   });
 
-  // mainの方のonTimeUpdate(~20fps)とは独立した描画ループ(16ms間隔60FPS程度)
-  function canvasRenderLoop() {
-    rafId = requestAnimationFrame(canvasRenderLoop);
-    // (前回の曲の再生位置ms) + (その後の経過時間ms)でポジション補完
-    const estimatedPosition = lastPosition + (performance.now() - lastReceivedAt);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawWordBlocks(estimatedPosition, storedWordBlocks);
+  startCanvasLoop();
+}
 
-    // エフェクト1: ブロックに正確に触れている間のフラッシュ
-    if (storedIsOnBeat && storedTouchNormalizedY !== null) {
-      particleSystem.spawnTouchingFlash(toPlayAreaCanvasY(storedTouchNormalizedY), judgmentX);
-    }
-    // エフェクト2: ブロック判定確定時の結果パーティクル
-    for (const effect of effectsQueue) {
-      particleSystem.spawnResult(toPlayAreaCanvasY(effect.normalizedY), effect.rating, judgmentX);
-    }
-    effectsQueue = [];
+// mainの方のonTimeUpdate(~20fps)とは独立した描画ループ(16ms間隔60FPS程度)
+function canvasRenderLoop() {
+  rafId = requestAnimationFrame(canvasRenderLoop);
+  // (前回の曲の再生位置ms) + (その後の経過時間ms)でポジション補完
+  const estimatedPosition = lastPosition + (performance.now() - lastReceivedAt);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawWordBlocks(estimatedPosition, storedWordBlocks);
 
-    particleSystem.update(ctx);
-    // TODO: プレイヤーのカーソル/指の位置(touchedY)を描画
-    // メモ: touchedYはこのスコープの範囲内なので誤ってmainからupdateCanvasStateに渡してくるみたいなことをしないように。
-    // 現状pauseしても補完が回り続けるのでブロック描画が止まらないのでここも後々対応してね。
+  // エフェクト1: ブロックに正確に触れている間のフラッシュ
+  if (storedIsOnBeat && storedTouchNormalizedY !== null) {
+    particleSystem.spawnTouchingFlash(toPlayAreaCanvasY(storedTouchNormalizedY), judgmentX);
   }
+  // エフェクト2: ブロック判定確定時の結果パーティクル
+  for (const effect of effectsQueue) {
+    particleSystem.spawnResult(toPlayAreaCanvasY(effect.normalizedY), effect.rating, judgmentX);
+  }
+  effectsQueue = [];
+
+  particleSystem.update(ctx);
+  // TODO: プレイヤーのカーソル/指の位置(touchedY)を描画
+  // メモ: touchedYはこのスコープの範囲内なので誤ってmainからupdateCanvasStateに渡してくるみたいなことをしないように。
+  // 現状pauseしても補完が回り続けるのでブロック描画が止まらないのでここも後々対応してね。
+}
+
+export function startCanvasLoop() {
+  if (rafId) return; // 多重起動防止
   canvasRenderLoop();
 }
 
 export function stopCanvasLoop() {
   if (rafId) cancelAnimationFrame(rafId);
+  rafId = null;
 }
 
 // 正規化済みのtouchedYを返す
