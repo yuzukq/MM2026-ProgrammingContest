@@ -13,7 +13,7 @@ import {
   getLatestRating,
   popPendingEffects,
 } from "./game.js";
-import { initCanvas, updateCanvasState, getTouchedY } from "./canvas.js";
+import { initCanvas, updateCanvasState, getTouchedY, stopCanvasLoop } from "./canvas.js";
 import { updateUI } from "./ui.js";
 import { initKeyboard } from "./keyboard.js";
 import { initSelection, showSelectionScreen, hideSelectionScreen } from "./selection.js";
@@ -60,6 +60,9 @@ function exit(s) {
   switch (s) {
     case STATE.LOADING:
       hideLoadingScreen();
+      break;
+    case STATE.PLAYING:
+      stopCanvasLoop();
       break;
     default:
       break;
@@ -119,6 +122,8 @@ player.addListener({
     // onStopは自然終了で発火しないようなので再生位置と終端比較で検知
     if (position >= player.video.duration) {
       console.log("[song end] position:", position, "duration:", player.video.duration);
+      transition(STATE.RESULT);
+      return;
     }
 
     const touchedY = getTouchedY(); // canvas.js：正規化済みY座標（上=1, 下=0）

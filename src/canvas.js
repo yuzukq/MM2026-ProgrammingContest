@@ -48,8 +48,9 @@ export function initCanvas() {
   });
 
   // mainの方のonTimeUpdate(~20fps)とは独立した描画ループ(16ms間隔60FPS程度)
+  let rafId = null;
   function canvasRenderLoop() {
-    requestAnimationFrame(canvasRenderLoop);
+    rafId = requestAnimationFrame(canvasRenderLoop);
     // (前回の曲の再生位置ms) + (その後の経過時間ms)でポジション補完
     const estimatedPosition = lastPosition + (performance.now() - lastReceivedAt);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -71,6 +72,10 @@ export function initCanvas() {
     // 現状pauseしても補完が回り続けるのでブロック描画が止まらないのでここも後々対応してね。
   }
   canvasRenderLoop();
+}
+
+export function stopCanvasLoop() {
+  if (rafId) cancelAnimationFrame(rafId);
 }
 
 // 正規化済みのtouchedYを返す
