@@ -26,7 +26,15 @@ export async function initSelection(onSelected) {
 }
 
 export function showSelectionScreen() {
+  refreshHighScores();
   screenEl.style.display = "flex";
+}
+
+function refreshHighScores() {
+  cardElements.forEach((card, i) => {
+    card.querySelector("#score").innerHTML =
+      `<tspan x="0" y="0">HIGH SCORE</tspan><tspan x="0" dy="1.2em" font-size="34px" font-weight="bold">${getHighScore(SONGS[i].id)}</tspan>`;
+  });
 }
 
 export function hideSelectionScreen() {
@@ -148,8 +156,6 @@ function updateCards() {
   });
 }
 
-// [仮実装]localStorage から曲ごとのハイスコアを取得する
-// TODO: game.js でゲーム終了時に localStorage.setItem(`highscore_${song.id}`, score) を呼ぶ
 function getHighScore(songId) {
   const stored = localStorage.getItem(`highscore_${songId}`);
   return stored !== null ? stored : "---";

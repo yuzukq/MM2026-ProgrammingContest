@@ -24,11 +24,29 @@ const RATING_MULTIPLIER = { PERFECT: 1.0, GOOD: 0.6, BAD: 0 };
 // 直近のレーティング（UI 表示用）
 let latestRating = null;
 
+// 判定カウンタ
+const ratingCounts = { PERFECT: 0, GOOD: 0, BAD: 0 };
+
 // 声量ブロックを事前構築 main側からonVideoReady1回呼ぶ
 // （毎フレーム getVocalAmplitude を呼ぶと波形がぶれるため、単語の先頭時刻で固定する）
 // 『こたえて』のコーラス区間の1msダミーワードを除外する閾値
 // コーラス部分を判定や演出で使う場合は「こたえて」のみ配布されたjsonを利用する。
 const CHORUS_NOISE_THRESHOLD = 50;
+
+export function resetGame() {
+  wordBlocks = [];
+  score = 0;
+  maxScore = 0;
+  activeBlock = null;
+  accumAccuracy = 0;
+  accumFrames = 0;
+  hitBlockIds.clear();
+  pendingEffects = [];
+  latestRating = null;
+  ratingCounts.PERFECT = 0;
+  ratingCounts.GOOD = 0;
+  ratingCounts.BAD = 0;
+}
 
 export function buildWordBlocks(player) {
   maxAmp = player.getMaxVocalAmplitude() || 1;
@@ -62,6 +80,9 @@ export function updateGame(position, touchedY) {
 
     score += POINTS_PER_BLOCK() * RATING_MULTIPLIER[rating];
     latestRating = rating;
+    ratingCounts[rating]++;
+    // デバッグよう
+    console.log("Rating counts:", { ...ratingCounts });
     pendingEffects.push({ normalizedY: activeBlock.normalizedAmp, rating });
 
     // 次のブロックに備えてリセット
@@ -110,4 +131,7 @@ export function getMaxScore() {
 }
 export function getLatestRating() {
   return latestRating;
+}
+export function getRatingCounts() {
+  return { ...ratingCounts };
 }

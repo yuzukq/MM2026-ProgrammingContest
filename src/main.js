@@ -3,21 +3,32 @@
 // 全モジュールを import して各種 init・接続するだけで、それ自身はロジックを持たない。
 // TextAlive の onTimeUpdate がここに集約され、各モジュールへ振り分ける。
 
+// ===============モジュール集約================
 import { Player } from "textalive-app-api";
 import { initScene, updateScene } from "./scene.js";
 import {
   buildWordBlocks,
+  resetGame,
   updateGame,
   getWordBlocks,
   getScore,
+  getMaxScore,
   getLatestRating,
+  getRatingCounts,
   popPendingEffects,
 } from "./game.js";
-import { initCanvas, updateCanvasState, getTouchedY } from "./canvas.js";
+import {
+  initCanvas,
+  startCanvasLoop,
+  stopCanvasLoop,
+  updateCanvasState,
+  getTouchedY,
+} from "./canvas.js";
 import { updateUI } from "./ui.js";
-import { initKeyboard } from "./keyboard.js";
+import { initKeyboard, showKeyboard, hideKeyboard } from "./keyboard.js";
 import { initSelection, showSelectionScreen, hideSelectionScreen } from "./selection.js";
 import { initLoading, showLoadingScreen, hideLoadingScreen, setLoadingReady } from "./loading.js";
+import { initResult, showResultScreen, hideResultScreen } from "./result.js";
 
 // ===============ステートマシン===============
 const STATE = {
@@ -28,6 +39,7 @@ const STATE = {
 };
 // 選曲シーンがエントリ
 let state = STATE.SELECTION;
+let currentSong = null; // 現在プレイ中の曲（ハイスコア保存に使う）
 
 // state遷移のトリガー
 // (遷移先, 遷移時に必要な情報(引数なしでは空オブジェクト))
@@ -46,13 +58,28 @@ function enter(s, ctx) {
     case STATE.LOADING:
       hideSelectionScreen();
       showLoadingScreen();
+      currentSong = ctx.song;
+      resetGame();
       player.createFromSongUrl(ctx.song.url, { video: ctx.song.video });
       break;
     case STATE.PLAYING:
       initPlayScene();
+      startCanvasLoop();
+      showKeyboard();
       break;
-    case STATE.RESULT:
+    case STATE.RESULT: {
+      const score = getScore();
+      if (currentSong) {
+        const key = `highscore_${currentSong.id}`;
+        const prev = Number(localStorage.getItem(key)) || 0;
+        if (score > prev) {
+          localStorage.setItem(key, score);
+          console.log(`db書き込み: ${score} (${currentSong.title})`);
+        }
+      }
+      showResultScreen({ score, maxScore: getMaxScore(), ratingCounts: getRatingCounts() });
       break;
+    }
   }
 }
 
@@ -60,6 +87,13 @@ function exit(s) {
   switch (s) {
     case STATE.LOADING:
       hideLoadingScreen();
+      break;
+    case STATE.PLAYING:
+      stopCanvasLoop();
+      hideKeyboard();
+      break;
+    case STATE.RESULT:
+      hideResultScreen();
       break;
     default:
       break;
@@ -89,12 +123,21 @@ initLoading(() => {
   transition(STATE.PLAYING);
 });
 
+// リザルト画面を初期化
+// タップで選曲画面に戻るコールバックを渡す
+initResult(() => transition(STATE.SELECTION));
+
 // TextAlive のイニシャライズ
 const player = new Player({
   app: { token: "test" }, // TODO: 本番トークンに差し替える
   vocalAmplitudeEnabled: true,
 });
 
+// =======デバッグ用後で消す（曲の90%地点にシーク）=====================
+window.__debugSkip = () => {
+  if (player.video?.duration) player.requestMediaSeek(player.video.duration * 0.9);
+};
+// ==============================================================
 player.addListener({
   // TextAlive の準備ができたら呼ばれる
   onAppReady(app) {
@@ -115,6 +158,13 @@ player.addListener({
   onTimeUpdate(position) {
     // プレイシーン以外ではスキップ
     if (state !== STATE.PLAYING) return;
+
+    // onStopは自然終了で発火しないようなので再生位置と終端比較で検知
+    if (position >= player.video.duration) {
+      console.log("自然終了", position, player.video.duration);
+      transition(STATE.RESULT);
+      return;
+    }
 
     const touchedY = getTouchedY(); // canvas.js：正規化済みY座標（上=1, 下=0）
     const { isOnBeat, normalizedY: touchNormalizedY } = updateGame(position, touchedY); // game.js：スコア計算・ブロック評価
