@@ -6,8 +6,14 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { VRMLoaderPlugin } from "@pixiv/three-vrm";
+import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+// https://threejs.org/docs/#GlitchPass
+import { GlitchPass } from "three/addons/postprocessing/GlitchPass.js";
 
 let scene, camera, renderer, vrm;
+let composer, glitchPass;
+let glitchTimer = null;
 // updateScene から操作するオブジェクトはここに宣言する
 // let sunMesh, flowerInstancedMesh;
 
@@ -69,6 +75,16 @@ export function initScene() {
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.target.set(0, 0, 0);
 
+  // =============ポストプロセス=================
+  composer = new EffectComposer(renderer);
+  const renderPass = new RenderPass(scene, camera);
+  // Three.jsキャンバスの透過を維持する（HTML/UIレイヤーを重ねるため）
+  renderPass.clearAlpha = 0;
+  glitchPass = new GlitchPass(1); // 変位テクスチャのサイズ(デフォルト64)
+  glitchPass.enabled = false;
+  composer.addPass(renderPass);
+  composer.addPass(glitchPass);
+
   // =============リサイズ対応=================
   // ウィンドウリサイズ時にアスペクト比を再計算（カメラ比率も変えないと物体が伸びて見える）
   window.addEventListener("resize", () => {
@@ -76,6 +92,7 @@ export function initScene() {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
+    composer.setSize(window.innerWidth, window.innerHeight);
   });
 
   // =============描画ループ=================
@@ -83,9 +100,23 @@ export function initScene() {
   function loop() {
     requestAnimationFrame(loop);
     controls.update();
-    renderer.render(scene, camera);
+    composer.render();
   }
   loop();
+}
+
+// プレイ開始時などに呼ぶ。duration(デフォルト300) ms 激しくグリッチした後フェードアウトして停止する
+export function triggerGlitch(duration = 300) {
+  if (!glitchPass) return;
+  if (glitchTimer) clearTimeout(glitchTimer);
+
+  glitchPass.enabled = true;
+
+  // duration 後に完全停止
+  glitchTimer = setTimeout(() => {
+    glitchPass.enabled = false;
+    glitchTimer = null;
+  }, duration);
 }
 
 // TextAlive の毎フレームコールバック(内部メインループ)から呼ばれる（main.js の onTimeUpdate 経由）
