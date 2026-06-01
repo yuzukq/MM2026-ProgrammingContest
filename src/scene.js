@@ -7,6 +7,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { VRMLoaderPlugin } from "@pixiv/three-vrm";
 import * as sky from "./sky.js";
+import * as lake from "./lake.js"; // 湖（水面＋ビート波紋）
 
 let scene, camera, renderer, vrm;
 // updateScene から操作するオブジェクトはここに宣言する
@@ -45,6 +46,9 @@ export function initScene() {
 
   // =============空＋太陽=================
   sky.initSky(scene); // 空ドームと太陽光を追加
+
+  // =============湖（水面＋波紋）=================
+  lake.initLake(scene); // 水面メッシュと波紋共有ジオメトリを用意
 
   // =============オブジェクト（仮）=================
   /*
@@ -89,6 +93,7 @@ export function initScene() {
   function loop() {
     requestAnimationFrame(loop);
     controls.update();
+    lake.updateLake(); // 波紋を壁時計時間で進める（onTimeUpdateとは独立した60fps）
     renderer.render(scene, camera);
   }
   loop();
@@ -101,6 +106,17 @@ export function updateScene({ position, duration, score, isNewBeat, beat }) {
   // 曲の進行に合わせて空の状況を動かす
   const progress = duration ? position / duration : 0; // 0=開始, 1=終わり
   sky.updateSky(progress);
+
+  // ビートに合わせて波紋発生（小節頭 beat.position===1 は大きく）
+  // =========================================
+  // 小節1            小節2
+  //  た   た   た   たん  | た   た   た   たん
+  //  pos: 1   2   3   4   | 1   2   3   4
+  //       ◎大  ○   ○   ○   | ◎大  ○   ○   ○
+  // =========================================
+  if (isNewBeat && beat) {
+    lake.spawnRipple(beat.position === 1);
+  }
 
   // TODO: ひまわりの密度をスコアで変えるなど
   // setFlowerDensity(score);
