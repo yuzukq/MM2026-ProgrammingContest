@@ -10,6 +10,8 @@ import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 // https://threejs.org/docs/#GlitchPass
 import { GlitchPass } from "three/addons/postprocessing/GlitchPass.js";
+import { OutputPass } from "three/addons/postprocessing/OutputPass.js"; // トーンマッピング/色空間を最終段で適用
+import * as sky from "./sky.js";
 
 let scene, camera, renderer, vrm;
 let composer, glitchPass;
@@ -21,12 +23,16 @@ let glitchTimer = null;
 export function initScene() {
   // =============シーン初期化=================
   scene = new THREE.Scene();
-  renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true }); // 透過：HTML/UI層を重ねるため
-  camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 1000); //FOV,アスペクト比,near,far,near
+
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+  camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 100000); //FOV,アスペクト比,near,far
   vrm = null;
 
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  // Sky のHDRな明るさを破綻なく表示するためのトーンマッピング
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 0.25; // 露出（全体の明るさ。GUIのexposure）
   renderer.domElement.style.cssText = "position:fixed;top:0;left:0;z-index:0;";
   document.body.appendChild(renderer.domElement);
 
@@ -35,17 +41,14 @@ export function initScene() {
   camera.position.set(0, 0, 7); // 横, 縦, 距離
 
   // =============ライト=================
-  //環境光
-  //const ambientLight = new THREE.AmbientLight(0xf5fffa, 4); // 色, 強さ
-  //scene.add(ambientLight);
+  // ミク専用キーライト（暫定）Mtoonの調整の兼ね合いもあるのでこの辺はテクスチャ来てから調整
+  // 前方やや上・右から当てる。角度・強さはテクスチャ適用後に詰める想定
+  const keyLight = new THREE.DirectionalLight(0xffffff, 4.0);
+  keyLight.position.set(3, 4, 10); // カメラ側(前方)・上・右 → ミクの正面を照らす方向
+  scene.add(keyLight);
 
-  //太陽光
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 6); // 色, 強さ
-  directionalLight.position.set(-5.0, 3.0, 1.0);
-  scene.add(directionalLight);
-  //ヘルパー
-  //const directionalHelper = new THREE.DirectionalLightHelper(directionalLight, 1);
-  //scene.add(directionalHelper);
+  // =============空＋太陽=================
+  sky.initSky(scene); // 空ドームと太陽光を追加
 
   // =============オブジェクト（仮）=================
   /*
@@ -78,12 +81,12 @@ export function initScene() {
   // =============ポストプロセス=================
   composer = new EffectComposer(renderer);
   const renderPass = new RenderPass(scene, camera);
-  // Three.jsキャンバスの透過を維持する（HTML/UIレイヤーを重ねるため）
-  renderPass.clearAlpha = 0;
   glitchPass = new GlitchPass(1); // 変位テクスチャのサイズ(デフォルト64)
   glitchPass.enabled = false;
   composer.addPass(renderPass);
   composer.addPass(glitchPass);
+  // 最終段でトーンマッピング＋sRGB変換を行う
+  composer.addPass(new OutputPass());
 
   // =============リサイズ対応=================
   // ウィンドウリサイズ時にアスペクト比を再計算（カメラ比率も変えないと物体が伸びて見える）
@@ -123,9 +126,10 @@ export function triggerGlitch(duration = 300) {
 // "3D オブジェクト（位置・色・密度など）の状態を更新するだけで、renderer.render() は呼ばない！"
 // "レンダリングは loop() が毎フレーム行う！"
 export function updateScene({ position, duration, score }) {
-  // TODO: 太陽を東→南中→西へ動かす、ひまわりの密度をスコアで変えるなど
-  // const progress = position / duration; // 曲の進行率（0=開始, 1=終わり）
-  // sunMesh.position.x = Math.cos(progress * Math.PI) * 10;
-  // sunMesh.position.y = Math.sin(progress * Math.PI) * 8;
+  // 曲の進行に合わせて空の状況を動かす
+  const progress = duration ? position / duration : 0; // 0=開始, 1=終わり
+  sky.updateSky(progress);
+
+  // TODO: ひまわりの密度をスコアで変えるなど
   // setFlowerDensity(score);
 }
