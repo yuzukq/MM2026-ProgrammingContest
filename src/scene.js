@@ -6,16 +6,9 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { VRMLoaderPlugin } from "@pixiv/three-vrm";
-import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
-import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
-// https://threejs.org/docs/#GlitchPass
-import { GlitchPass } from "three/addons/postprocessing/GlitchPass.js";
-import { OutputPass } from "three/addons/postprocessing/OutputPass.js"; // トーンマッピング/色空間を最終段で適用
 import * as sky from "./sky.js";
 
 let scene, camera, renderer, vrm;
-let composer, glitchPass;
-let glitchTimer = null;
 // updateScene から操作するオブジェクトはここに宣言する
 // let sunMesh, flowerInstancedMesh;
 
@@ -29,7 +22,10 @@ export function initScene() {
   vrm = null;
 
   renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  // モバイル(タッチ端末)は塗る画素数(fillrate)が重いので解像度上限を下げる。
+  // 1.5でまだカクつくなら 1 にすると60fpsに張り付く（鮮明さとのトレードオフ）
+  const maxPixelRatio = window.matchMedia("(pointer: coarse)").matches ? 1.5 : 2;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, maxPixelRatio));
   // Sky のHDRな明るさを破綻なく表示するためのトーンマッピング
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 0.25; // 露出（全体の明るさ。GUIのexposure）
@@ -78,48 +74,24 @@ export function initScene() {
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.target.set(0, 0, 0);
 
-  // =============ポストプロセス=================
-  composer = new EffectComposer(renderer);
-  const renderPass = new RenderPass(scene, camera);
-  glitchPass = new GlitchPass(1); // 変位テクスチャのサイズ(デフォルト64)
-  glitchPass.enabled = false;
-  composer.addPass(renderPass);
-  composer.addPass(glitchPass);
-  // 最終段でトーンマッピング＋sRGB変換を行う
-  composer.addPass(new OutputPass());
-
   // =============リサイズ対応=================
   // ウィンドウリサイズ時にアスペクト比を再計算（カメラ比率も変えないと物体が伸びて見える）
   window.addEventListener("resize", () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, maxPixelRatio));
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
-    composer.setSize(window.innerWidth, window.innerHeight);
   });
 
   // =============描画ループ=================
   // 演出やモデルの状態を毎フレーム画面に反映させるループ
+  // ポストプロセスは使わず renderer 直描画（トーンマッピングは renderer.toneMapping で適用される）
   function loop() {
     requestAnimationFrame(loop);
     controls.update();
-    composer.render();
+    renderer.render(scene, camera);
   }
   loop();
-}
-
-// プレイ開始時などに呼ぶ。duration(デフォルト300) ms 激しくグリッチした後フェードアウトして停止する
-export function triggerGlitch(duration = 300) {
-  if (!glitchPass) return;
-  if (glitchTimer) clearTimeout(glitchTimer);
-
-  glitchPass.enabled = true;
-
-  // duration 後に完全停止
-  glitchTimer = setTimeout(() => {
-    glitchPass.enabled = false;
-    glitchTimer = null;
-  }, duration);
 }
 
 // TextAlive の毎フレームコールバック(内部メインループ)から呼ばれる（main.js の onTimeUpdate 経由）
