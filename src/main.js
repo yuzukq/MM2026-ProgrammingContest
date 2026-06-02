@@ -40,6 +40,7 @@ const STATE = {
 // 選曲シーンがエントリ
 let state = STATE.SELECTION;
 let currentSong = null; // 現在プレイ中の曲（ハイスコア保存に使う）
+let lastBeatIndex = -1; // 直近に検知したビートの通し番号（拍の切り替わり検知に使う）
 
 // state遷移のトリガー
 // (遷移先, 遷移時に必要な情報(引数なしでは空オブジェクト))
@@ -59,6 +60,7 @@ function enter(s, ctx) {
       hideSelectionScreen();
       showLoadingScreen();
       currentSong = ctx.song;
+      lastBeatIndex = -1; // ビート検知をリセット
       resetGame();
       player.createFromSongUrl(ctx.song.url, { video: ctx.song.video });
       break;
@@ -175,10 +177,20 @@ player.addListener({
       isOnBeat,
       touchNormalizedY,
     }); // canvas.js：描画用の状態を更新
+
+    // ビート検知：通し番号が変わった最初のフレームだけ isNewBeat を立てる
+    const beat = player.findBeat(position);
+    let isNewBeat = false;
+    if (beat && beat.index !== lastBeatIndex) {
+      isNewBeat = true;
+      lastBeatIndex = beat.index;
+    }
     updateScene({
       position,
       duration: player.video.duration,
       score: getScore(),
+      isNewBeat,
+      beat,
     }); // scene.js：3D更新
     updateUI(getScore(), getLatestRating()); // ui.js：スコア・レーティング表示更新
   },
