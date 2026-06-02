@@ -23,7 +23,7 @@ export function initLake(parentScene) {
   // 静水面
   const waterGeometry = new THREE.PlaneGeometry(40, 40);
   const waterMaterial = new THREE.MeshStandardMaterial({
-    color: 0x0a3d3a,
+    color: 0x0ac8e9,
     transparent: true,
     opacity: 0.5,
   });
