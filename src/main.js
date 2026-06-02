@@ -5,7 +5,7 @@
 
 // ===============モジュール集約================
 import { Player } from "textalive-app-api";
-import { initScene, updateScene, triggerGlitch } from "./scene.js";
+import { initScene, updateScene } from "./scene.js";
 import {
   buildWordBlocks,
   resetGame,
@@ -66,7 +66,6 @@ function enter(s, ctx) {
       initPlayScene();
       startCanvasLoop();
       showKeyboard();
-      triggerGlitch();
       break;
     case STATE.RESULT: {
       const score = getScore();
