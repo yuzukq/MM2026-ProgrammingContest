@@ -7,6 +7,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { VRMLoaderPlugin } from "@pixiv/three-vrm";
 import * as sky from "./sky.js";
+import * as water from "./water.js";
 
 let scene, camera, renderer, vrm;
 // updateScene から操作するオブジェクトはここに宣言する
@@ -45,6 +46,9 @@ export function initScene() {
 
   // =============空＋太陽=================
   sky.initSky(scene); // 空ドームと太陽光を追加
+
+  // =============湖（リアル水面）=================
+  water.initWater(scene, sky.getSunDirection());
 
   // =============オブジェクト（仮）=================
   /*
@@ -89,6 +93,7 @@ export function initScene() {
   function loop() {
     requestAnimationFrame(loop);
     controls.update();
+    water.updateWater(sky.getSunDirection()); // 法線スクロール＋太陽方向を空と同期
     renderer.render(scene, camera);
   }
   loop();
