@@ -107,6 +107,11 @@ export function updateScene({ position, duration, score, isNewBeat, beat }) {
   const progress = duration ? position / duration : 0; // 0=開始, 1=終わり
   sky.updateSky(progress);
 
-  // TODO: ひまわりの密度をスコアで変えるなど
+  // ビートに合わせて水面に波紋生成
+  if (isNewBeat && beat) {
+    water.spawnRipple(beat.position === 1); // ダウンビートはデカく
+  }
+
+  // TODO: ひまわりの密度をスコアで変えるなど この辺は相談だな...
   // setFlowerDensity(score);
 }
