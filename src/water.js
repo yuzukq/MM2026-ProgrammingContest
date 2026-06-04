@@ -11,7 +11,6 @@ import RIPPLE_GLSL from "./ripple.glsl?raw"; // 波紋シェーダー
 const LAKE_SIZE = 50; // 湖の広さ
 const LAKE_Y = -1.2; // 水面の高さ（ミク足元に合わせること）
 const WATER_COLOR = 0x0092b7;
-const DISTORTION_SCALE = 1.0; // 反射の歪み。下げるほど凪いだ鏡面
 const FLOW_SPEED = 0.002; // 鏡面の法線スクロール速度
 const REFLECTION_RES = 256; // 反射用テクスチャ解像度。重ければ下げる
 
@@ -19,7 +18,7 @@ const REFLECTION_RES = 256; // 反射用テクスチャ解像度。重ければ�
 const MAX_RIPPLES = 6; // 同時に存在できる波紋数
 const RIPPLE_CENTER = new THREE.Vector2(0.8, 5.0); // 波紋中心のワールドXZ（ミク足元に合わせること）
 const RIPPLE_AMP = 0.1; // 通常拍の波紋の強さ（法線の傾き量）
-const RIPPLE_AMP_DOWNBEAT = 0.5; // 小節頭は強く
+const RIPPLE_AMP_DOWNBEAT = 0.2; // 小節頭は強く
 
 let water = null;
 let rippleCursor = 0; // uRipples 配列への書き込み位置
@@ -58,7 +57,7 @@ export function initWater(scene, sunDirection) {
     sunDirection: sunDirection.clone().normalize(),
     sunColor: 0xffffff,
     waterColor: WATER_COLOR,
-    distortionScale: DISTORTION_SCALE,
+    distortionScale: 2.0, // 水面の歪み
     fog: false,
   });
   water.rotation.x = -Math.PI / 2; // 水平に倒す
