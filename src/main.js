@@ -1,5 +1,4 @@
-// main.js
-// ゲームマネージャ（Unityでいうシングルトン的な立ち位置）
+// ゲームマネージャ
 // 全モジュールを import して各種 init・接続するだけで、それ自身はロジックを持たない。
 // TextAlive の onTimeUpdate がここに集約され、各モジュールへ振り分ける。
 
@@ -34,8 +33,8 @@ function transition(to, ctx = {}) {
   enter(to, ctx);
 }
 
+// 次ステートに入る時に実行する関数呼び出し
 function enter(s, ctx) {
-  // ステートに合わせてinit
   switch (s) {
     case STATE.SELECTION:
       selection.showSelectionScreen(); // 選曲画面の描画
@@ -73,6 +72,7 @@ function enter(s, ctx) {
   }
 }
 
+// 現在ステートから出る時に実行する関数呼び出し
 function exit(s) {
   switch (s) {
     case STATE.LOADING:
@@ -137,34 +137,36 @@ player.addListener({
   },
   // 歌詞・タイミングデータの読み込みが完了したら呼ばれる
   onVideoReady() {
-    game.buildWordBlocks(player); // game.js：単語単位の声量ブロックを事前構築
+    game.buildWordBlocks(player); // 単語単位の声量ブロックを事前構築
   },
   // 音声（Songleタイマー）の準備が完了したら呼ばれる
   onTimerReady() {
     loading.setLoadingReady();
   },
 
-  // =====毎フレーム呼ばれるメインのゲームループ=====
+  // =====20fps毎に呼ばれる楽曲情報周りのゲームループ=====
   onTimeUpdate(position) {
     // プレイシーン以外ではスキップ
     if (state !== STATE.PLAYING) return;
 
-    // onStopは自然終了で発火しないようなので再生位置と終端比較で検知
+    // 楽曲の終端検知
     if (position >= player.video.duration) {
       console.log("自然終了", position, player.video.duration);
       transition(STATE.RESULT);
       return;
     }
 
-    const touchedY = canvas.getTouchedY(); // canvas.js：正規化済みY座標（上=1, 下=0）
-    const { isOnBeat, normalizedY: touchNormalizedY } = game.updateGame(position, touchedY); // game.js：スコア計算・ブロック評価
+    const touchedY = canvas.getTouchedY(); // 正規化済みY座標（上=1, 下=0）を取得
+    const { isOnBeat, normalizedY: touchNormalizedY } = game.updateGame(position, touchedY); // スコア計算・ブロック評価
+
+    // canvas描画用の状態のみ更新
     canvas.updateCanvasState({
       position,
       wordBlocks: game.getWordBlocks(),
       effects: game.popPendingEffects(),
       isOnBeat,
       touchNormalizedY,
-    }); // canvas.js：描画用の状態を更新
+    });
 
     // ビート検知：通し番号が変わった最初のフレームだけ isNewBeat を立てる
     const beat = player.findBeat(position);
@@ -173,14 +175,15 @@ player.addListener({
       isNewBeat = true;
       lastBeatIndex = beat.index;
     }
+    // threeレイヤー描画用の状態のみ更新
     scene.updateScene({
       position,
       duration: player.video.duration,
       score: game.getScore(),
       isNewBeat,
       beat,
-    }); // scene.js：3D更新
-    ui.updateUI(game.getScore(), game.getLatestRating()); // ui.js：スコア・レーティング表示更新
+    });
+    ui.updateUI(game.getScore(), game.getLatestRating()); // スコア・レーティング表示更新
   },
   // ==========================================
 });
