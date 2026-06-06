@@ -69,3 +69,9 @@ export function updateSky(progress) {
   const warmth = 1 - sinElev; // 0(高い太陽=白) → ~0.9(低い太陽=暖色)
   sunLight.color.setRGB(1, 1 - warmth * 0.35, 1 - warmth * 0.6);
 }
+
+// 現在の太陽方向（単位ベクトル）を返す。水面の反射など、空と同じ太陽を共有する用途で使う。
+// 返すのは内部の live な Vector3 なので、呼び出し側で書き換えないこと（copyして使う）。
+export function getSunDirection() {
+  return sunVec;
+}
