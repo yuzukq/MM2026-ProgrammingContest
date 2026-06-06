@@ -5,14 +5,14 @@
 
 // ===============モジュール集約================
 import { Player } from "textalive-app-api";
-import * as scene from "./scene.js";
+import * as scene from "./three/scene.js";
 import * as game from "./game.js";
-import * as canvas from "./canvas.js";
-import * as ui from "./ui.js";
-import * as keyboard from "./keyboard.js";
-import * as selection from "./selection.js";
-import * as loading from "./loading.js";
-import * as result from "./result.js";
+import * as canvas from "./canvas/canvas.js";
+import * as ui from "./ui/ui.js";
+import * as keyboard from "./ui/keyboard.js";
+import * as selection from "./screens/selection.js";
+import * as loading from "./screens/loading.js";
+import * as result from "./screens/result.js";
 
 // ===============ステートマシン===============
 const STATE = {

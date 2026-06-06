@@ -3,7 +3,7 @@
 // タッチ入力の起点は canvas.js のため、main.js を経由せず直接 getPlayAreaY を参照する
 // （main.js 経由では 20fpsに制限されうるので鍵盤ハイライトは RAFループ60fps の応答性を重視）
 
-import * as canvas from "./canvas.js";
+import * as canvas from "../canvas/canvas.js";
 
 const KEY_COUNT = 12;
 const HIGHLIGHT_COLOR = "#20B2AA";

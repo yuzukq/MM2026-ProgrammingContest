@@ -2,7 +2,7 @@
 // 選曲画面のカード表示・スクロール・選択確定を担当する
 // 曲が確定したら onSongSelectedCallback(song) を呼び、main.js がローディングへ遷移する
 
-import { SONGS } from "./songs.js";
+import { SONGS } from "../data/songs.js";
 
 const CARD_SVG_SRC = "/assets/selectcard.svg";
 const CARD_STEP = 140; // 隣カードまでの縦オフセット(px)
