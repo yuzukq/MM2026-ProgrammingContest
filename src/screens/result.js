@@ -1,6 +1,5 @@
 // result.js
 // リザルト画面のDOM構築と表示/非表示を担当する
-// スコア・判定数の表示のみ（後でSVG差し替え前提のため最小スタイル）
 
 let screenEl = null;
 let scoreEl = null;
@@ -8,6 +7,8 @@ let perfectEl = null;
 let goodEl = null;
 let badEl = null;
 let onRestartCallback = null;
+
+// ── public ──────────────────────────────
 
 export function initResult(onRestart) {
   onRestartCallback = onRestart;
@@ -25,6 +26,8 @@ export function showResultScreen({ score, maxScore, ratingCounts }) {
 export function hideResultScreen() {
   screenEl.style.display = "none";
 }
+
+// ── internal ────────────────────────────
 
 function buildDOM() {
   screenEl = document.createElement("div");

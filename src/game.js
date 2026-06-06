@@ -1,5 +1,10 @@
 // game.js
-// TextAlive のデータ処理とスコア計算を担当する。描画は持たない。
+// ブロック生成やTextAlive のデータ処理とスコア計算，ゲームの内部ロジック周りを担当
+
+// 判定調整まわり
+const POINTS_PER_BLOCK = () => maxScore / wordBlocks.length;
+const RATING_THRESHOLDS = { PERFECT: 0.95, GOOD: 0.8 }; // GOODの値以下はBAD
+const RATING_MULTIPLIER = { PERFECT: 1.0, GOOD: 0.6, BAD: 0 }; // 精度ごとのスコア加算の重み
 
 let wordBlocks = [];
 let maxAmp = 1;
@@ -14,12 +19,8 @@ let accumFrames = 0; // 累積フレーム数（平均算出に使う）
 // 到着済みブロックの管理（startTime イベントの二重発火防止）
 const hitBlockIds = new Set();
 
-// canvas へ渡す演出イベントのキュー
+// canvas へ渡す演出のキュー
 let pendingEffects = [];
-
-const POINTS_PER_BLOCK = () => maxScore / wordBlocks.length;
-const RATING_THRESHOLDS = { PERFECT: 0.95, GOOD: 0.7 };
-const RATING_MULTIPLIER = { PERFECT: 1.0, GOOD: 0.6, BAD: 0 };
 
 // 直近のレーティング（UI 表示用）
 let latestRating = null;
@@ -27,10 +28,7 @@ let latestRating = null;
 // 判定カウンタ
 const ratingCounts = { PERFECT: 0, GOOD: 0, BAD: 0 };
 
-// 声量ブロックを事前構築 main側からonVideoReady1回呼ぶ
-// （毎フレーム getVocalAmplitude を呼ぶと波形がぶれるため、単語の先頭時刻で固定する）
 // 『こたえて』のコーラス区間の1msダミーワードを除外する閾値
-// コーラス部分を判定や演出で使う場合は「こたえて」のみ配布されたjsonを利用する。
 const CHORUS_NOISE_THRESHOLD = 50;
 
 export function resetGame() {
@@ -48,6 +46,8 @@ export function resetGame() {
   ratingCounts.BAD = 0;
 }
 
+// 声量ブロックを事前構築 main側からonVideoReady1回呼ぶ
+// 毎フレーム getVocalAmplitude を呼ぶと波形がぶれるため、単語の先頭時刻で固定
 export function buildWordBlocks(player) {
   maxAmp = player.getMaxVocalAmplitude() || 1;
   let word = player.video.firstWord;
@@ -81,9 +81,10 @@ export function updateGame(position, touchedY) {
     score += POINTS_PER_BLOCK() * RATING_MULTIPLIER[rating];
     latestRating = rating;
     ratingCounts[rating]++;
-    // デバッグよう
+    // ========デバッグ用=========
     console.log("Rating counts:", { ...ratingCounts });
     pendingEffects.push({ normalizedY: activeBlock.normalizedAmp, rating });
+    // ==========================
 
     // 次のブロックに備えてリセット
     accumAccuracy = 0;
@@ -97,7 +98,6 @@ export function updateGame(position, touchedY) {
     // ブロック到着イベント（startTime が判定ラインに乗った初回のみ）
     if (!hitBlockIds.has(block.startTime)) {
       hitBlockIds.add(block.startTime);
-      // TODO: 到着エフェクト（startTime 通過時の演出）
     }
 
     const distance = Math.abs(touchedY - block.normalizedAmp);
@@ -112,7 +112,7 @@ export function updateGame(position, touchedY) {
   return { isOnBeat: false, normalizedY: null };
 }
 
-// =====ゲッターメソッド系=====
+// ==========ゲッターメソッド系========
 // canvas.js の renderLoop が毎フレーム呼んでエフェクトを消費する
 export function popPendingEffects() {
   const effects = [...pendingEffects];

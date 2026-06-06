@@ -9,8 +9,8 @@ const BLOCK_HEIGHT_RATIO = 0.04; // ブロックの高さ(縦幅,canvas高さの
 
 // プレイエリアの上下境界（canvas高さに対する比率）
 // SVG UI が入った時はここだけ調整する
-const PLAY_AREA_TOP = 0.1; // 上端から10%はUI領域
-const PLAY_AREA_BOTTOM = 0.9; // 下端から10%は操作しにくい領域
+const PLAY_AREA_TOP = 0.1; // 上端から10%はステータスなどのUI領域
+const PLAY_AREA_BOTTOM = 0.9; // 下端から10%はプログレスーなどのスペース
 
 let canvas, ctx;
 let touchedY = 0;
@@ -24,6 +24,8 @@ let effectsQueue = []; // game.js から渡されたブロック評価エフェ�
 let storedIsOnBeat = false; // 現フレームでブロックに正確に触れているか（game.js が判定）
 let storedTouchNormalizedY = null; // 接触中ブロックのY座標
 let judgmentX = 0; // onResize で更新
+
+// ── public ──────────────────────────────
 
 // canvasを生成してDOMに挿入する main側でinit呼び出し
 export function initCanvas() {
@@ -51,29 +53,6 @@ export function initCanvas() {
   startCanvasLoop();
 }
 
-// mainの方のonTimeUpdate(~20fps)とは独立した描画ループ(16ms間隔60FPS程度)
-function canvasRenderLoop() {
-  rafId = requestAnimationFrame(canvasRenderLoop);
-  // (前回の曲の再生位置ms) + (その後の経過時間ms)でポジション補完
-  const estimatedPosition = lastPosition + (performance.now() - lastReceivedAt);
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  drawWordBlocks(estimatedPosition, storedWordBlocks);
-
-  // エフェクト1: ブロックに正確に触れている間のフラッシュ
-  if (storedIsOnBeat && storedTouchNormalizedY !== null) {
-    particleSystem.spawnTouchingFlash(toPlayAreaCanvasY(storedTouchNormalizedY), judgmentX);
-  }
-  // エフェクト2: ブロック判定確定時の結果パーティクル
-  for (const effect of effectsQueue) {
-    particleSystem.spawnResult(toPlayAreaCanvasY(effect.normalizedY), effect.rating, judgmentX);
-  }
-  effectsQueue = [];
-
-  particleSystem.update(ctx);
-  // TODO:
-  // 現状pauseしても補完が回り続けるのでブロック描画が止まらないのでここも後々対応してね。
-}
-
 export function startCanvasLoop() {
   if (rafId) return; // 多重起動防止
   canvasRenderLoop();
@@ -95,18 +74,57 @@ export function getPlayAreaY() {
   return Math.max(0, Math.min(1, touchedY));
 }
 
-// normalizedAmp(0-1) をプレイエリア内のcanvasピクセルY座標に変換する
-// ブロック描画・パーティクル生成時に使う
-function toPlayAreaCanvasY(normalizedAmp) {
-  const range = PLAY_AREA_BOTTOM - PLAY_AREA_TOP;
-  return (PLAY_AREA_TOP + (1 - normalizedAmp) * range) * canvas.height;
-}
-
 // canvasピクセルY座標をプレイエリア内の正規化座標（上=1, 下=0）に変換する
 // touchedY の取得時に使う。プレイエリア外は0未満・1超えになる
 export function toNormalizedY(canvasY) {
   const range = PLAY_AREA_BOTTOM - PLAY_AREA_TOP;
   return 1 - (canvasY / canvas.height - PLAY_AREA_TOP) / range;
+}
+
+// 状態だけ更新（描画はcanvasRenderLoop）
+export function updateCanvasState({
+  position,
+  wordBlocks,
+  effects = [],
+  isOnBeat = false,
+  touchNormalizedY = null,
+}) {
+  lastPosition = position; // 曲の再生位置(ms)
+  lastReceivedAt = performance.now(); // ブラウザ内でのグローバル到達時刻(ms)
+  storedWordBlocks = wordBlocks; // 描画対象のブロック特定用
+  effectsQueue.push(...effects); // renderLoop が消費するまでキューに積む
+  storedIsOnBeat = isOnBeat ?? false; // 現フレームでブロックに正確に触れているか
+  storedTouchNormalizedY = touchNormalizedY; // 接触中ブロックのY座標
+}
+
+// ── internal ────────────────────────────
+
+// mainの方のonTimeUpdate(~20fps)とは独立した描画ループ(16ms間隔60FPS程度)
+function canvasRenderLoop() {
+  rafId = requestAnimationFrame(canvasRenderLoop);
+  // (前回の曲の再生位置ms) + (その後の経過時間ms)でポジション補完
+  const estimatedPosition = lastPosition + (performance.now() - lastReceivedAt);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawWordBlocks(estimatedPosition, storedWordBlocks);
+
+  // エフェクト1: ブロックに正確に触れている間のフラッシュ
+  if (storedIsOnBeat && storedTouchNormalizedY !== null) {
+    particleSystem.spawnTouchingFlash(toPlayAreaCanvasY(storedTouchNormalizedY), judgmentX);
+  }
+  // エフェクト2: ブロック判定確定時の結果パーティクル
+  for (const effect of effectsQueue) {
+    particleSystem.spawnResult(toPlayAreaCanvasY(effect.normalizedY), effect.rating, judgmentX);
+  }
+  effectsQueue = [];
+
+  particleSystem.update(ctx);
+}
+
+// normalizedAmp(0-1) をプレイエリア内のcanvasピクセルY座標に変換する
+// ブロック描画・パーティクル生成時に使う
+function toPlayAreaCanvasY(normalizedAmp) {
+  const range = PLAY_AREA_BOTTOM - PLAY_AREA_TOP;
+  return (PLAY_AREA_TOP + (1 - normalizedAmp) * range) * canvas.height;
 }
 
 // ワードブロックを描画する（drawFrame 内部からのみ呼ぶ）
@@ -150,20 +168,4 @@ function drawWordBlocks(position, wordBlocks) {
   }
 
   ctx.restore(); // クリップ解放
-}
-
-// onTimeUpdateから呼び、描画せず状態だけ保存する（描画はcanvasRenderLoopに集約）
-export function updateCanvasState({
-  position,
-  wordBlocks,
-  effects = [],
-  isOnBeat = false,
-  touchNormalizedY = null,
-}) {
-  lastPosition = position; // 曲の再生位置(ms)
-  lastReceivedAt = performance.now(); // ブラウザ内でのグローバル到達時刻(ms)
-  storedWordBlocks = wordBlocks; // 描画対象のブロック特定用
-  effectsQueue.push(...effects); // renderLoop が消費するまでキューに積む
-  storedIsOnBeat = isOnBeat ?? false; // 現フレームでブロックに正確に触れているか
-  storedTouchNormalizedY = touchNormalizedY; // 接触中ブロックのY座標
 }

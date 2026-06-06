@@ -1,9 +1,8 @@
 // keyboard.js
 // インラインSVG鍵盤の初期化・タッチハイライト更新を担当する
-// タッチ入力の起点は canvas.js のため、main.js を経由せず直接 getPlayAreaY を参照する
-// （main.js 経由では 20fpsに制限されうるので鍵盤ハイライトは RAFループ60fps の応答性を重視）
+// main.js 経由では 20fpsに制限されうるので鍵盤ハイライトは別途RAFループ60fpsを使う
 
-import { getPlayAreaY } from "./canvas.js";
+import * as canvas from "../canvas/canvas.js";
 
 const KEY_COUNT = 12;
 const HIGHLIGHT_COLOR = "#20B2AA";
@@ -13,6 +12,8 @@ const BOUNDARY_THRESHOLD = 0.35;
 let svgEl = null;
 let lastKeyIndex = -1;
 let lastNeighborIndex = -1; // 前フレームで隣接ハイライトしたキー（なければ-1）
+
+// ── public ──────────────────────────────
 
 export function showKeyboard() {
   document.getElementById("keyboard-wrapper")?.style.setProperty("display", "");
@@ -49,7 +50,7 @@ export async function initKeyboard() {
     if (!svgEl) return;
 
     // プレイエリア内（0-1）を12分割
-    const exactPos = getPlayAreaY() * KEY_COUNT;
+    const exactPos = canvas.getPlayAreaY() * KEY_COUNT;
     // 少数切り捨ててメインのindexを計算
     const keyIndex = Math.min(KEY_COUNT - 1, Math.floor(exactPos));
     const fraction = exactPos - Math.floor(exactPos); // 少数部: キーの中での高さ
@@ -77,6 +78,8 @@ export async function initKeyboard() {
   }
   loop();
 }
+
+// ── internal ────────────────────────────
 
 // SVGの #white グループ内から指定インデックスの rect 要素を返す
 function getKeyRect(index) {

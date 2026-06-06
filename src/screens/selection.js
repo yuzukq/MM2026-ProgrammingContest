@@ -2,7 +2,7 @@
 // 選曲画面のカード表示・スクロール・選択確定を担当する
 // 曲が確定したら onSongSelectedCallback(song) を呼び、main.js がローディングへ遷移する
 
-import { SONGS } from "./songs.js";
+import { SONGS } from "../data/songs.js";
 
 const CARD_SVG_SRC = "/assets/selectcard.svg";
 const CARD_STEP = 140; // 隣カードまでの縦オフセット(px)
@@ -15,6 +15,8 @@ let selectedIndex = 0;
 let cardElements = [];
 let screenEl = null;
 let onSongSelectedCallback = null;
+
+// ── public ──────────────────────────────
 
 // main.js から await で呼ぶ。SVGフェッチが完了してからDOMを構築する
 export async function initSelection(onSelected) {
@@ -30,15 +32,17 @@ export function showSelectionScreen() {
   screenEl.style.display = "flex";
 }
 
+export function hideSelectionScreen() {
+  screenEl.style.display = "none";
+}
+
+// ── internal ────────────────────────────
+
 function refreshHighScores() {
   cardElements.forEach((card, i) => {
     card.querySelector("#score").innerHTML =
       `<tspan x="0" y="0">HIGH SCORE</tspan><tspan x="0" dy="1.2em" font-size="34px" font-weight="bold">${getHighScore(SONGS[i].id)}</tspan>`;
   });
-}
-
-export function hideSelectionScreen() {
-  screenEl.style.display = "none";
 }
 
 // ======== DOM構築 ========

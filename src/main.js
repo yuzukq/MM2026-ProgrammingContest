@@ -1,34 +1,17 @@
-// main.js
-// ゲームマネージャ（Unityでいうシングルトン的な立ち位置）
+// ゲームマネージャ
 // 全モジュールを import して各種 init・接続するだけで、それ自身はロジックを持たない。
 // TextAlive の onTimeUpdate がここに集約され、各モジュールへ振り分ける。
 
 // ===============モジュール集約================
 import { Player } from "textalive-app-api";
-import { initScene, updateScene } from "./scene.js";
-import {
-  buildWordBlocks,
-  resetGame,
-  updateGame,
-  getWordBlocks,
-  getScore,
-  getMaxScore,
-  getLatestRating,
-  getRatingCounts,
-  popPendingEffects,
-} from "./game.js";
-import {
-  initCanvas,
-  startCanvasLoop,
-  stopCanvasLoop,
-  updateCanvasState,
-  getTouchedY,
-} from "./canvas.js";
-import { updateUI } from "./ui.js";
-import { initKeyboard, showKeyboard, hideKeyboard } from "./keyboard.js";
-import { initSelection, showSelectionScreen, hideSelectionScreen } from "./selection.js";
-import { initLoading, showLoadingScreen, hideLoadingScreen, setLoadingReady } from "./loading.js";
-import { initResult, showResultScreen, hideResultScreen } from "./result.js";
+import * as scene from "./three/scene.js";
+import * as game from "./game.js";
+import * as canvas from "./canvas/canvas.js";
+import * as ui from "./ui/ui.js";
+import * as keyboard from "./ui/keyboard.js";
+import * as selection from "./screens/selection.js";
+import * as loading from "./screens/loading.js";
+import * as result from "./screens/result.js";
 
 // ===============ステートマシン===============
 const STATE = {
@@ -50,27 +33,27 @@ function transition(to, ctx = {}) {
   enter(to, ctx);
 }
 
+// 次ステートに入る時に実行する関数呼び出し
 function enter(s, ctx) {
-  // ステートに合わせてinit
   switch (s) {
     case STATE.SELECTION:
-      showSelectionScreen(); // 選曲画面の描画
+      selection.showSelectionScreen(); // 選曲画面の描画
       break;
     case STATE.LOADING:
-      hideSelectionScreen();
-      showLoadingScreen();
+      selection.hideSelectionScreen();
+      loading.showLoadingScreen();
       currentSong = ctx.song;
       lastBeatIndex = -1; // ビート検知をリセット
-      resetGame();
+      game.resetGame();
       player.createFromSongUrl(ctx.song.url, { video: ctx.song.video });
       break;
     case STATE.PLAYING:
       initPlayScene();
-      startCanvasLoop();
-      showKeyboard();
+      canvas.startCanvasLoop();
+      keyboard.showKeyboard();
       break;
     case STATE.RESULT: {
-      const score = getScore();
+      const score = game.getScore();
       if (currentSong) {
         const key = `highscore_${currentSong.id}`;
         const prev = Number(localStorage.getItem(key)) || 0;
@@ -79,23 +62,28 @@ function enter(s, ctx) {
           console.log(`db書き込み: ${score} (${currentSong.title})`);
         }
       }
-      showResultScreen({ score, maxScore: getMaxScore(), ratingCounts: getRatingCounts() });
+      result.showResultScreen({
+        score,
+        maxScore: game.getMaxScore(),
+        ratingCounts: game.getRatingCounts(),
+      });
       break;
     }
   }
 }
 
+// 現在ステートから出る時に実行する関数呼び出し
 function exit(s) {
   switch (s) {
     case STATE.LOADING:
-      hideLoadingScreen();
+      loading.hideLoadingScreen();
       break;
     case STATE.PLAYING:
-      stopCanvasLoop();
-      hideKeyboard();
+      canvas.stopCanvasLoop();
+      keyboard.hideKeyboard();
       break;
     case STATE.RESULT:
-      hideResultScreen();
+      result.hideResultScreen();
       break;
     default:
       break;
@@ -108,26 +96,26 @@ let playSceneInitialized = false;
 
 function initPlayScene() {
   if (playSceneInitialized) return;
-  initScene();
-  initCanvas();
-  initKeyboard();
+  scene.initScene();
+  canvas.initCanvas();
+  keyboard.initKeyboard();
   playSceneInitialized = true;
 }
 
 // 選曲画面を初期化（SVGフェッチ完了まで await。表示は onAppReady → transition(SELECTION) のタイミング）
 // selection.js の onSongSelectedCallbackに曲が決まったら呼ぶ関数を渡す
-await initSelection((song) => transition(STATE.LOADING, { song }));
+await selection.initSelection((song) => transition(STATE.LOADING, { song }));
 
 // ロード画面を初期化
 // ロード完了画面のタップにrequestPlayをコールバックとして仕込むため
-initLoading(() => {
+loading.initLoading(() => {
   player.requestPlay();
   transition(STATE.PLAYING);
 });
 
 // リザルト画面を初期化
 // タップで選曲画面に戻るコールバックを渡す
-initResult(() => transition(STATE.SELECTION));
+result.initResult(() => transition(STATE.SELECTION));
 
 // TextAlive のイニシャライズ
 const player = new Player({
@@ -149,34 +137,36 @@ player.addListener({
   },
   // 歌詞・タイミングデータの読み込みが完了したら呼ばれる
   onVideoReady() {
-    buildWordBlocks(player); // game.js：単語単位の声量ブロックを事前構築
+    game.buildWordBlocks(player); // 単語単位の声量ブロックを事前構築
   },
   // 音声（Songleタイマー）の準備が完了したら呼ばれる
   onTimerReady() {
-    setLoadingReady();
+    loading.setLoadingReady();
   },
 
-  // =====毎フレーム呼ばれるメインのゲームループ=====
+  // =====20fps毎に呼ばれる楽曲情報周りのゲームループ=====
   onTimeUpdate(position) {
     // プレイシーン以外ではスキップ
     if (state !== STATE.PLAYING) return;
 
-    // onStopは自然終了で発火しないようなので再生位置と終端比較で検知
+    // 楽曲の終端検知
     if (position >= player.video.duration) {
       console.log("自然終了", position, player.video.duration);
       transition(STATE.RESULT);
       return;
     }
 
-    const touchedY = getTouchedY(); // canvas.js：正規化済みY座標（上=1, 下=0）
-    const { isOnBeat, normalizedY: touchNormalizedY } = updateGame(position, touchedY); // game.js：スコア計算・ブロック評価
-    updateCanvasState({
+    const touchedY = canvas.getTouchedY(); // 正規化済みY座標（上=1, 下=0）を取得
+    const { isOnBeat, normalizedY: touchNormalizedY } = game.updateGame(position, touchedY); // スコア計算・ブロック評価
+
+    // canvas描画用の状態のみ更新
+    canvas.updateCanvasState({
       position,
-      wordBlocks: getWordBlocks(),
-      effects: popPendingEffects(),
+      wordBlocks: game.getWordBlocks(),
+      effects: game.popPendingEffects(),
       isOnBeat,
       touchNormalizedY,
-    }); // canvas.js：描画用の状態を更新
+    });
 
     // ビート検知：通し番号が変わった最初のフレームだけ isNewBeat を立てる
     const beat = player.findBeat(position);
@@ -185,14 +175,15 @@ player.addListener({
       isNewBeat = true;
       lastBeatIndex = beat.index;
     }
-    updateScene({
+    // threeレイヤー描画用の状態のみ更新
+    scene.updateScene({
       position,
       duration: player.video.duration,
-      score: getScore(),
+      score: game.getScore(),
       isNewBeat,
       beat,
-    }); // scene.js：3D更新
-    updateUI(getScore(), getLatestRating()); // ui.js：スコア・レーティング表示更新
+    });
+    ui.updateUI(game.getScore(), game.getLatestRating()); // スコア・レーティング表示更新
   },
   // ==========================================
 });
