@@ -13,6 +13,8 @@ let scene, camera, renderer, vrm;
 // updateScene から操作するオブジェクトはここに宣言する
 // let sunMesh, flowerInstancedMesh;
 
+// ── public ──────────────────────────────
+
 // 起動時に1回だけ呼ぶ。Three.js の初期化・アニメーションループの開始を行う。
 export function initScene() {
   // =============シーン初期化=================
@@ -24,7 +26,7 @@ export function initScene() {
 
   renderer.setSize(window.innerWidth, window.innerHeight);
   // モバイル(タッチ端末)は塗る画素数(fillrate)が重いので解像度上限を下げる。
-  // 1.5でまだカクつくなら 1 にすると60fpsに張り付く（鮮明さとのトレードオフ）
+  // 1.5でまだカクつくなら 1 にすると60fpsに張り付くと思う
   const maxPixelRatio = window.matchMedia("(pointer: coarse)").matches ? 1.5 : 2;
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, maxPixelRatio));
   // Sky のHDRな明るさを破綻なく表示するためのトーンマッピング
@@ -52,17 +54,7 @@ export function initScene() {
   // =============湖（リアル水面）=================
   water.initWater(scene, sky.getSunDirection());
 
-  // =============オブジェクト（仮）=================
-  /*
-  // ミクだよー（仮：シリンダー）
-  const cylinderGeometry = new THREE.CylinderGeometry(1, 1, 3);
-  const cylinderMaterial = new THREE.MeshStandardMaterial({ color: 0x00cabc });
-  const cylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
-  cylinder.position.set(4, 0, 0);
-  scene.add(cylinder);
-  */
   // VRMローダー
-
   const loader = new GLTFLoader();
 
   loader.register((parser) => new VRMLoaderPlugin(parser));
@@ -94,7 +86,6 @@ export function initScene() {
 
   // =============描画ループ=================
   // 演出やモデルの状態を毎フレーム画面に反映させるループ
-  // ポストプロセスは使わず renderer 直描画（トーンマッピングは renderer.toneMapping で適用される）
   function loop() {
     requestAnimationFrame(loop);
     updateDebugCamera(); // ★デバッグ用（確定後は controls.update() に戻す）
@@ -103,6 +94,21 @@ export function initScene() {
   }
   loop();
 }
+
+// "3D オブジェクト（位置・色・密度など）の状態を更新するだけで、renderer.render() は呼ばない！"
+// "レンダリングは loop() が毎フレーム行う！"
+export function updateScene({ position, duration, score, isNewBeat, beat }) {
+  // 曲の進行に合わせて空の状況を動かす
+  const progress = duration ? position / duration : 0; // 0=開始, 1=終わり
+  sky.updateSky(progress);
+
+  // ビートに合わせて水面に波紋生成
+  if (isNewBeat && beat) {
+    water.spawnRipple(beat.position === 1); // ダウンビートはデカく
+  }
+}
+
+// ── internal ────────────────────────────
 
 // ============================================================
 // ★デバッグ用フリーカメラ
@@ -170,21 +176,4 @@ function initDebugCamera(camera, controls) {
     }
     if (!keys["p"]) logged = false;
   };
-}
-
-// TextAlive の毎フレームコールバック(内部メインループ)から呼ばれる（main.js の onTimeUpdate 経由）
-// "3D オブジェクト（位置・色・密度など）の状態を更新するだけで、renderer.render() は呼ばない！"
-// "レンダリングは loop() が毎フレーム行う！"
-export function updateScene({ position, duration, score, isNewBeat, beat }) {
-  // 曲の進行に合わせて空の状況を動かす
-  const progress = duration ? position / duration : 0; // 0=開始, 1=終わり
-  sky.updateSky(progress);
-
-  // ビートに合わせて水面に波紋生成
-  if (isNewBeat && beat) {
-    water.spawnRipple(beat.position === 1); // ダウンビートはデカく
-  }
-
-  // TODO: ひまわりの密度をスコアで変えるなど この辺は相談だな...
-  // setFlowerDensity(score);
 }

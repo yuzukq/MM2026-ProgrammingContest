@@ -23,30 +23,7 @@ const RIPPLE_AMP_DOWNBEAT = 0.2; // 小節頭は強く
 let water = null;
 let rippleCursor = 0; // uRipples 配列への書き込み位置
 
-// normal生成(時間があれば自前で作るかも)
-function makeFlatNormalTexture() {
-  const data = new Uint8Array([128, 128, 255, 255]); // RGB=(128,128,255) → 法線(0,0,1)
-  const tex = new THREE.DataTexture(data, 1, 1, THREE.RGBAFormat);
-  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-  tex.needsUpdate = true;
-  return tex;
-}
-
-// Water のフラグメントシェーダーにモンキーパッチ（surfaceNormal を輪状に揺らす）。
-function injectRippleShader(material) {
-  material.uniforms.uTime = { value: 0 };
-  material.uniforms.uRippleCount = { value: 0 };
-  material.uniforms.uRipples = {
-    value: Array.from({ length: MAX_RIPPLES }, () => new THREE.Vector4()),
-  };
-  material.fragmentShader = material.fragmentShader
-    .replace("uniform vec3 waterColor;", "uniform vec3 waterColor;\n" + RIPPLE_GLSL)
-    .replace(
-      "vec3 surfaceNormal = normalize( noise.xzy * vec3( 1.5, 1.0, 1.5 ) );",
-      "vec3 surfaceNormal = normalize( noise.xzy * vec3( 1.5, 1.0, 1.5 ) );\n\t\t\t\t\tsurfaceNormal = applyRipples( surfaceNormal, worldPosition.xz );"
-    );
-  material.needsUpdate = true;
-}
+// ── public ──────────────────────────────
 
 export function initWater(scene, sunDirection) {
   const geometry = new THREE.PlaneGeometry(LAKE_SIZE, LAKE_SIZE);
@@ -86,4 +63,31 @@ export function updateWater(sunDirection) {
   if (sunDirection) {
     water.material.uniforms.sunDirection.value.copy(sunDirection).normalize();
   }
+}
+
+// ── internal ────────────────────────────
+
+// normal生成(時間があれば自前で作るかも)
+function makeFlatNormalTexture() {
+  const data = new Uint8Array([128, 128, 255, 255]); // RGB=(128,128,255) → 法線(0,0,1)
+  const tex = new THREE.DataTexture(data, 1, 1, THREE.RGBAFormat);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.needsUpdate = true;
+  return tex;
+}
+
+// Water のフラグメントシェーダーにモンキーパッチ（surfaceNormal を輪状に揺らす）。
+function injectRippleShader(material) {
+  material.uniforms.uTime = { value: 0 };
+  material.uniforms.uRippleCount = { value: 0 };
+  material.uniforms.uRipples = {
+    value: Array.from({ length: MAX_RIPPLES }, () => new THREE.Vector4()),
+  };
+  material.fragmentShader = material.fragmentShader
+    .replace("uniform vec3 waterColor;", "uniform vec3 waterColor;\n" + RIPPLE_GLSL)
+    .replace(
+      "vec3 surfaceNormal = normalize( noise.xzy * vec3( 1.5, 1.0, 1.5 ) );",
+      "vec3 surfaceNormal = normalize( noise.xzy * vec3( 1.5, 1.0, 1.5 ) );\n\t\t\t\t\tsurfaceNormal = applyRipples( surfaceNormal, worldPosition.xz );"
+    );
+  material.needsUpdate = true;
 }

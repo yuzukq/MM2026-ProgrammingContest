@@ -1,14 +1,15 @@
 // loading.js
 // 選曲後〜曲ロード完了までのロード画面を担当する
 // ロード完了（setLoadingReady）後にタップされたら onStartCallback を呼ぶ
-// 素材の差し替えは /assets/loading.png を置き換えるだけでOK
 
-const IMG_SRC = "/assets/loading.png"; // TODO: デザイナー提供素材に差し替える
+const IMG_SRC = "/assets/loading.png";
 
 let screenEl = null;
 let hintEl = null;
 let onStartCallback = null;
 let isReady = false; // onVideoReady が来るまでタップを受け付けない
+
+// ── public ──────────────────────────────
 
 // main.js から呼ぶ。onStart() はタップ確定時のコールバック
 export function initLoading(onStart) {
@@ -31,6 +32,8 @@ export function setLoadingReady() {
   hintEl.textContent = "タップしてスタート";
   hintEl.style.opacity = "1";
 }
+
+// ── internal ────────────────────────────
 
 function buildDOM() {
   screenEl = document.createElement("div");

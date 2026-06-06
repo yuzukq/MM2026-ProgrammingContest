@@ -16,6 +16,8 @@ let cardElements = [];
 let screenEl = null;
 let onSongSelectedCallback = null;
 
+// ── public ──────────────────────────────
+
 // main.js から await で呼ぶ。SVGフェッチが完了してからDOMを構築する
 export async function initSelection(onSelected) {
   onSongSelectedCallback = onSelected;
@@ -30,15 +32,17 @@ export function showSelectionScreen() {
   screenEl.style.display = "flex";
 }
 
+export function hideSelectionScreen() {
+  screenEl.style.display = "none";
+}
+
+// ── internal ────────────────────────────
+
 function refreshHighScores() {
   cardElements.forEach((card, i) => {
     card.querySelector("#score").innerHTML =
       `<tspan x="0" y="0">HIGH SCORE</tspan><tspan x="0" dy="1.2em" font-size="34px" font-weight="bold">${getHighScore(SONGS[i].id)}</tspan>`;
   });
-}
-
-export function hideSelectionScreen() {
-  screenEl.style.display = "none";
 }
 
 // ======== DOM構築 ========
