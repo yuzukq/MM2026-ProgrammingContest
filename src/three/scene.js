@@ -58,11 +58,6 @@ export function initScene() {
   // =============歌詞ビルボード=================
   lyric.initLyric(scene, camera);
 
-  // ★Phase0 デバッグ用：L キーでサンプルのフレーズを出現させる（確認後に削除）
-  window.addEventListener("keydown", (e) => {
-    if (e.key.toLowerCase() === "l") lyric.spawnPhrase("ことばを奏でて");
-  });
-
   // VRMローダー
   const loader = new GLTFLoader();
 

@@ -22,6 +22,12 @@ const hitBlockIds = new Set();
 // canvas へ渡す演出のキュー
 let pendingEffects = [];
 
+// 歌詞ビルボード（lyric.js）へ渡すイベントのキュー
+// { type: "start", phraseIndex, roster } / { type: "word", phraseIndex, slotIndex, text, rating } / { type: "end", phraseIndex }
+let pendingLyricEvents = [];
+let phrases = []; // 1フレーズに入る単語群(roster)を格納する
+let activePhraseIndex = null; // 現在いるフレーズの番号（フレーズ切替検知に使う）
+
 // 直近のレーティング（UI 表示用）
 let latestRating = null;
 
@@ -40,6 +46,9 @@ export function resetGame() {
   accumFrames = 0;
   hitBlockIds.clear();
   pendingEffects = [];
+  pendingLyricEvents = [];
+  phrases = [];
+  activePhraseIndex = null;
   latestRating = null;
   ratingCounts.PERFECT = 0;
   ratingCounts.GOOD = 0;
@@ -50,17 +59,33 @@ export function resetGame() {
 // 毎フレーム getVocalAmplitude を呼ぶと波形がぶれるため、単語の先頭時刻で固定
 export function buildWordBlocks(player) {
   maxAmp = player.getMaxVocalAmplitude() || 1;
-  let word = player.video.firstWord;
-  while (word) {
-    if (word.endTime - word.startTime >= CHORUS_NOISE_THRESHOLD) {
-      wordBlocks.push({
-        startTime: word.startTime,
-        endTime: word.endTime,
-        text: word.text,
-        normalizedAmp: player.getVocalAmplitude(word.startTime) / maxAmp,
-      });
+  // フレーズ→単語の順に走査し、各ブロックに phraseIndex / slotIndex を貼る
+  let phrase = player.video.firstPhrase;
+  let phraseIndex = 0;
+
+  while (phrase) {
+    const roster = []; // このフレーズで採用された単語テキスト（スロット順）
+    let word = phrase.firstWord;
+    // 単語ブロックの形成，1フレーズごとに属する単語のロースター格納していく
+    while (word) {
+      // 「こたえて」のコーラス部分だけは除外
+      if (word.endTime - word.startTime >= CHORUS_NOISE_THRESHOLD) {
+        wordBlocks.push({
+          startTime: word.startTime,
+          endTime: word.endTime,
+          text: word.text,
+          normalizedAmp: player.getVocalAmplitude(word.startTime) / maxAmp,
+          phraseIndex,
+          slotIndex: roster.length, // フレーズ内での位置＝現在の配列長
+        });
+        roster.push(word.text);
+      }
+      if (word === phrase.lastWord) break;
+      word = word.next;
     }
-    word = word.next;
+    phrases.push({ roster });
+    phrase = phrase.next;
+    phraseIndex++;
   }
   maxScore = wordBlocks.length * RATING_MULTIPLIER.PERFECT; // 全ブロック PERFECT 時の理論最大値
 }
@@ -81,10 +106,16 @@ export function updateGame(position, touchedY) {
     score += POINTS_PER_BLOCK() * RATING_MULTIPLIER[rating];
     latestRating = rating;
     ratingCounts[rating]++;
-    // ========デバッグ用=========
-    console.log("Rating counts:", { ...ratingCounts });
     pendingEffects.push({ normalizedY: activeBlock.normalizedAmp, rating });
-    // ==========================
+    // 歌詞ビルボードへ判定確定した単語をスロットに出現させる
+    pendingLyricEvents.push({
+      type: "word",
+      phraseIndex: activeBlock.phraseIndex,
+      slotIndex: activeBlock.slotIndex,
+      text: activeBlock.text,
+      rating,
+    });
+    console.log("[lyric event]", { type: "word", text: activeBlock.text, rating });
 
     // 次のブロックに備えてリセット
     accumAccuracy = 0;
@@ -93,6 +124,21 @@ export function updateGame(position, touchedY) {
 
   // 切り替わりなく続投なら続投
   activeBlock = block;
+
+  // フレーズの切替検知 → 五線譜の登場(start)／退場(end)イベントを発行
+  const currentPhraseIndex = block ? block.phraseIndex : null;
+  if (currentPhraseIndex !== activePhraseIndex) {
+    if (activePhraseIndex !== null) {
+      pendingLyricEvents.push({ type: "end", phraseIndex: activePhraseIndex });
+      console.log("[lyric event]", { type: "end", phraseIndex: activePhraseIndex });
+    }
+    if (currentPhraseIndex !== null) {
+      const roster = phrases[currentPhraseIndex].roster;
+      pendingLyricEvents.push({ type: "start", phraseIndex: currentPhraseIndex, roster });
+      console.log("[lyric event]", { type: "start", phraseIndex: currentPhraseIndex, roster });
+    }
+    activePhraseIndex = currentPhraseIndex;
+  }
 
   if (block) {
     // ブロック到着イベント（startTime が判定ラインに乗った初回のみ）
@@ -118,6 +164,13 @@ export function popPendingEffects() {
   const effects = [...pendingEffects];
   pendingEffects = [];
   return effects;
+}
+
+// 歌詞ビルボード（lyric.js）が消費する start/word/end イベントを取り出す
+export function popLyricEvents() {
+  const events = pendingLyricEvents;
+  pendingLyricEvents = [];
+  return events;
 }
 
 export function getWordBlocks() {
