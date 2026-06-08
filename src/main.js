@@ -182,6 +182,7 @@ player.addListener({
       score: game.getScore(),
       isNewBeat,
       beat,
+      lyricEvents: game.popLyricEvents(), // 歌詞ビルボードの start/word/end
     });
     ui.updateUI(game.getScore(), game.getLatestRating()); // スコア・レーティング表示更新
   },

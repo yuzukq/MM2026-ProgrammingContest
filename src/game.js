@@ -83,11 +83,21 @@ export function buildWordBlocks(player) {
       if (word === phrase.lastWord) break;
       word = word.next;
     }
-    phrases.push({ roster });
+    // startTime〜endTime は単語間の隙間も含むので、フレーズ在席判定に使う（隙間で外れないため）
+    phrases.push({ roster, startTime: phrase.startTime, endTime: phrase.endTime });
     phrase = phrase.next;
     phraseIndex++;
   }
   maxScore = wordBlocks.length * RATING_MULTIPLIER.PERFECT; // 全ブロック PERFECT 時の理論最大値
+}
+
+// 再生位置が含まれるフレーズ番号を返す。歌詞なし(roster空)・どのフレーズ外の区間は null
+function phraseIndexAt(position) {
+  for (let i = 0; i < phrases.length; i++) {
+    const p = phrases[i];
+    if (p.roster.length > 0 && p.startTime <= position && position < p.endTime) return i;
+  }
+  return null;
 }
 
 // onTimeUpdate で毎フレーム呼ぶ
@@ -115,7 +125,6 @@ export function updateGame(position, touchedY) {
       text: activeBlock.text,
       rating,
     });
-    console.log("[lyric event]", { type: "word", text: activeBlock.text, rating });
 
     // 次のブロックに備えてリセット
     accumAccuracy = 0;
@@ -126,16 +135,15 @@ export function updateGame(position, touchedY) {
   activeBlock = block;
 
   // フレーズの切替検知 → 五線譜の登場(start)／退場(end)イベントを発行
-  const currentPhraseIndex = block ? block.phraseIndex : null;
+  // ブロックではなくフレーズの時間範囲で判定する（単語間の隙間でも同じフレーズに留まるため）
+  const currentPhraseIndex = phraseIndexAt(position);
   if (currentPhraseIndex !== activePhraseIndex) {
     if (activePhraseIndex !== null) {
       pendingLyricEvents.push({ type: "end", phraseIndex: activePhraseIndex });
-      console.log("[lyric event]", { type: "end", phraseIndex: activePhraseIndex });
     }
     if (currentPhraseIndex !== null) {
       const roster = phrases[currentPhraseIndex].roster;
       pendingLyricEvents.push({ type: "start", phraseIndex: currentPhraseIndex, roster });
-      console.log("[lyric event]", { type: "start", phraseIndex: currentPhraseIndex, roster });
     }
     activePhraseIndex = currentPhraseIndex;
   }

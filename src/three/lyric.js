@@ -19,18 +19,21 @@ const WAVE_SPEED = 1.2; // 波のスクロール速度
 // 右→左へ徐々に描き出すドローオン
 const REVEAL_MAX = 1.02; // 描画範囲の最大値（左端 xr=1 を確実に含むよう 1 より少し大きく）
 
-// ── テキスト ──
+// ── テキスト（スロット）──
 const TEXT_HEIGHT = 0.5; // テキスト平面の高さ（横幅は文字数で決まる）
-const TEXT_COLOR = "#ffffff";
+const TEXT_COLOR = "#ff0000"; // 検証用：後で調整
 const TEXT_FONT = "bold 96px sans-serif";
 const TEXT_RESOLUTION = 128; // Canvas の縦解像度（px）
+const TEXT_GAP = 0.1; // 単語間の隙間（ワールド単位）
+const MAX_ROW_WIDTH = STAFF_WIDTH * 0.9; // 単語列がこれを超えたら行ごと縮小して五線譜に収める
+const SEMI_OPACITY = 0.2; // PERFECT 以外（GOOD/BAD/取り逃し）の半透明度
+const SLOT_FADE = 0.1; // 単語が出現するときのフェードイン時間（秒）
 
 // ── 配置（仮。カメラワーク確定後に調整）──
 const SPAWN_POSITION = new THREE.Vector3(0, 1.4, 2.0); // 五線譜の出現位置
 
 // ── ライフサイクル（秒）──
-const ENTER_DUR = 0.4; // 登場（右→左に徐々に描き出す）
-const HOLD_DUR = 3.0; // 保持（Phase 0 の確認用。Phase 1 ではフレーズ長に合わせる）
+const ENTER_DUR = 0.2; // 登場（右→左に徐々に描き出す）
 const EXIT_DUR = 0.5; // 退場（フェードアウト）
 const EXIT_RISE = 0.2; // 退場時に上へ昇る距離
 
@@ -45,111 +48,127 @@ export function initLyric(parentScene, sceneCamera) {
   camera = sceneCamera;
 }
 
-// フレーズ1つぶんの五線譜＋テキストを出現させる
-export function spawnPhrase(text, { hold = HOLD_DUR } = {}) {
-  if (!scene) return;
-
-  const group = new THREE.Group();
-  group.position.copy(SPAWN_POSITION);
-
-  const staff = buildStaff();
-  const textMesh = buildText(text);
-  group.add(staff.mesh, textMesh);
-  scene.add(group);
-
-  instances.push({
-    group,
-    staffMaterial: staff.material,
-    textMaterial: textMesh.material,
-    bornAt: performance.now() / 1000,
-    holdDur: hold,
-    totalDur: ENTER_DUR + hold + EXIT_DUR,
-  });
+// game.js が発行する start / word / end イベントを受けて反映する
+export function applyLyricEvents(events) {
+  for (const e of events) {
+    if (e.type === "start") spawnPhrase(e.phraseIndex, e.roster);
+    else if (e.type === "word") revealWord(e.phraseIndex, e.slotIndex, e.rating);
+    else if (e.type === "end") exitPhrase(e.phraseIndex);
+  }
 }
 
-// scene描画のRAFから呼ぶ呼ぶ
-// 波の進行・ライフサイクル（登場/保持/退場）の更新と後始末
+// scene描画のRAFから呼ぶ。波の進行・登場/退場アニメの更新と、退場し終えたものの後始末。
 export function updateLyric() {
   const now = performance.now() / 1000;
 
   for (let i = instances.length - 1; i >= 0; i--) {
     const inst = instances[i];
-    const age = now - inst.bornAt;
 
-    // 寿命切れ：シーンから除去して破棄
-    if (age >= inst.totalDur) {
+    // 退場アニメが終わった → シーンから除去して破棄
+    if (inst.exitAt !== null && now - inst.exitAt >= EXIT_DUR) {
       scene.remove(inst.group);
       disposeGroup(inst.group);
       instances.splice(i, 1);
       continue;
     }
 
-    // 現在のフェーズの状態を求めてビルボードに適用
-    applyState(inst, phaseState(age, inst.holdDur), now);
+    updateInstance(inst, now);
   }
 }
 
 // ── internal ────────────────────────────
 
-// 経過時間(age)から表示状態 { reveal, opacity, textOpacity, rise, scale } を返す
-function phaseState(age, holdDur) {
-  // 出現
-  if (age < ENTER_DUR) {
-    return enterState(age / ENTER_DUR);
+// start: 空の五線譜をスポーンし roster からスロットを予約・配置する
+function spawnPhrase(phraseIndex, roster) {
+  if (!scene) return;
+
+  const group = new THREE.Group();
+  group.position.copy(SPAWN_POSITION);
+
+  const staff = buildStaff();
+  group.add(staff.mesh);
+
+  // 各単語をテキスト化し、幅を測って左→右に詰めて配置する
+  const meshes = roster.map((text) => buildText(text));
+  const widths = meshes.map((m) => m.geometry.parameters.width);
+  const totalWidth =
+    widths.reduce((sum, w) => sum + w, 0) + TEXT_GAP * Math.max(0, roster.length - 1);
+  const fit = Math.min(1, MAX_ROW_WIDTH / totalWidth);
+
+  let cursor = -(totalWidth * fit) / 2; // 行の左端から右へ詰めていく
+  const slots = meshes.map((mesh, i) => {
+    const w = widths[i] * fit;
+    mesh.scale.setScalar(fit);
+    mesh.position.set(cursor + w / 2, 0, 0.05); // 五線譜のわずかに手前
+    cursor += w + TEXT_GAP * fit;
+    group.add(mesh);
+    return { material: mesh.material, targetOpacity: 0, revealedAt: null }; // 未判定は非表示
+  });
+
+  scene.add(group);
+  instances.push({
+    phraseIndex,
+    group,
+    staffMaterial: staff.material,
+    slots,
+    bornAt: performance.now() / 1000,
+    exitAt: null, // end イベントで now をセット → 退場開始
+  });
+}
+
+// word: 判定確定した単語をスロットに出現させる（PERFECT=不透明 / それ以外=半透明）
+function revealWord(phraseIndex, slotIndex, rating) {
+  const slot = activeInstance(phraseIndex)?.slots[slotIndex];
+  if (!slot) return;
+  slot.targetOpacity = rating === "PERFECT" ? 1.0 : SEMI_OPACITY;
+  slot.revealedAt = performance.now() / 1000;
+}
+
+// end: 五線譜ごと退場を開始する
+function exitPhrase(phraseIndex) {
+  const inst = activeInstance(phraseIndex);
+  if (inst) inst.exitAt = performance.now() / 1000;
+}
+
+// 退場中でない、指定フレーズのインスタンスを返す
+function activeInstance(phraseIndex) {
+  return instances.find((x) => x.phraseIndex === phraseIndex && x.exitAt === null);
+}
+
+// 1インスタンス（フレーズ）の登場/保持/退場アニメを1フレーム進める
+function updateInstance(inst, now) {
+  const age = now - inst.bornAt;
+  const enterE = easeOutSine(clamp01(age / ENTER_DUR)); // 登場の進捗（描き出し）
+
+  // 退場フェード：exitAt がセットされてから EXIT_DUR で 1→0
+  let exitFade = 1;
+  let rise = 0;
+  let scale = 0.96 + 0.04 * enterE;
+  if (inst.exitAt !== null) {
+    const exitE = easeInSine(clamp01((now - inst.exitAt) / EXIT_DUR));
+    exitFade = 1 - exitE;
+    rise = exitE * EXIT_RISE;
+    scale = 1 + 0.04 * exitE;
+  } else if (age >= ENTER_DUR) {
+    rise = Math.sin((age - ENTER_DUR) * 1.2) * 0.02; // 保持：微かに漂う
+    scale = 1;
   }
-  const heldFor = age - ENTER_DUR;
-  // 保持
-  if (heldFor < holdDur) {
-    return holdState(heldFor);
+
+  // 五線譜：登場の描き出し(uReveal)＋退場フェード(uOpacity)＋波の進行(uTime)
+  const u = inst.staffMaterial.uniforms;
+  u.uTime.value = now;
+  u.uReveal.value = enterE * REVEAL_MAX;
+  u.uOpacity.value = exitFade;
+
+  // スロット：出現済みのものだけ「フェードイン × 退場フェード」で不透明度を更新
+  for (const slot of inst.slots) {
+    if (slot.revealedAt === null) continue; // 未判定は非表示のまま
+    const fadeIn = clamp01((now - slot.revealedAt) / SLOT_FADE);
+    slot.material.opacity = slot.targetOpacity * fadeIn * exitFade;
   }
-  // 退場
-  return exitState((heldFor - holdDur) / EXIT_DUR);
-}
 
-// 出現時：
-// 右端から左へ徐々に描き出す（reveal を伸ばす）→ 五線譜が引かれてからテキスト
-function enterState(t) {
-  const e = easeOutSine(t);
-  return {
-    reveal: e * REVEAL_MAX,
-    opacity: 1,
-    textOpacity: smoothstep(0.45, 1.0, t),
-    rise: 0,
-    scale: 0.96 + 0.04 * e,
-  };
-}
-
-// 保持：完全表示, 微かに上下に漂わせる
-function holdState(elapsed) {
-  return {
-    reveal: REVEAL_MAX,
-    opacity: 1,
-    textOpacity: 1,
-    rise: Math.sin(elapsed * 1.2) * 0.02,
-    scale: 1,
-  };
-}
-
-// 退場時：全体フェードアウトしつつ、少し上へ
-function exitState(t) {
-  const e = easeInSine(t);
-  return {
-    reveal: REVEAL_MAX,
-    opacity: 1 - e,
-    textOpacity: 1 - e,
-    rise: e * EXIT_RISE,
-    scale: 1 + 0.04 * e,
-  };
-}
-
-// 表示状態をビルボード（五線譜＋テキスト）に反映する
-function applyState(inst, s, now) {
-  inst.group.position.y = SPAWN_POSITION.y + s.rise;
-  inst.group.scale.setScalar(s.scale);
-  inst.staffMaterial.uniforms.uTime.value = now; // 波は常に進行
-  inst.staffMaterial.uniforms.uReveal.value = s.reveal;
-  inst.staffMaterial.uniforms.uOpacity.value = s.opacity;
-  inst.textMaterial.opacity = s.textOpacity;
+  inst.group.position.y = SPAWN_POSITION.y + rise;
+  inst.group.scale.setScalar(scale);
   if (camera) inst.group.quaternion.copy(camera.quaternion); // カメラ向きにビルボード
 }
 
@@ -216,9 +235,8 @@ function buildText(text) {
     opacity: 0,
     depthWrite: false,
   });
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.position.z = 0.05; // 五線譜のわずかに手前
-  return mesh;
+  // 位置・スケールは spawnPhrase 側でスロットに合わせて設定する
+  return new THREE.Mesh(geometry, material);
 }
 
 // group 配下のジオメトリ・マテリアル・テクスチャを破棄
@@ -262,8 +280,7 @@ function easeInSine(t) {
   return 1 - Math.cos((t * Math.PI) / 2);
 }
 
-// GLSL の smoothstep と同等（edge0→edge1 を滑らかに 0→1）
-function smoothstep(edge0, edge1, x) {
-  const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)));
-  return t * t * (3 - 2 * t);
+// 0..1 にクランプ
+function clamp01(t) {
+  return Math.max(0, Math.min(1, t));
 }

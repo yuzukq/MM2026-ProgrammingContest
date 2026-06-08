@@ -102,7 +102,7 @@ export function initScene() {
 
 // "3D オブジェクト（位置・色・密度など）の状態を更新するだけで、renderer.render() は呼ばない！"
 // "レンダリングは loop() が毎フレーム行う！"
-export function updateScene({ position, duration, score, isNewBeat, beat }) {
+export function updateScene({ position, duration, score, isNewBeat, beat, lyricEvents }) {
   // 曲の進行に合わせて空の状況を動かす
   const progress = duration ? position / duration : 0; // 0=開始, 1=終わり
   sky.updateSky(progress);
@@ -110,6 +110,11 @@ export function updateScene({ position, duration, score, isNewBeat, beat }) {
   // ビートに合わせて水面に波紋生成
   if (isNewBeat && beat) {
     water.spawnRipple(beat.position === 1); // ダウンビートはデカく
+  }
+
+  // 歌詞ビルボードの start/word/end を反映（描画は loop() の lyric.updateLyric が担当）
+  if (lyricEvents && lyricEvents.length) {
+    lyric.applyLyricEvents(lyricEvents);
   }
 }
 
