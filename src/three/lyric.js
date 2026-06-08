@@ -2,18 +2,22 @@
 // 歌詞ビルボード演出。フレーズごとに「波打つ五線譜 + 歌詞テキスト」を出し入れする。
 
 import * as THREE from "three";
+import STAFF_VERT from "./staff.vert.glsl?raw";
+import STAFF_FRAG from "./staff.frag.glsl?raw";
 
 // ── 五線譜（波打つ5本線）──
 const STAFF_LINE_COUNT = 5; // 線の本数
 const STAFF_WIDTH = 4.0; // 五線譜の横幅（ワールド単位）
 const STAFF_LINE_GAP = 0.18; // 線の間隔
-const STAFF_LINE_THICKNESS = 0.012; // 線の太さ
+const STAFF_LINE_THICKNESS = 0.02; // 線の太さ
 const STAFF_SEGMENTS = 48; // 横方向の分割数（多いほど波が滑らか）
 const STAFF_COLOR = 0xeaf6ff;
 // 五線譜のsin揺れ
 const WAVE_AMP = 0.06; // 波の振幅
 const WAVE_FREQ = 1.6; // 周波数
 const WAVE_SPEED = 1.2; // 波のスクロール速度
+// 右→左へ徐々に描き出すドローオン
+const REVEAL_MAX = 1.02; // 描画範囲の最大値（左端 xr=1 を確実に含むよう 1 より少し大きく）
 
 // ── テキスト ──
 const TEXT_HEIGHT = 0.5; // テキスト平面の高さ（横幅は文字数で決まる）
@@ -25,11 +29,10 @@ const TEXT_RESOLUTION = 128; // Canvas の縦解像度（px）
 const SPAWN_POSITION = new THREE.Vector3(0, 1.4, 2.0); // 五線譜の出現位置
 
 // ── ライフサイクル（秒）──
-const ENTER_DUR = 0.8; // 登場
+const ENTER_DUR = 0.4; // 登場（右→左に徐々に描き出す）
 const HOLD_DUR = 3.0; // 保持（Phase 0 の確認用。Phase 1 ではフレーズ長に合わせる）
-const EXIT_DUR = 1.0; // 退場
-const ENTER_RISE = 0.4; // 登場時に下から浮上する距離
-const EXIT_RISE = 0.6; // 退場時に上へ昇る距離
+const EXIT_DUR = 0.5; // 退場（フェードアウト）
+const EXIT_RISE = 0.2; // 退場時に上へ昇る距離
 
 let scene = null;
 let camera = null;
@@ -81,45 +84,74 @@ export function updateLyric() {
       continue;
     }
 
-    // 波は常に進行
-    inst.staffMaterial.uniforms.uTime.value = now;
-
-    // ライフサイクルの各フェーズで opacity / 浮上 / scale / 波の振幅を制御
-    let opacity, rise, scale, waveGrow;
-    if (age < ENTER_DUR) {
-      // 登場：easeOutSine（最初速く→優しく減速）。直線から波打ち始める
-      const t = easeOutSine(age / ENTER_DUR);
-      opacity = t;
-      rise = (1 - t) * -ENTER_RISE; // 下から上へ
-      scale = 0.9 + 0.1 * t;
-      waveGrow = t;
-    } else if (age < ENTER_DUR + inst.holdDur) {
-      // 保持：完全表示。微かに上下に漂わせる
-      opacity = 1;
-      rise = Math.sin((age - ENTER_DUR) * 1.2) * 0.02;
-      scale = 1;
-      waveGrow = 1;
-    } else {
-      // 退場：easeInSine（優しく加速）。上へ昇って霧散
-      const t = easeInSine((age - ENTER_DUR - inst.holdDur) / EXIT_DUR);
-      opacity = 1 - t;
-      rise = t * EXIT_RISE;
-      scale = 1 + 0.08 * t;
-      waveGrow = 1;
-    }
-
-    inst.group.position.y = SPAWN_POSITION.y + rise;
-    inst.group.scale.setScalar(scale);
-    inst.staffMaterial.uniforms.uOpacity.value = opacity;
-    inst.staffMaterial.uniforms.uWaveGrow.value = waveGrow;
-    inst.textMaterial.opacity = opacity;
-
-    // ビルボード
-    if (camera) inst.group.quaternion.copy(camera.quaternion);
+    // 現在のフェーズの状態を求めてビルボードに適用
+    applyState(inst, phaseState(age, inst.holdDur), now);
   }
 }
 
 // ── internal ────────────────────────────
+
+// 経過時間(age)から表示状態 { reveal, opacity, textOpacity, rise, scale } を返す
+function phaseState(age, holdDur) {
+  // 出現
+  if (age < ENTER_DUR) {
+    return enterState(age / ENTER_DUR);
+  }
+  const heldFor = age - ENTER_DUR;
+  // 保持
+  if (heldFor < holdDur) {
+    return holdState(heldFor);
+  }
+  // 退場
+  return exitState((heldFor - holdDur) / EXIT_DUR);
+}
+
+// 出現時：
+// 右端から左へ徐々に描き出す（reveal を伸ばす）→ 五線譜が引かれてからテキスト
+function enterState(t) {
+  const e = easeOutSine(t);
+  return {
+    reveal: e * REVEAL_MAX,
+    opacity: 1,
+    textOpacity: smoothstep(0.45, 1.0, t),
+    rise: 0,
+    scale: 0.96 + 0.04 * e,
+  };
+}
+
+// 保持：完全表示, 微かに上下に漂わせる
+function holdState(elapsed) {
+  return {
+    reveal: REVEAL_MAX,
+    opacity: 1,
+    textOpacity: 1,
+    rise: Math.sin(elapsed * 1.2) * 0.02,
+    scale: 1,
+  };
+}
+
+// 退場時：全体フェードアウトしつつ、少し上へ
+function exitState(t) {
+  const e = easeInSine(t);
+  return {
+    reveal: REVEAL_MAX,
+    opacity: 1 - e,
+    textOpacity: 1 - e,
+    rise: e * EXIT_RISE,
+    scale: 1 + 0.04 * e,
+  };
+}
+
+// 表示状態をビルボード（五線譜＋テキスト）に反映する
+function applyState(inst, s, now) {
+  inst.group.position.y = SPAWN_POSITION.y + s.rise;
+  inst.group.scale.setScalar(s.scale);
+  inst.staffMaterial.uniforms.uTime.value = now; // 波は常に進行
+  inst.staffMaterial.uniforms.uReveal.value = s.reveal;
+  inst.staffMaterial.uniforms.uOpacity.value = s.opacity;
+  inst.textMaterial.opacity = s.textOpacity;
+  if (camera) inst.group.quaternion.copy(camera.quaternion); // カメラ向きにビルボード
+}
 
 // 波打つ五線譜を生成
 function buildStaff() {
@@ -140,33 +172,16 @@ function buildStaff() {
     depthWrite: false,
     uniforms: {
       uTime: { value: 0 },
-      uOpacity: { value: 0 },
-      uWaveGrow: { value: 0 }, // 0=直線, 1=波MAX（登場で立ち上げる）
+      uOpacity: { value: 1 }, // 全体フェード（退場用）
+      uReveal: { value: 0 }, // 描画範囲（右→左）。0=未描画, REVEAL_MAX=全描画
       uAmp: { value: WAVE_AMP },
       uFreq: { value: WAVE_FREQ },
       uSpeed: { value: WAVE_SPEED },
+      uWidth: { value: STAFF_WIDTH }, // x→0..1正規化用
       uColor: { value: new THREE.Color(STAFF_COLOR) },
     },
-    vertexShader: /* glsl */ `
-      uniform float uTime;
-      uniform float uWaveGrow;
-      uniform float uAmp;
-      uniform float uFreq;
-      uniform float uSpeed;
-      void main() {
-        vec3 p = position;
-        // 横方向(x)に沿って縦(y)を sin で揺らす＝五線譜が波打つ
-        p.y += sin(p.x * uFreq + uTime * uSpeed) * uAmp * uWaveGrow;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
-      }
-    `,
-    fragmentShader: /* glsl */ `
-      uniform vec3 uColor;
-      uniform float uOpacity;
-      void main() {
-        gl_FragColor = vec4(uColor, uOpacity);
-      }
-    `,
+    vertexShader: STAFF_VERT,
+    fragmentShader: STAFF_FRAG,
   });
 
   return { mesh: new THREE.Mesh(merged, material), material };
@@ -217,7 +232,7 @@ function disposeGroup(group) {
   });
 }
 
-// 複数 BufferGeometry を1つに統合（addons の mergeGeometries 相当の最小実装）
+// 複数 BufferGeometry を1つに統合
 function mergeGeometries(geometries) {
   const merged = new THREE.BufferGeometry();
   const position = [];
@@ -245,4 +260,10 @@ function easeOutSine(t) {
 }
 function easeInSine(t) {
   return 1 - Math.cos((t * Math.PI) / 2);
+}
+
+// GLSL の smoothstep と同等（edge0→edge1 を滑らかに 0→1）
+function smoothstep(edge0, edge1, x) {
+  const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)));
+  return t * t * (3 - 2 * t);
 }
