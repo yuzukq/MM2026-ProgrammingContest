@@ -8,6 +8,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { VRMLoaderPlugin } from "@pixiv/three-vrm";
 import * as sky from "./sky.js";
 import * as water from "./water.js";
+import * as lyric from "./lyric.js";
 
 let scene, camera, renderer, vrm;
 // updateScene から操作するオブジェクトはここに宣言する
@@ -54,6 +55,14 @@ export function initScene() {
   // =============湖（リアル水面）=================
   water.initWater(scene, sky.getSunDirection());
 
+  // =============歌詞ビルボード=================
+  lyric.initLyric(scene, camera);
+
+  // ★Phase0 デバッグ用：L キーでサンプルのフレーズを出現させる（確認後に削除）
+  window.addEventListener("keydown", (e) => {
+    if (e.key.toLowerCase() === "l") lyric.spawnPhrase("ことばを奏でて");
+  });
+
   // VRMローダー
   const loader = new GLTFLoader();
 
@@ -90,6 +99,7 @@ export function initScene() {
     requestAnimationFrame(loop);
     updateDebugCamera(); // ★デバッグ用（確定後は controls.update() に戻す）
     water.updateWater(sky.getSunDirection()); // 法線スクロール＋太陽方向を空と同期
+    lyric.updateLyric(); // 歌詞ビルボードの波・ライフサイクル更新
     renderer.render(scene, camera);
   }
   loop();
