@@ -7,7 +7,7 @@ import STAFF_FRAG from "./staff.frag.glsl?raw";
 
 // ── 五線譜（波打つ5本線）──
 const STAFF_LINE_COUNT = 5; // 線の本数
-const STAFF_WIDTH = 4.0; // 五線譜の横幅（ワールド単位）
+const STAFF_WIDTH = 6.0; // 五線譜の横幅（ワールド単位）
 const STAFF_LINE_GAP = 0.18; // 線の間隔
 const STAFF_LINE_THICKNESS = 0.02; // 線の太さ
 const STAFF_SEGMENTS = 48; // 横方向の分割数（多いほど波が滑らか）
@@ -25,7 +25,8 @@ const TEXT_COLOR = "#ff0000"; // 検証用：後で調整
 const TEXT_FONT = "bold 96px sans-serif";
 const TEXT_RESOLUTION = 128; // Canvas の縦解像度（px）
 const TEXT_GAP = 0.1; // 単語間の隙間（ワールド単位）
-const MAX_ROW_WIDTH = STAFF_WIDTH * 0.9; // 単語列がこれを超えたら行ごと縮小して五線譜に収める
+const MAX_ROW_WIDTH = STAFF_WIDTH * 0.9; // 9.5割埋まったら折り返す
+const LINE_SPACING = 1.0; // 折り返した行（五線譜の段）の縦間隔
 const SEMI_OPACITY = 0.2; // PERFECT 以外（GOOD/BAD/取り逃し）の半透明度
 const SLOT_FADE = 0.1; // 単語が出現するときのフェードイン時間（秒）
 
@@ -85,25 +86,38 @@ function spawnPhrase(phraseIndex, roster) {
   const group = new THREE.Group();
   group.position.copy(SPAWN_POSITION);
 
-  const staff = buildStaff();
-  group.add(staff.mesh);
-
-  // 各単語をテキスト化し、幅を測って左→右に詰めて配置する
+  // 各単語をテキスト化し幅を測定
   const meshes = roster.map((text) => buildText(text));
   const widths = meshes.map((m) => m.geometry.parameters.width);
-  const totalWidth =
-    widths.reduce((sum, w) => sum + w, 0) + TEXT_GAP * Math.max(0, roster.length - 1);
-  const fit = Math.min(1, MAX_ROW_WIDTH / totalWidth);
 
-  let cursor = -(totalWidth * fit) / 2; // 行の左端から右へ詰めていく
-  const slots = meshes.map((mesh, i) => {
-    const w = widths[i] * fit;
-    mesh.scale.setScalar(fit);
-    mesh.position.set(cursor + w / 2, 0, 0.05); // 五線譜のわずかに手前
-    cursor += w + TEXT_GAP * fit;
-    group.add(mesh);
-    return { material: mesh.material, targetOpacity: 0, revealedAt: null }; // 未判定は非表示
+  // MAX_ROW_WIDTH を超えたら次の行へ送る
+  const lines = wrapIntoLines(widths);
+
+  // 行を縦に積んで配置 各行は同じ中心 y を共有する
+  // 見切れ対策が要るときは、ここで lines 全体の高さ((lines.length-1)*LINE_SPACING)が上限を超えたら group.scale.setScalar(...) で全体を縮める処理を足す
+  const blockHeight = (lines.length - 1) * LINE_SPACING;
+  const lineYs = lines.map((_, row) => blockHeight / 2 - row * LINE_SPACING); // 上→下
+
+  const lineStartX = -MAX_ROW_WIDTH / 2; // 全行を同じ左端から
+  lines.forEach((line, row) => {
+    let cursor = lineStartX;
+    for (const i of line) {
+      meshes[i].position.set(cursor + widths[i] / 2, lineYs[row], 0.05); // 五線譜のわずかに手前
+      cursor += widths[i] + TEXT_GAP;
+      group.add(meshes[i]);
+    }
   });
+
+  // 全段を1メッシュに統合し1マテリアルで揺らす/描き出す
+  const staff = buildStaff(lineYs);
+  group.add(staff.mesh);
+
+  // 各行スロットは rosterのslotIndex 順にソート
+  const slots = meshes.map((mesh) => ({
+    material: mesh.material,
+    targetOpacity: 0,
+    revealedAt: null, // 未判定は非表示
+  }));
 
   scene.add(group);
   instances.push({
@@ -114,6 +128,26 @@ function spawnPhrase(phraseIndex, roster) {
     bornAt: performance.now() / 1000,
     exitAt: null, // end イベントで now をセット → 退場開始
   });
+}
+
+// 単語幅の配列を各行に入る単語インデックスの配列に分ける
+function wrapIntoLines(widths) {
+  const lines = [];
+  let current = [];
+  let lineWidth = 0;
+  for (let i = 0; i < widths.length; i++) {
+    const gap = current.length === 0 ? 0 : TEXT_GAP;
+    // 行に1語以上あり、足すと最大幅を超えるなら改行（1語だけで超える場合は割れないのでそのまま置く）
+    if (current.length > 0 && lineWidth + gap + widths[i] > MAX_ROW_WIDTH) {
+      lines.push(current);
+      current = [];
+      lineWidth = 0;
+    }
+    lineWidth += (current.length === 0 ? 0 : TEXT_GAP) + widths[i];
+    current.push(i);
+  }
+  if (current.length > 0) lines.push(current);
+  return lines;
 }
 
 // word: 判定確定した単語をスロットに出現させる（PERFECT=不透明 / それ以外=半透明）
@@ -172,15 +206,17 @@ function updateInstance(inst, now) {
   if (camera) inst.group.quaternion.copy(camera.quaternion); // カメラ向きにビルボード
 }
 
-// 波打つ五線譜を生成
-function buildStaff() {
+// 五線譜を生成
+function buildStaff(lineYs) {
   const geometry = new THREE.PlaneGeometry(STAFF_WIDTH, STAFF_LINE_THICKNESS, STAFF_SEGMENTS, 1);
-  // 5本ぶんに複製し y をずらして1ジオメトリに統合
+  // 段(lineY)ごとに5本、y をずらして1ジオメトリに統合
   const geometries = [];
-  for (let i = 0; i < STAFF_LINE_COUNT; i++) {
-    const g = geometry.clone();
-    g.translate(0, (i - (STAFF_LINE_COUNT - 1) / 2) * STAFF_LINE_GAP, 0);
-    geometries.push(g);
+  for (const lineY of lineYs) {
+    for (let i = 0; i < STAFF_LINE_COUNT; i++) {
+      const g = geometry.clone();
+      g.translate(0, lineY + (i - (STAFF_LINE_COUNT - 1) / 2) * STAFF_LINE_GAP, 0);
+      geometries.push(g);
+    }
   }
   const merged = mergeGeometries(geometries);
   geometry.dispose();

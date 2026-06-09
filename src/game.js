@@ -83,7 +83,7 @@ export function buildWordBlocks(player) {
       if (word === phrase.lastWord) break;
       word = word.next;
     }
-    // startTime〜endTime は単語間の隙間も含むので、フレーズ在席判定に使う（隙間で外れないため）
+    //　startTime〜endTimeはフレーズ在席判定用
     phrases.push({ roster, startTime: phrase.startTime, endTime: phrase.endTime });
     phrase = phrase.next;
     phraseIndex++;
@@ -135,7 +135,7 @@ export function updateGame(position, touchedY) {
   activeBlock = block;
 
   // フレーズの切替検知 → 五線譜の登場(start)／退場(end)イベントを発行
-  // ブロックではなくフレーズの時間範囲で判定する（単語間の隙間でも同じフレーズに留まるため）
+  // フレーズの時間範囲で判定する（単語間の隙間でも同じフレーズに留まるため）
   const currentPhraseIndex = phraseIndexAt(position);
   if (currentPhraseIndex !== activePhraseIndex) {
     if (activePhraseIndex !== null) {
