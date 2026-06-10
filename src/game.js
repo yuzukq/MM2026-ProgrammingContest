@@ -22,11 +22,10 @@ const hitBlockIds = new Set();
 // canvas へ渡す演出のキュー
 let pendingEffects = [];
 
-// 歌詞ビルボード（lyric.js）へ渡すイベントのキュー
-// { type: "start", phraseIndex, roster } / { type: "word", phraseIndex, slotIndex, text, rating } / { type: "end", phraseIndex }
+// 歌詞ビルボード（lyric.js）へ渡す判定結果のキュー（rating のみ。spawn/退場は lyric が時刻から自前で決める）
+// { type: "rating", phraseIndex, slotIndex, rating }
 let pendingLyricEvents = [];
-let phrases = []; // 1フレーズに入る単語群(roster)を格納する
-let activePhraseIndex = null; // 現在いるフレーズの番号（フレーズ切替検知に使う）
+let phrases = []; // フレーズ単位のタイムライン {roster, startTime, endTime}。lyric への登録元
 
 // 直近のレーティング（UI 表示用）
 let latestRating = null;
@@ -48,7 +47,6 @@ export function resetGame() {
   pendingEffects = [];
   pendingLyricEvents = [];
   phrases = [];
-  activePhraseIndex = null;
   latestRating = null;
   ratingCounts.PERFECT = 0;
   ratingCounts.GOOD = 0;
@@ -64,7 +62,7 @@ export function buildWordBlocks(player) {
   let phraseIndex = 0;
 
   while (phrase) {
-    const roster = []; // このフレーズで採用された単語テキスト（スロット順）
+    const roster = []; // このフレーズで採用された単語 {text,startTime,endTime}（スロット順）
     let word = phrase.firstWord;
     // 単語ブロックの形成，1フレーズごとに属する単語のロースター格納していく
     while (word) {
@@ -78,26 +76,17 @@ export function buildWordBlocks(player) {
           phraseIndex,
           slotIndex: roster.length, // フレーズ内での位置＝現在の配列長
         });
-        roster.push(word.text);
+        roster.push({ text: word.text, startTime: word.startTime, endTime: word.endTime });
       }
       if (word === phrase.lastWord) break;
       word = word.next;
     }
-    //　startTime〜endTimeはフレーズ在席判定用
+    // startTime〜endTime は lyric の spawn/退場スケジューリング用
     phrases.push({ roster, startTime: phrase.startTime, endTime: phrase.endTime });
     phrase = phrase.next;
     phraseIndex++;
   }
   maxScore = wordBlocks.length * RATING_MULTIPLIER.PERFECT; // 全ブロック PERFECT 時の理論最大値
-}
-
-// 再生位置が含まれるフレーズ番号を返す。歌詞なし(roster空)・どのフレーズ外の区間は null
-function phraseIndexAt(position) {
-  for (let i = 0; i < phrases.length; i++) {
-    const p = phrases[i];
-    if (p.roster.length > 0 && p.startTime <= position && position < p.endTime) return i;
-  }
-  return null;
 }
 
 // onTimeUpdate で毎フレーム呼ぶ
@@ -117,12 +106,11 @@ export function updateGame(position, touchedY) {
     latestRating = rating;
     ratingCounts[rating]++;
     pendingEffects.push({ normalizedY: activeBlock.normalizedAmp, rating });
-    // 歌詞ビルボードへ判定確定した単語をスロットに出現させる
+    // 歌詞ビルボードへ判定確定を通知（該当スロットの不透明度が上がる）
     pendingLyricEvents.push({
-      type: "word",
+      type: "rating",
       phraseIndex: activeBlock.phraseIndex,
       slotIndex: activeBlock.slotIndex,
-      text: activeBlock.text,
       rating,
     });
 
@@ -133,20 +121,6 @@ export function updateGame(position, touchedY) {
 
   // 切り替わりなく続投なら続投
   activeBlock = block;
-
-  // フレーズの切替検知 → 五線譜の登場(start)／退場(end)イベントを発行
-  // フレーズの時間範囲で判定する（単語間の隙間でも同じフレーズに留まるため）
-  const currentPhraseIndex = phraseIndexAt(position);
-  if (currentPhraseIndex !== activePhraseIndex) {
-    if (activePhraseIndex !== null) {
-      pendingLyricEvents.push({ type: "end", phraseIndex: activePhraseIndex });
-    }
-    if (currentPhraseIndex !== null) {
-      const roster = phrases[currentPhraseIndex].roster;
-      pendingLyricEvents.push({ type: "start", phraseIndex: currentPhraseIndex, roster });
-    }
-    activePhraseIndex = currentPhraseIndex;
-  }
 
   if (block) {
     // ブロック到着イベント（startTime が判定ラインに乗った初回のみ）
@@ -174,11 +148,17 @@ export function popPendingEffects() {
   return effects;
 }
 
-// 歌詞ビルボード（lyric.js）が消費する start/word/end イベントを取り出す
+// 歌詞ビルボード（lyric.js）が消費する rating イベントを取り出す
 export function popLyricEvents() {
   const events = pendingLyricEvents;
   pendingLyricEvents = [];
   return events;
+}
+
+// 歌詞ビルボード（lyric.js）へ video-ready 時に1回渡すフレーズ単位のタイムライン
+// { startTime, endTime, words:[{text,startTime,endTime}] }。添字 = phraseIndex（空フレーズも保持）
+export function getLyricTimeline() {
+  return phrases.map((p) => ({ startTime: p.startTime, endTime: p.endTime, words: p.roster }));
 }
 
 export function getWordBlocks() {
