@@ -62,7 +62,7 @@ export function buildWordBlocks(player) {
   let phraseIndex = 0;
 
   while (phrase) {
-    const roster = []; // このフレーズで採用された単語 {text,startTime,endTime}（スロット順）
+    const roster = []; // このフレーズで採用された単語テキスト
     let word = phrase.firstWord;
     // 単語ブロックの形成，1フレーズごとに属する単語のロースター格納していく
     while (word) {
@@ -76,12 +76,12 @@ export function buildWordBlocks(player) {
           phraseIndex,
           slotIndex: roster.length, // フレーズ内での位置＝現在の配列長
         });
-        roster.push({ text: word.text, startTime: word.startTime, endTime: word.endTime });
+        roster.push(word.text);
       }
       if (word === phrase.lastWord) break;
       word = word.next;
     }
-    // startTime〜endTime は lyric の spawn/退場スケジューリング用
+    // startTime〜endTimeで五線譜の入退場を行う
     phrases.push({ roster, startTime: phrase.startTime, endTime: phrase.endTime });
     phrase = phrase.next;
     phraseIndex++;
@@ -156,7 +156,6 @@ export function popLyricEvents() {
 }
 
 // 歌詞ビルボード（lyric.js）へ video-ready 時に1回渡すフレーズ単位のタイムライン
-// { startTime, endTime, words:[{text,startTime,endTime}] }。添字 = phraseIndex（空フレーズも保持）
 export function getLyricTimeline() {
   return phrases.map((p) => ({ startTime: p.startTime, endTime: p.endTime, words: p.roster }));
 }

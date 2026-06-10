@@ -49,6 +49,7 @@ function enter(s, ctx) {
       break;
     case STATE.PLAYING:
       initPlayScene();
+      scene.registerLyricTimeline(game.getLyricTimeline()); // gameロジックで作ったタイムラインをlyric.jsまで飛ばす
       canvas.startCanvasLoop();
       keyboard.showKeyboard();
       break;
@@ -182,7 +183,7 @@ player.addListener({
       score: game.getScore(),
       isNewBeat,
       beat,
-      lyricEvents: game.popLyricEvents(), // 歌詞ビルボードの start/word/end
+      lyricRatings: game.popLyricEvents(), // 歌詞ビルボードの判定結果
     });
     ui.updateUI(game.getScore(), game.getLatestRating()); // スコア・レーティング表示更新
   },

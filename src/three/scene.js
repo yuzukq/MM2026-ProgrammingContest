@@ -100,9 +100,15 @@ export function initScene() {
   loop();
 }
 
+// lyric.js へタイムラインを渡す中継ぎ用．
+// 4モジュール伝搬(game → main → scene → lyric)が初なんでまどろっこしい気もするが一旦これで許して...
+export function registerLyricTimeline(timeline) {
+  lyric.registerTimeline(timeline);
+}
+
 // "3D オブジェクト（位置・色・密度など）の状態を更新するだけで、renderer.render() は呼ばない！"
 // "レンダリングは loop() が毎フレーム行う！"
-export function updateScene({ position, duration, score, isNewBeat, beat, lyricEvents }) {
+export function updateScene({ position, duration, score, isNewBeat, beat, lyricRatings }) {
   // 曲の進行に合わせて空の状況を動かす
   const progress = duration ? position / duration : 0; // 0=開始, 1=終わり
   sky.updateSky(progress);
@@ -112,9 +118,11 @@ export function updateScene({ position, duration, score, isNewBeat, beat, lyricE
     water.spawnRipple(beat.position === 1); // ダウンビートはデカく
   }
 
-  // 歌詞ビルボードの start/word/end を反映（描画は loop() の lyric.updateLyric が担当）
-  if (lyricEvents && lyricEvents.length) {
-    lyric.applyLyricEvents(lyricEvents);
+  // 歌詞ビルボードの更新（描画は loop() の updateLyric が担当）
+  lyric.schedule(position);
+  // 判定確定したスロットの不透明度を反映
+  if (lyricRatings && lyricRatings.length) {
+    lyric.applyRatings(lyricRatings);
   }
 }
 
