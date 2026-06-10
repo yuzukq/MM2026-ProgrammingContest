@@ -90,14 +90,14 @@ export function initScene() {
 
   // =============描画ループ=================
   // 演出やモデルの状態を毎フレーム画面に反映させるループ
-  function loop() {
-    requestAnimationFrame(loop);
+  function sceneRenderLoop() {
+    requestAnimationFrame(sceneRenderLoop);
     updateDebugCamera(); // ★デバッグ用（確定後は controls.update() に戻す）
     water.updateWater(sky.getSunDirection()); // 法線スクロール＋太陽方向を空と同期
     lyric.updateLyric(); // 歌詞ビルボードの波・ライフサイクル更新
     renderer.render(scene, camera);
   }
-  loop();
+  sceneRenderLoop();
 }
 
 // lyric.js へタイムラインを渡す中継ぎ用．
@@ -107,7 +107,7 @@ export function registerLyricTimeline(timeline) {
 }
 
 // "3D オブジェクト（位置・色・密度など）の状態を更新するだけで、renderer.render() は呼ばない！"
-// "レンダリングは loop() が毎フレーム行う！"
+// "レンダリングは sceneRenderLoop() が毎フレーム行う！"
 export function updateScene({ position, duration, score, isNewBeat, beat, lyricRatings }) {
   // 曲の進行に合わせて空の状況を動かす
   const progress = duration ? position / duration : 0; // 0=開始, 1=終わり
@@ -118,7 +118,7 @@ export function updateScene({ position, duration, score, isNewBeat, beat, lyricR
     water.spawnRipple(beat.position === 1); // ダウンビートはデカく
   }
 
-  // 歌詞ビルボードの更新（描画は loop() の updateLyric が担当）
+  // 歌詞ビルボードの更新（描画は sceneRenderLoop() の updateLyric が担当）
   lyric.schedule(position);
   // 判定確定したスロットの不透明度を反映
   if (lyricRatings && lyricRatings.length) {
