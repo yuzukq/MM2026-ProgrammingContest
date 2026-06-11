@@ -9,19 +9,19 @@ import STAFF_FRAG from "./staff.frag.glsl?raw";
 // ── 五線譜──
 const STAFF_LINE_COUNT = 5; // 線の本数
 const STAFF_WIDTH = 6.0; // 五線譜の横幅（ワールド単位）
-const STAFF_LINE_GAP = 0.18; // 線の間隔
-const STAFF_LINE_THICKNESS = 0.02; // 線の太さ
+const STAFF_LINE_GAP = 0.1; // 線と線の間隔
+const STAFF_LINE_THICKNESS = 0.01; // 線の太さ
 const STAFF_SEGMENTS = 48; // 横方向の分割数（多いほど波が滑らか）
 const STAFF_COLOR = 0xeaf6ff;
 // 五線譜のsin揺れ
-const WAVE_AMP = 0.06; // 波の振幅
-const WAVE_FREQ = 1.6; // 周波数
+const WAVE_AMP = 0.05; // 波の振幅
+const WAVE_FREQ = 1.0; // 周波数
 const WAVE_SPEED = 0.5; // 波のスクロール速度
 // 右→左へ徐々に描き出すドローオン
 const REVEAL_MAX = 1.02; // 描画範囲の最大値（左端 xr=1 を確実に含むよう 1 より少し大きく）
 
 // ── テキスト（スロット）──
-const TEXT_HEIGHT = 0.5; // テキスト平面の高さ（横幅は文字数で決まる）
+const TEXT_HEIGHT = 0.5;
 const TEXT_COLOR = "#00fff2";
 const OUTLINE_COLOR = "#ffffff";
 const OUTLINE_WIDTH = 6; // 見えるフチの太さ(px)
@@ -29,12 +29,12 @@ const FONT_FAMILY = "Mochiy Pop One";
 const FONT_URL = "/assets/fonts/MochiyPopOne-subset.woff2";
 const TEXT_FONT = `84px '${FONT_FAMILY}', sans-serif`;
 const TEXT_RESOLUTION = 128; // Canvas の縦解像度（px）
-const TEXT_GAP = 0.05; // 単語間の隙間（ワールド単位）
+const TEXT_GAP = 0.05; // 単語ないでの文字の隙間
 const MAX_ROW_WIDTH = STAFF_WIDTH * 0.95; // 9.5割埋まったら折り返す
 const LINE_SPACING = 1.0; // 五線譜同士の感覚
 const PLACEHOLDER_OPACITY = 0.08; // 未判定の薄さ
 const SEMI_OPACITY = 0.2; // PERFECT 以外（GOOD/BAD/取り逃し）の半透明度
-const SLOT_FADE_TAU = 0.12; // スロット不透明度が目標へ追従する時定数（秒）
+const SLOT_FADE_TAU = 0.12; // 単語の色のフェードイン速度
 
 // 五線譜の出現位置
 const SPAWN_POSITION = new THREE.Vector3(0, 1.4, -3.0); // カメラワーク策定時にアングルごとに変更するのがいいと思う

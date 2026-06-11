@@ -40,7 +40,7 @@ export function initScene() {
 
   // =============カメラ=================
   scene.add(camera);
-  camera.position.set(0, 0, 7); // 横, 縦, 距離
+  camera.position.set(-0.45, -0.15, 9.1); // 横, 縦, 距離
 
   // =============ライト=================
   // ミク専用キーライト（暫定）Mtoonの調整の兼ね合いもあるのでこの辺はテクスチャ来てから調整
@@ -74,7 +74,7 @@ export function initScene() {
   // =============コントロール=================
   // 動的なカメラ制御（参考: https://ics.media/tutorial-three/camera_orbitcontrols/）
   const controls = new OrbitControls(camera, renderer.domElement);
-  controls.target.set(0, 0, 0);
+  controls.target.set(-0.45, 0.15, 4.11);
 
   // ★デバッグ用フリーカメラ（使い捨て）。構図が決まったらこの行とループ内の呼び出し・関数本体を消す
   const updateDebugCamera = initDebugCamera(camera, controls);
