@@ -325,6 +325,7 @@ function buildText(text) {
     transparent: true,
     opacity: 0,
     depthWrite: false,
+    toneMapped: false, // 背景に沈むのを回避
   });
   // 位置・スケールは spawnPhrase 側でスロットに合わせて設定する
   return new THREE.Mesh(geometry, material);
