@@ -118,6 +118,11 @@ loading.initLoading(() => {
 // タップで選曲画面に戻るコールバックを渡す
 result.initResult(() => transition(STATE.SELECTION));
 
+// 歌詞フォントを起動時から並行読込（プレイ開始までに揃える）。失敗時はフォールバック
+const fontReady = scene
+  .loadLyricFont()
+  .catch((e) => console.warn("歌詞フォント読込失敗（フォールバック）", e));
+
 // TextAlive のイニシャライズ
 const player = new Player({
   app: { token: "test" }, // TODO: 本番トークンに差し替える
@@ -142,7 +147,8 @@ player.addListener({
   },
   // 音声（Songleタイマー）の準備が完了したら呼ばれる
   onTimerReady() {
-    loading.setLoadingReady();
+    // 曲とフォントの両方が揃ったらタップ受付
+    fontReady.then(() => loading.setLoadingReady());
   },
 
   // =====20fps毎に呼ばれる楽曲情報周りのゲームループ=====

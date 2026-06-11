@@ -106,6 +106,11 @@ export function registerLyricTimeline(timeline) {
   lyric.registerTimeline(timeline);
 }
 
+// 歌詞フォントの先読み（起動時に呼んでプレイ開始前に await する）
+export function loadLyricFont() {
+  return lyric.loadFont();
+}
+
 // "3D オブジェクト（位置・色・密度など）の状態を更新するだけで、renderer.render() は呼ばない！"
 // "レンダリングは sceneRenderLoop() が毎フレーム行う！"
 export function updateScene({ position, duration, score, isNewBeat, beat, lyricRatings }) {

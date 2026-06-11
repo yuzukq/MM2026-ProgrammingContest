@@ -22,8 +22,11 @@ const REVEAL_MAX = 1.02; // 描画範囲の最大値（左端 xr=1 を確実に�
 
 // ── テキスト（スロット）──
 const TEXT_HEIGHT = 0.5; // テキスト平面の高さ（横幅は文字数で決まる）
-const TEXT_COLOR = "#ff0000"; // 検証用：後で調整
-const TEXT_FONT = "bold 84px sans-serif";
+const TEXT_COLOR = "#86cecb";
+// Mochiy Pop One（単一ウェイトなので bold は付けない＝合成ボールド回避）。未読込/失敗時は sans-serif にフォールバック
+const FONT_FAMILY = "Mochiy Pop One";
+const FONT_URL = "/assets/fonts/MochiyPopOne-subset.woff2";
+const TEXT_FONT = `84px '${FONT_FAMILY}', sans-serif`;
 const TEXT_RESOLUTION = 128; // Canvas の縦解像度（px）
 const TEXT_GAP = 0.05; // 単語間の隙間（ワールド単位）
 const MAX_ROW_WIDTH = STAFF_WIDTH * 0.95; // 9.5割埋まったら折り返す
@@ -56,6 +59,18 @@ let lastNow = 0; // 直近フレームの実時間（dt 算出用）
 export function initLyric(parentScene, sceneCamera) {
   scene = parentScene;
   camera = sceneCamera;
+}
+
+// 歌詞フォントを読み込む。プレイ開始前に await して、テキスト生成がフォールバックで描かれるのを防ぐ。
+let fontPromise = null;
+export function loadFont() {
+  if (fontPromise) return fontPromise;
+  const face = new FontFace(FONT_FAMILY, `url(${FONT_URL})`);
+  fontPromise = face.load().then((loaded) => {
+    document.fonts.add(loaded); // Canvas2Dでフォントを使うため
+    return loaded;
+  });
+  return fontPromise;
 }
 
 // video-ready 後にフレーズ等のタイムラインを登録する
