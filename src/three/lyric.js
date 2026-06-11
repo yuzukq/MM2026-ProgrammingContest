@@ -22,8 +22,9 @@ const REVEAL_MAX = 1.02; // 描画範囲の最大値（左端 xr=1 を確実に�
 
 // ── テキスト（スロット）──
 const TEXT_HEIGHT = 0.5; // テキスト平面の高さ（横幅は文字数で決まる）
-const TEXT_COLOR = "#86cecb";
-// Mochiy Pop One（単一ウェイトなので bold は付けない＝合成ボールド回避）。未読込/失敗時は sans-serif にフォールバック
+const TEXT_COLOR = "#00fff2";
+const OUTLINE_COLOR = "#ffffff";
+const OUTLINE_WIDTH = 6; // 見えるフチの太さ(px)
 const FONT_FAMILY = "Mochiy Pop One";
 const FONT_URL = "/assets/fonts/MochiyPopOne-subset.woff2";
 const TEXT_FONT = `84px '${FONT_FAMILY}', sans-serif`;
@@ -299,10 +300,19 @@ function buildText(text) {
 
   // measureText 後に canvas をリサイズすると font がリセットされるので再設定
   ctx.font = TEXT_FONT;
-  ctx.fillStyle = TEXT_COLOR;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+  const cx = canvas.width / 2;
+  const cy = canvas.height / 2;
+  // 縁取り
+  if (OUTLINE_WIDTH > 0) {
+    ctx.lineJoin = "round"; // 角のトゲを防ぐため
+    ctx.lineWidth = OUTLINE_WIDTH * 2;
+    ctx.strokeStyle = OUTLINE_COLOR;
+    ctx.strokeText(text, cx, cy);
+  }
+  ctx.fillStyle = TEXT_COLOR;
+  ctx.fillText(text, cx, cy);
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
