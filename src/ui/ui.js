@@ -46,22 +46,22 @@ export async function initUI(songTitle) {
   // TODO: topUiEl.querySelector(SEL.title).textContent = songTitle;
 }
 
-// onTimeUpdate で毎フレーム：スコア・レーティング表示を更新
-export function updateUI(score, rating) {
+// onTimeUpdate で毎フレーム：HUD一式（score / rating / 進捗バー）を現在の状態で更新する。
+export function updateUI({ score, rating, progress }) {
   // TODO: SVG 導入後は topUiEl.querySelector(SEL.score) などに切り替える。
   // ↓素材が乗ったらhtmlレイヤーへの直書きは不要なので消す: index.html の静的 span を更新
   document.querySelector("#score").textContent = `score: ${Math.floor(score)}`;
   if (rating) document.querySelector("#rating").textContent = rating;
-}
-
-// onTimeUpdate で毎フレーム：進捗 ratio(0..1) でバーをフィルし、先端の蝶を移動させる
-export function updateProgress(ratio) {
-  if (!progressEl) return; // 素材未導入のうちは何もしない
-  // TODO: フィルの伸長＋蝶の移動を実装する。
-  //   手法の Notion の方で検討
+  updateProgress(progress); // やっぱ内部メソッドを呼ぶ形で
 }
 
 // ── internal ────────────────────────────
+
+// 進捗 ratio(0..1) でバーをフィルし、先端の蝶を移動させる（updateUI から毎フレーム委譲される）
+function updateProgress(progressRa) {
+  if (!progressEl) return; // 素材未導入のうちは何もしない
+  // TODO: フィルの伸長＋蝶の移動を実装する。手法は Notion 参照。
+}
 
 // SVG文字列を <div> に入れて #ui 配下にマウントし、そのラッパを返す
 // （selection.js は card.innerHTML = svg と同じ要領。今回は複数展開しないので id 衝突の心配はなし）

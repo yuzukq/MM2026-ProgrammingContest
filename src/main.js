@@ -192,7 +192,12 @@ player.addListener({
       beat,
       lyricRatings: game.popLyricEvents(), // 歌詞ビルボードの判定結果
     });
-    ui.updateUI(game.getScore(), game.getLatestRating()); // スコア・レーティング表示更新
+    // HUD一式を現在の状態で更新（score / rating ＋ 進捗バー）
+    ui.updateUI({
+      score: game.getScore(),
+      rating: game.getLatestRating(),
+      progress: position / player.video.duration,
+    });
   },
   // ==========================================
 });
