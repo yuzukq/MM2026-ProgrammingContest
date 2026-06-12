@@ -8,6 +8,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { VRMLoaderPlugin } from "@pixiv/three-vrm";
 import * as sky from "./sky.js";
 import * as water from "./water.js";
+import * as lyric from "./lyric.js";
 
 let scene, camera, renderer, vrm;
 // updateScene から操作するオブジェクトはここに宣言する
@@ -39,7 +40,7 @@ export function initScene() {
 
   // =============カメラ=================
   scene.add(camera);
-  camera.position.set(0, 0, 7); // 横, 縦, 距離
+  camera.position.set(-0.45, -0.15, 9.1); // 横, 縦, 距離
 
   // =============ライト=================
   // ミク専用キーライト（暫定）Mtoonの調整の兼ね合いもあるのでこの辺はテクスチャ来てから調整
@@ -53,6 +54,9 @@ export function initScene() {
 
   // =============湖（リアル水面）=================
   water.initWater(scene, sky.getSunDirection());
+
+  // =============歌詞ビルボード=================
+  lyric.initLyric(scene, camera);
 
   // VRMローダー
   const loader = new GLTFLoader();
@@ -70,7 +74,7 @@ export function initScene() {
   // =============コントロール=================
   // 動的なカメラ制御（参考: https://ics.media/tutorial-three/camera_orbitcontrols/）
   const controls = new OrbitControls(camera, renderer.domElement);
-  controls.target.set(0, 0, 0);
+  controls.target.set(-0.45, 0.15, 4.11);
 
   // ★デバッグ用フリーカメラ（使い捨て）。構図が決まったらこの行とループ内の呼び出し・関数本体を消す
   const updateDebugCamera = initDebugCamera(camera, controls);
@@ -86,18 +90,30 @@ export function initScene() {
 
   // =============描画ループ=================
   // 演出やモデルの状態を毎フレーム画面に反映させるループ
-  function loop() {
-    requestAnimationFrame(loop);
+  function sceneRenderLoop() {
+    requestAnimationFrame(sceneRenderLoop);
     updateDebugCamera(); // ★デバッグ用（確定後は controls.update() に戻す）
     water.updateWater(sky.getSunDirection()); // 法線スクロール＋太陽方向を空と同期
+    lyric.updateLyric(); // 歌詞ビルボードの波・ライフサイクル更新
     renderer.render(scene, camera);
   }
-  loop();
+  sceneRenderLoop();
+}
+
+// lyric.js へタイムラインを渡す中継ぎ用．
+// 4モジュール伝搬(game → main → scene → lyric)が初なんでまどろっこしい気もするが一旦これで許して...
+export function registerLyricTimeline(timeline) {
+  lyric.registerTimeline(timeline);
+}
+
+// 歌詞フォントの先読み（起動時に呼んでプレイ開始前に await する）
+export function loadLyricFont() {
+  return lyric.loadFont();
 }
 
 // "3D オブジェクト（位置・色・密度など）の状態を更新するだけで、renderer.render() は呼ばない！"
-// "レンダリングは loop() が毎フレーム行う！"
-export function updateScene({ position, duration, score, isNewBeat, beat }) {
+// "レンダリングは sceneRenderLoop() が毎フレーム行う！"
+export function updateScene({ position, duration, score, isNewBeat, beat, lyricRatings }) {
   // 曲の進行に合わせて空の状況を動かす
   const progress = duration ? position / duration : 0; // 0=開始, 1=終わり
   sky.updateSky(progress);
@@ -105,6 +121,13 @@ export function updateScene({ position, duration, score, isNewBeat, beat }) {
   // ビートに合わせて水面に波紋生成
   if (isNewBeat && beat) {
     water.spawnRipple(beat.position === 1); // ダウンビートはデカく
+  }
+
+  // 歌詞ビルボードの更新（描画は sceneRenderLoop() の updateLyric が担当）
+  lyric.schedule(position);
+  // 判定確定したスロットの不透明度を反映
+  if (lyricRatings && lyricRatings.length) {
+    lyric.applyRatings(lyricRatings);
   }
 }
 

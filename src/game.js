@@ -22,6 +22,11 @@ const hitBlockIds = new Set();
 // canvas へ渡す演出のキュー
 let pendingEffects = [];
 
+// 歌詞ビルボード（lyric.js）へ渡す判定結果のキュー（rating のみ。spawn/退場は lyric が時刻から自前で決める）
+// { type: "rating", phraseIndex, slotIndex, rating }
+let pendingLyricEvents = [];
+let phrases = []; // フレーズ単位のタイムライン {roster, startTime, endTime}。lyric への登録元
+
 // 直近のレーティング（UI 表示用）
 let latestRating = null;
 
@@ -40,6 +45,8 @@ export function resetGame() {
   accumFrames = 0;
   hitBlockIds.clear();
   pendingEffects = [];
+  pendingLyricEvents = [];
+  phrases = [];
   latestRating = null;
   ratingCounts.PERFECT = 0;
   ratingCounts.GOOD = 0;
@@ -50,17 +57,34 @@ export function resetGame() {
 // 毎フレーム getVocalAmplitude を呼ぶと波形がぶれるため、単語の先頭時刻で固定
 export function buildWordBlocks(player) {
   maxAmp = player.getMaxVocalAmplitude() || 1;
-  let word = player.video.firstWord;
-  while (word) {
-    if (word.endTime - word.startTime >= CHORUS_NOISE_THRESHOLD) {
-      wordBlocks.push({
-        startTime: word.startTime,
-        endTime: word.endTime,
-        text: word.text,
-        normalizedAmp: player.getVocalAmplitude(word.startTime) / maxAmp,
-      });
+  // フレーズ→単語の順に走査し、各ブロックに phraseIndex / slotIndex を貼る
+  let phrase = player.video.firstPhrase;
+  let phraseIndex = 0;
+
+  while (phrase) {
+    const roster = []; // このフレーズで採用された単語テキスト
+    let word = phrase.firstWord;
+    // 単語ブロックの形成，1フレーズごとに属する単語のロースター格納していく
+    while (word) {
+      // 「こたえて」のコーラス部分だけは除外
+      if (word.endTime - word.startTime >= CHORUS_NOISE_THRESHOLD) {
+        wordBlocks.push({
+          startTime: word.startTime,
+          endTime: word.endTime,
+          text: word.text,
+          normalizedAmp: player.getVocalAmplitude(word.startTime) / maxAmp,
+          phraseIndex,
+          slotIndex: roster.length, // フレーズ内での位置＝現在の配列長
+        });
+        roster.push(word.text);
+      }
+      if (word === phrase.lastWord) break;
+      word = word.next;
     }
-    word = word.next;
+    // startTime〜endTimeで五線譜の入退場を行う
+    phrases.push({ roster, startTime: phrase.startTime, endTime: phrase.endTime });
+    phrase = phrase.next;
+    phraseIndex++;
   }
   maxScore = wordBlocks.length * RATING_MULTIPLIER.PERFECT; // 全ブロック PERFECT 時の理論最大値
 }
@@ -81,10 +105,14 @@ export function updateGame(position, touchedY) {
     score += POINTS_PER_BLOCK() * RATING_MULTIPLIER[rating];
     latestRating = rating;
     ratingCounts[rating]++;
-    // ========デバッグ用=========
-    console.log("Rating counts:", { ...ratingCounts });
     pendingEffects.push({ normalizedY: activeBlock.normalizedAmp, rating });
-    // ==========================
+    // 歌詞ビルボードへ判定確定を通知（該当スロットの不透明度が上がる）
+    pendingLyricEvents.push({
+      type: "rating",
+      phraseIndex: activeBlock.phraseIndex,
+      slotIndex: activeBlock.slotIndex,
+      rating,
+    });
 
     // 次のブロックに備えてリセット
     accumAccuracy = 0;
@@ -118,6 +146,18 @@ export function popPendingEffects() {
   const effects = [...pendingEffects];
   pendingEffects = [];
   return effects;
+}
+
+// 歌詞ビルボード（lyric.js）が消費する rating イベントを取り出す
+export function popLyricEvents() {
+  const events = pendingLyricEvents;
+  pendingLyricEvents = [];
+  return events;
+}
+
+// 歌詞ビルボード（lyric.js）へ video-ready 時に1回渡すフレーズ単位のタイムライン
+export function getLyricTimeline() {
+  return phrases.map((p) => ({ startTime: p.startTime, endTime: p.endTime, words: p.roster }));
 }
 
 export function getWordBlocks() {

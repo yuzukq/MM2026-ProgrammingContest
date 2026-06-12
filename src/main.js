@@ -12,6 +12,7 @@ import * as keyboard from "./ui/keyboard.js";
 import * as selection from "./screens/selection.js";
 import * as loading from "./screens/loading.js";
 import * as result from "./screens/result.js";
+import { startFpsMeter } from "./debug-fps.js"; // 完成前に消す
 
 // ===============ステートマシン===============
 const STATE = {
@@ -49,6 +50,7 @@ function enter(s, ctx) {
       break;
     case STATE.PLAYING:
       initPlayScene();
+      scene.registerLyricTimeline(game.getLyricTimeline()); // gameロジックで作ったタイムラインをlyric.jsまで飛ばす
       canvas.startCanvasLoop();
       keyboard.showKeyboard();
       break;
@@ -117,6 +119,11 @@ loading.initLoading(() => {
 // タップで選曲画面に戻るコールバックを渡す
 result.initResult(() => transition(STATE.SELECTION));
 
+// 歌詞フォントを起動時から並行読込（プレイ開始までに揃える）。失敗時はフォールバック
+const fontReady = scene
+  .loadLyricFont()
+  .catch((e) => console.warn("歌詞フォント読込失敗（フォールバック）", e));
+
 // TextAlive のイニシャライズ
 const player = new Player({
   app: { token: "test" }, // TODO: 本番トークンに差し替える
@@ -128,6 +135,9 @@ window.__debugSkip = () => {
   if (player.video?.duration) player.requestMediaSeek(player.video.duration * 0.9);
 };
 // ==============================================================
+
+// ★一時的なFPS計測用
+startFpsMeter();
 player.addListener({
   // TextAlive の準備ができたら呼ばれる
   onAppReady(app) {
@@ -141,7 +151,8 @@ player.addListener({
   },
   // 音声（Songleタイマー）の準備が完了したら呼ばれる
   onTimerReady() {
-    loading.setLoadingReady();
+    // 曲とフォントの両方が揃ったらタップ受付
+    fontReady.then(() => loading.setLoadingReady());
   },
 
   // =====20fps毎に呼ばれる楽曲情報周りのゲームループ=====
@@ -182,6 +193,7 @@ player.addListener({
       score: game.getScore(),
       isNewBeat,
       beat,
+      lyricRatings: game.popLyricEvents(), // 歌詞ビルボードの判定結果
     });
     ui.updateUI(game.getScore(), game.getLatestRating()); // スコア・レーティング表示更新
   },

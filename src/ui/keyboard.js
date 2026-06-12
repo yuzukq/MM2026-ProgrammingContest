@@ -45,8 +45,8 @@ export async function initKeyboard() {
   document.body.appendChild(bg);
 
   // ===============描画更新ループ==================
-  function loop() {
-    requestAnimationFrame(loop);
+  function keyboardRenderLoop() {
+    requestAnimationFrame(keyboardRenderLoop);
     if (!svgEl) return;
 
     // プレイエリア内（0-1）を12分割
@@ -76,7 +76,7 @@ export async function initKeyboard() {
     lastKeyIndex = keyIndex;
     lastNeighborIndex = neighborIndex;
   }
-  loop();
+  keyboardRenderLoop();
 }
 
 // ── internal ────────────────────────────
