@@ -183,10 +183,13 @@ player.addListener({
       isNewBeat = true;
       lastBeatIndex = beat.index;
     }
+    // 曲の進捗(0..1)
+    const progress = position / player.video.duration;
+
     // threeレイヤー描画用の状態のみ更新
     scene.updateScene({
       position,
-      duration: player.video.duration,
+      progress,
       score: game.getScore(),
       isNewBeat,
       beat,
@@ -196,7 +199,7 @@ player.addListener({
     ui.updateUI({
       score: game.getScore(),
       rating: game.getLatestRating(),
-      progress: position / player.video.duration,
+      progress,
     });
   },
   // ==========================================
