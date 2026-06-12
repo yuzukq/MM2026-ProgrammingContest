@@ -51,6 +51,7 @@ function enter(s, ctx) {
     case STATE.PLAYING:
       initPlayScene();
       scene.registerLyricTimeline(game.getLyricTimeline()); // gameロジックで作ったタイムラインをlyric.jsまで飛ばす
+      ui.initUI(currentSong?.title);
       canvas.startCanvasLoop();
       keyboard.showKeyboard();
       break;
@@ -186,16 +187,24 @@ player.addListener({
       isNewBeat = true;
       lastBeatIndex = beat.index;
     }
+    // 曲の進捗(0..1)
+    const progress = position / player.video.duration;
+
     // threeレイヤー描画用の状態のみ更新
     scene.updateScene({
       position,
-      duration: player.video.duration,
+      progress,
       score: game.getScore(),
       isNewBeat,
       beat,
       lyricRatings: game.popLyricEvents(), // 歌詞ビルボードの判定結果
     });
-    ui.updateUI(game.getScore(), game.getLatestRating()); // スコア・レーティング表示更新
+    // HUD一式を現在の状態で更新（score / rating ＋ 進捗バー）
+    ui.updateUI({
+      score: game.getScore(),
+      rating: game.getLatestRating(),
+      progress,
+    });
   },
   // ==========================================
 });

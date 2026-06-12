@@ -113,9 +113,8 @@ export function loadLyricFont() {
 
 // "3D オブジェクト（位置・色・密度など）の状態を更新するだけで、renderer.render() は呼ばない！"
 // "レンダリングは sceneRenderLoop() が毎フレーム行う！"
-export function updateScene({ position, duration, score, isNewBeat, beat, lyricRatings }) {
+export function updateScene({ position, progress, score, isNewBeat, beat, lyricRatings }) {
   // 曲の進行に合わせて空の状況を動かす
-  const progress = duration ? position / duration : 0; // 0=開始, 1=終わり
   sky.updateSky(progress);
 
   // ビートに合わせて水面に波紋生成
