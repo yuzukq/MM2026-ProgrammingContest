@@ -12,6 +12,7 @@ import * as keyboard from "./ui/keyboard.js";
 import * as selection from "./screens/selection.js";
 import * as loading from "./screens/loading.js";
 import * as result from "./screens/result.js";
+import { startFpsMeter } from "./debug-fps.js"; // 完成前に消す
 
 // ===============ステートマシン===============
 const STATE = {
@@ -134,6 +135,9 @@ window.__debugSkip = () => {
   if (player.video?.duration) player.requestMediaSeek(player.video.duration * 0.9);
 };
 // ==============================================================
+
+// ★一時的なFPS計測用
+startFpsMeter();
 player.addListener({
   // TextAlive の準備ができたら呼ばれる
   onAppReady(app) {
