@@ -50,6 +50,7 @@ function enter(s, ctx) {
     case STATE.PLAYING:
       initPlayScene();
       scene.registerLyricTimeline(game.getLyricTimeline()); // gameロジックで作ったタイムラインをlyric.jsまで飛ばす
+      ui.initUI(currentSong?.title);
       canvas.startCanvasLoop();
       keyboard.showKeyboard();
       break;
