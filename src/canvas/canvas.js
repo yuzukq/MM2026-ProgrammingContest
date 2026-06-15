@@ -4,7 +4,7 @@
 import { particleSystem } from "./particles.js";
 
 const PIXELS_PER_MS = 0.65; // 1ms あたりのピクセル数（スクロール倍率）
-const JUDGMENT_X_RATIO = 0.2; // 判定ラインのX位置（canvas幅の何割かで）
+const JUDGMENT_X_RATIO = 0.1; // 判定ラインのX位置（canvas幅の何割かで）
 const BLOCK_HEIGHT_RATIO = 0.04; // ブロックの高さ(縦幅,canvas高さの何割か）
 
 // プレイエリアの上下境界（canvas高さに対する比率）

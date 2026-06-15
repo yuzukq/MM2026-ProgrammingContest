@@ -24,7 +24,7 @@ body {
   position: fixed;
   left: 0;
   top: 10%; /* PLAY_AREA_TOPに合わせる */
-  width: 20%; /* JUDGMENT_X_RATIO に合わせる*/
+  width: 10%; /* JUDGMENT_X_RATIO に合わせる*/
   height: 80%; /* PLAY_AREA_BOTTOM - PLAY_AREA_TOP */
   z-index: 1;
   pointer-events: none;
