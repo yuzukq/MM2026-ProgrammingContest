@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg id="piano" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 721">
+<svg id="piano" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 1441">
   <defs>
     <style>
       .cls-1 {
@@ -26,63 +26,116 @@
     </style>
   </defs>
   <g id="white">
-    <g id="_11" data-name="11">
+    <g id="_23" data-name="23">
       <rect class="cls-4" x="0" y=".5" width="384" height="60"/>
     </g>
-    <g id="_10" data-name="10">
+    <g id="_22" data-name="22">
       <rect class="cls-1" x="0" y="60.5" width="384" height="60"/>
     </g>
-    <g id="_9" data-name="9">
+    <g id="_21" data-name="21">
       <rect class="cls-4" x="0" y="120.5" width="384" height="60"/>
     </g>
-    <g id="_8" data-name="8">
+    <g id="_20" data-name="20">
       <rect class="cls-1" x="0" y="180.5" width="384" height="60"/>
     </g>
-    <g id="_7" data-name="7">
+    <g id="_19" data-name="19">
       <rect class="cls-4" x="0" y="240.5" width="384" height="60"/>
     </g>
-    <g id="_6" data-name="6">
+    <g id="_18" data-name="18">
       <rect class="cls-1" x="0" y="300.5" width="384" height="60"/>
     </g>
-    <g id="_5" data-name="5">
+    <g id="_17" data-name="17">
       <rect class="cls-4" x="0" y="360.5" width="384" height="60"/>
     </g>
-    <g id="_4" data-name="4">
+    <g id="_16" data-name="16">
       <rect class="cls-4" x="0" y="420.5" width="384" height="60"/>
     </g>
-    <g id="_3" data-name="3">
+    <g id="_15" data-name="15">
       <rect class="cls-1" x="0" y="480.5" width="384" height="60"/>
     </g>
-    <g id="_2" data-name="2">
+    <g id="_14" data-name="14">
       <rect class="cls-4" x="0" y="540.5" width="384" height="60"/>
     </g>
-    <g id="_1" data-name="1">
+    <g id="_13" data-name="13">
       <rect class="cls-1" x="0" y="600.5" width="384" height="60"/>
     </g>
-    <g id="_0" data-name="0">
+    <g id="_12" data-name="12">
       <rect class="cls-4" x="0" y="660.5" width="384" height="60"/>
+    </g>
+    <g id="_11" data-name="11">
+      <rect class="cls-4" x="0" y="720.5" width="384" height="60"/>
+    </g>
+    <g id="_10" data-name="10">
+      <rect class="cls-1" x="0" y="780.5" width="384" height="60"/>
+    </g>
+    <g id="_9" data-name="9">
+      <rect class="cls-4" x="0" y="840.5" width="384" height="60"/>
+    </g>
+    <g id="_8" data-name="8">
+      <rect class="cls-1" x="0" y="900.5" width="384" height="60"/>
+    </g>
+    <g id="_7" data-name="7">
+      <rect class="cls-4" x="0" y="960.5" width="384" height="60"/>
+    </g>
+    <g id="_6" data-name="6">
+      <rect class="cls-1" x="0" y="1020.5" width="384" height="60"/>
+    </g>
+    <g id="_5" data-name="5">
+      <rect class="cls-4" x="0" y="1080.5" width="384" height="60"/>
+    </g>
+    <g id="_4" data-name="4">
+      <rect class="cls-4" x="0" y="1140.5" width="384" height="60"/>
+    </g>
+    <g id="_3" data-name="3">
+      <rect class="cls-1" x="0" y="1200.5" width="384" height="60"/>
+    </g>
+    <g id="_2" data-name="2">
+      <rect class="cls-4" x="0" y="1260.5" width="384" height="60"/>
+    </g>
+    <g id="_1" data-name="1">
+      <rect class="cls-1" x="0" y="1320.5" width="384" height="60"/>
+    </g>
+    <g id="_0" data-name="0">
+      <rect class="cls-4" x="0" y="1380.5" width="384" height="60"/>
     </g>
   </g>
   <g id="_黒鍵" data-name="黒鍵">
-    <g id="A_" data-name="A#">
-      <rect class="cls-5" y="60.5" width="192" height="60"/>
+    <g id="A_2" data-name="A#2">
+      <rect class="cls-5" x="0" y="60.5" width="192" height="60"/>
     </g>
-    <g id="G_" data-name="G#">
+    <g id="G_2" data-name="G#2">
       <rect class="cls-5" x="0" y="180.5" width="192" height="60"/>
     </g>
-    <g id="F_" data-name="F#">
+    <g id="F_2" data-name="F#2">
       <rect class="cls-5" x="0" y="300.5" width="192" height="60"/>
     </g>
-    <g id="D_" data-name="D#">
+    <g id="D_2" data-name="D#2">
       <rect class="cls-5" x="0" y="480.5" width="192" height="60"/>
     </g>
-    <g id="C_" data-name="C#">
+    <g id="C_2" data-name="C#2">
       <rect class="cls-5" x="0" y="600.5" width="192" height="60"/>
+    </g>
+    <g id="A_" data-name="A#">
+      <rect class="cls-5" x="0" y="780.5" width="192" height="60"/>
+    </g>
+    <g id="G_" data-name="G#">
+      <rect class="cls-5" x="0" y="900.5" width="192" height="60"/>
+    </g>
+    <g id="F_" data-name="F#">
+      <rect class="cls-5" x="0" y="1020.5" width="192" height="60"/>
+    </g>
+    <g id="D_" data-name="D#">
+      <rect class="cls-5" x="0" y="1200.5" width="192" height="60"/>
+    </g>
+    <g id="C_" data-name="C#">
+      <rect class="cls-5" x="0" y="1320.5" width="192" height="60"/>
     </g>
   </g>
   <g id="_区切れ線" data-name="区切れ線">
-    <line id="C" class="cls-2" x1="0" y1="720.5" x2="384" y2="720.5"/>
-    <line id="EF" class="cls-3" x1="0" y1="419.17" x2="384" y2="419.17"/>
+    <line id="C" class="cls-2" x1="0" y1="1440.5" x2="384" y2="1440.5"/>
+    <line id="EF2" class="cls-3" x1="0" y1="419.17" x2="384" y2="419.17"/>
+    <line id="oct" class="cls-2" x1="0" y1="720.5" x2="384" y2="720.5"/>
+    <line id="EF" class="cls-3" x1="0" y1="1139.17" x2="384" y2="1139.17"/>
     <line id="B" class="cls-2" x1="0" y1=".5" x2="384" y2=".5"/>
   </g>
 </svg>
