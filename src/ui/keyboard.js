@@ -4,7 +4,7 @@
 
 import * as canvas from "../canvas/canvas.js";
 
-const KEY_COUNT = 12;
+const KEY_COUNT = 24;
 const HIGHLIGHT_COLOR = "#20B2AA";
 // キー幅に対する割合。この値以内なら隣接キーも点灯させる
 const BOUNDARY_THRESHOLD = 0.35;
@@ -38,11 +38,6 @@ export async function initKeyboard() {
   svgEl = wrapper.querySelector("svg");
   // デフォルトのアスペクト比維持を無効化しコンテナいっぱいに引き伸ばす
   svgEl.setAttribute("preserveAspectRatio", "none");
-
-  // プレイエリア下部に鍵盤をリピート配置
-  const bg = document.createElement("div");
-  bg.id = "keyboard-bg";
-  document.body.appendChild(bg);
 
   // ===============描画更新ループ==================
   function keyboardRenderLoop() {
