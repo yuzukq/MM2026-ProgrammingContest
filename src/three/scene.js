@@ -12,8 +12,6 @@ import * as lyric from "./lyric.js";
 import * as cameraRig from "./camera.js"; // 命名被るから名前空間わけた
 
 let scene, camera, renderer, vrm;
-// updateScene から操作するオブジェクトはここに宣言する
-// let sunMesh, flowerInstancedMesh;
 
 // ── public ──────────────────────────────
 
@@ -130,7 +128,7 @@ export function updateScene({ position, progress, isNewBeat, beat, lyricRatings,
 // 演出やモデルの状態を毎フレーム画面に反映させる描画ループ（initScene から起動）
 function sceneRenderLoop() {
   requestAnimationFrame(sceneRenderLoop);
-  cameraRig.tickCamera(); // カメラ補間＋FOVブレス（またはデバッグ自由飛行）を camera に適用
+  cameraRig.tickCamera(); // カメラのプリセット補間（またはデバッグ自由飛行）を camera に適用
   water.updateWater(sky.getSunDirection()); // 法線スクロール＋太陽方向を空と同期
   lyric.updateLyric(); // 歌詞ビルボードの波・ライフサイクル更新
   renderer.render(scene, camera);
