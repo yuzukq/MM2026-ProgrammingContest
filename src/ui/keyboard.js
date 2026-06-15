@@ -17,12 +17,10 @@ let lastNeighborIndex = -1; // 前フレームで隣接ハイライトしたキ�
 
 export function showKeyboard() {
   document.getElementById("keyboard-wrapper")?.style.setProperty("display", "");
-  document.getElementById("keyboard-bg")?.style.setProperty("display", "");
 }
 
 export function hideKeyboard() {
   document.getElementById("keyboard-wrapper")?.style.setProperty("display", "none");
-  document.getElementById("keyboard-bg")?.style.setProperty("display", "none");
 }
 
 export async function initKeyboard() {
