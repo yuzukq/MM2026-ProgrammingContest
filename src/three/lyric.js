@@ -5,6 +5,7 @@
 import * as THREE from "three";
 import STAFF_VERT from "./staff.vert.glsl?raw";
 import STAFF_FRAG from "./staff.frag.glsl?raw";
+import * as cameraRig from "./camera.js";
 
 // ── 五線譜──
 const STAFF_LINE_COUNT = 5; // 線の本数
@@ -36,8 +37,9 @@ const PLACEHOLDER_OPACITY = 0.08; // 未判定の薄さ
 const SEMI_OPACITY = 0.2; // PERFECT 以外（GOOD/BAD/取り逃し）の半透明度
 const SLOT_FADE_TAU = 0.12; // 単語の色のフェードイン速度
 
-// 五線譜の出現位置
-const SPAWN_POSITION = new THREE.Vector3(0, 1.4, -3.0); // カメラワーク策定時にアングルごとに変更するのがいいと思う
+// 五線譜の出現位置。カメラワークのプリセット(verse/chorus)に応じて camera.js が補間する値を毎フレーム読む。
+// camera 未初期化時のフォールバックとして年のため初期化
+const SPAWN_POSITION = new THREE.Vector3(0, 1.4, -3.0);
 
 // 五線譜はフレーズの startTime - LEAD で出る
 const LEAD = 200;
@@ -137,6 +139,11 @@ export function updateLyric() {
 
 // ── internal ────────────────────────────
 
+// 現在の五線譜位置（カメラ補間と同じタイムラインで動くやつ）を取得する。
+function currentStaffPos() {
+  return cameraRig.getStaffTarget?.() ?? SPAWN_POSITION;
+}
+
 // 指定フレーズの五線譜をまるごと実体化してsceneに追加する
 function spawnPhrase(phraseIndex) {
   const words = timeline[phraseIndex].words;
@@ -146,7 +153,7 @@ function spawnPhrase(phraseIndex) {
   const { lineYs, placements } = buildLayout(lines, widths);
 
   const group = new THREE.Group();
-  group.position.copy(SPAWN_POSITION);
+  group.position.copy(currentStaffPos()); // その時点の補間途中位置から出す
 
   const slots = []; // slotIndex で引けるよう疎なく詰める
   for (const pl of placements) {
@@ -247,7 +254,9 @@ function updateInstance(inst, now, dt) {
     slot.material.opacity = slot.displayOpacity * exitFade;
   }
 
-  inst.group.position.y = SPAWN_POSITION.y + rise;
+  // 表示中の五線譜もカメラ補間に追従させる（staff の現在位置 ＋ 退場時の上昇 rise）
+  const staffPos = currentStaffPos();
+  inst.group.position.set(staffPos.x, staffPos.y + rise, staffPos.z);
   inst.group.scale.setScalar(scale);
   if (camera) inst.group.quaternion.copy(camera.quaternion); // カメラ向きにビルボード
 }
