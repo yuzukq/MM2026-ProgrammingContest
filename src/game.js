@@ -108,7 +108,7 @@ export function buildWordBlocks(player) {
 export function updateGame(position, touchedY) {
   // 再生位置にかかってるブロックを探す（見つからない場合は null に統一）
   const block = wordBlocks.find((b) => b.startTime <= position && position < b.endTime) ?? null;
-  const playerLane = toLane(touchedY); // タッチ位置のレーン（＝鍵盤で光っているキーと同義(処理keyboardと共通化してもいいかもしれない)）
+  const playerLane = toLane(touchedY); // タッチ位置のレーン
 
   // アクティブブロックが切り替わった（前ブロック終了 or ブロックなし区間に入った）タイミングの検出
   if (activeBlock !== null && activeBlock !== block) {
