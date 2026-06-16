@@ -25,6 +25,11 @@ const STATE = {
 let state = STATE.SELECTION;
 let currentSong = null; // 現在プレイ中の曲（ハイスコア保存に使う）
 let lastBeatIndex = -1; // 直近に検知したビートの通し番号（拍の切り替わり検知に使う）
+let endRequested = false; // 終端で requestStop を多重発火させないためのフラグ
+let endArmed = false; // 本編内の正常な再生位置を観測したら true。これが立つまで onTimeUpdate を捨てる
+
+// 終端検知のマージン[ms]
+const END_DETECT_MARGIN_MS = 250;
 
 // state遷移のトリガー
 // (遷移先, 遷移時に必要な情報(引数なしでは空オブジェクト))
@@ -45,6 +50,8 @@ function enter(s, ctx) {
       loading.showLoadingScreen();
       currentSong = ctx.song;
       lastBeatIndex = -1; // ビート検知をリセット
+      endRequested = false; // 終端検知フラグをリセット
+      endArmed = false; // 再生開始時の position 張り付き対策
       game.resetGame();
       player.createFromSongUrl(ctx.song.url, { video: ctx.song.video });
       break;
@@ -156,15 +163,34 @@ player.addListener({
     fontReady.then(() => loading.setLoadingReady());
   },
 
+  // 終端検知で自分が requestStop した時だけリザルトへ遷移する。
+  onStop() {
+    if (state === STATE.PLAYING && endRequested) {
+      transition(STATE.RESULT);
+    }
+  },
+
   // =====20fps毎に呼ばれる楽曲情報周りのゲームループ=====
   onTimeUpdate(position) {
     // プレイシーン以外ではスキップ
     if (state !== STATE.PLAYING) return;
 
-    // 楽曲の終端検知
-    if (position >= player.video.duration) {
-      console.log("自然終了", position, player.video.duration);
-      transition(STATE.RESULT);
+    const duration = player.video?.duration ?? 0;
+
+    // iPad で再生開始直後の数フレーム position が duration に張り付き、終端と誤判定してリザルトへ誤遷移する(詳細は#31)ので
+    // 本編内（先頭〜終端margin手前）の正常位置を観測するまでフレームを捨てることで対処
+    if (!endArmed) {
+      if (duration > END_DETECT_MARGIN_MS && position < duration - END_DETECT_MARGIN_MS) {
+        endArmed = true; // 正常な再生位置を観測 → 以降は通常処理
+      } else {
+        return; // 張り付き期間（position≈duration）はこのフレームを無視
+      }
+    }
+
+    // 終端検知: 本来の終端へ到達したら requestStop → onStop でリザルトへ
+    if (!endRequested && position >= duration - END_DETECT_MARGIN_MS) {
+      endRequested = true;
+      player.requestStop(); // onStopを発火させる
       return;
     }
 
