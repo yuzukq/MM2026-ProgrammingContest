@@ -3,7 +3,7 @@
 
 // 判定調整まわり
 const POINTS_PER_BLOCK = () => maxScore / wordBlocks.length;
-const RATING_THRESHOLDS = { PERFECT: 0.95, GOOD: 0.8 }; // GOODの値以下はBAD
+const LANE_TOLERANCE = { PERFECT: 0.5, GOOD: 1.5 }; // 平均レーン距離の許容値（小さいほど厳密）超過はBAD
 const RATING_MULTIPLIER = { PERFECT: 1.0, GOOD: 0.6, BAD: 0 }; // 精度ごとのスコア加算の重み
 
 // レーンに量子化（声量→レーン番号→レーン中心Y)
@@ -17,7 +17,7 @@ let maxScore = 0; // ブロック数確定後に設定（曲が変わっても�
 
 // ブロック単位の精度追跡
 let activeBlock = null; // 現在判定中のブロック
-let accumAccuracy = 0; // ブロックがアクティブな間の (1-distance) の累積
+let accumLaneDist = 0; // ブロックがアクティブな間の |playerLane - blockLane| の累積
 let accumFrames = 0; // 累積フレーム数（平均算出に使う）
 
 // 到着済みブロックの管理（startTime イベントの二重発火防止）
@@ -45,7 +45,7 @@ export function resetGame() {
   score = 0;
   maxScore = 0;
   activeBlock = null;
-  accumAccuracy = 0;
+  accumLaneDist = 0;
   accumFrames = 0;
   hitBlockIds.clear();
   pendingEffects = [];
@@ -111,14 +111,15 @@ export function buildWordBlocks(player) {
 export function updateGame(position, touchedY) {
   // 再生位置にかかってるブロックを探す（見つからない場合は null に統一）
   const block = wordBlocks.find((b) => b.startTime <= position && position < b.endTime) ?? null;
+  const playerLane = toLane(touchedY); // タッチ位置のレーン（＝鍵盤で光っているキーと同義(処理keyboardと共通化してもいいかもしれない)）
 
   // アクティブブロックが切り替わった（前ブロック終了 or ブロックなし区間に入った）タイミングの検出
   if (activeBlock !== null && activeBlock !== block) {
-    const avgAccuracy = accumFrames > 0 ? accumAccuracy / accumFrames : 0; // ゼロ除算防止
+    const avgLaneDist = accumFrames > 0 ? accumLaneDist / accumFrames : LANE_COUNT; // ゼロ除算防止
 
     let rating = "BAD";
-    if (avgAccuracy >= RATING_THRESHOLDS.PERFECT) rating = "PERFECT";
-    else if (avgAccuracy >= RATING_THRESHOLDS.GOOD) rating = "GOOD";
+    if (avgLaneDist <= LANE_TOLERANCE.PERFECT) rating = "PERFECT";
+    else if (avgLaneDist <= LANE_TOLERANCE.GOOD) rating = "GOOD";
 
     score += POINTS_PER_BLOCK() * RATING_MULTIPLIER[rating];
     latestRating = rating;
@@ -133,7 +134,7 @@ export function updateGame(position, touchedY) {
     });
 
     // 次のブロックに備えてリセット
-    accumAccuracy = 0;
+    accumLaneDist = 0;
     accumFrames = 0;
   }
 
@@ -146,12 +147,11 @@ export function updateGame(position, touchedY) {
       hitBlockIds.add(block.startTime);
     }
 
-    const distance = Math.abs(touchedY - block.laneY);
-    const frameAccuracy = 1 - distance; // 1=ピッタリ, 0=最大ズレ
-    accumAccuracy += frameAccuracy;
+    const laneDist = Math.abs(playerLane - block.lane); // 同じレーンなら 0
+    accumLaneDist += laneDist;
     accumFrames++;
     return {
-      isOnBeat: frameAccuracy >= RATING_THRESHOLDS.PERFECT,
+      isOnBeat: laneDist === 0, // 同じレーンに居る間だけタッチフラッシュ
       normalizedY: block.laneY,
     };
   }
