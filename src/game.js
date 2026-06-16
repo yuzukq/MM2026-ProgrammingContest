@@ -87,12 +87,12 @@ export function buildWordBlocks(player) {
     phraseIndex++;
   }
 
-  // 曲内の声量 min/max で 0-1 にストレッチしてからレーンへ量子化する。
+  // ブロック内の声量 min/max で 0-1 にストレッチしてからレーンへ量子化する
   let min = Infinity;
   let max = -Infinity;
   for (const b of wordBlocks) {
-    if (b.rawAmp < min) min = b.rawAmp;
-    if (b.rawAmp > max) max = b.rawAmp;
+    if (b.rawAmp < min) min = b.rawAmp; // 各単語startTimeでの最小声量
+    if (b.rawAmp > max) max = b.rawAmp; // 各単語startTimeでの最大声量
   }
   const range = max - min || 1; // 全単語同声量（または0件）の保険
   for (const b of wordBlocks) {
