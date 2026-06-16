@@ -26,6 +26,7 @@ let state = STATE.SELECTION;
 let currentSong = null; // 現在プレイ中の曲（ハイスコア保存に使う）
 let lastBeatIndex = -1; // 直近に検知したビートの通し番号（拍の切り替わり検知に使う）
 let endRequested = false; // 終端で requestStop を多重発火させないためのフラグ
+let endArmed = false; // 本編内の正常な再生位置を観測したら true これが立つまで終端検知しない
 
 // 終端検知のマージン[ms]
 const END_DETECT_MARGIN_MS = 250;
@@ -50,6 +51,7 @@ function enter(s, ctx) {
       currentSong = ctx.song;
       lastBeatIndex = -1; // ビート検知をリセット
       endRequested = false; // 終端検知フラグをリセット
+      endArmed = false; // iOSの終端検知誤爆防止用
       game.resetGame();
       player.createFromSongUrl(ctx.song.url, { video: ctx.song.video });
       break;
@@ -161,9 +163,9 @@ player.addListener({
     fontReady.then(() => loading.setLoadingReady());
   },
 
-  // 終端で停止されたらリザルトに遷移
+  // 終端検知で自分が requestStop した時だけリザルトへ遷移する。
   onStop() {
-    if (state === STATE.PLAYING) {
+    if (state === STATE.PLAYING && endRequested) {
       transition(STATE.RESULT);
     }
   },
@@ -173,11 +175,17 @@ player.addListener({
     // プレイシーン以外ではスキップ
     if (state !== STATE.PLAYING) return;
 
-    // onTimeUpdate は離散的に飛ぶため最終tickが duration に届かず止まることがあり、position >= duration ちょうどだと取りこぼすのでマージンを引いて手前で終端とみなす
-    if (!endRequested && position >= player.video.duration - END_DETECT_MARGIN_MS) {
+    // iPadにで起動直後の数フレームだけ position が終端値になる現象を観測している
+    // 対策: 本編内（先頭〜終端margin手前）の正常な再生位置を一度でも観測してから初めて武装する
+    const duration = player.video?.duration ?? 0;
+
+    if (duration > END_DETECT_MARGIN_MS && position < duration - END_DETECT_MARGIN_MS) {
+      endArmed = true; // 本編内の位置を観測 → 終端検知を解禁
+    }
+    if (!endRequested && endArmed && position >= duration - END_DETECT_MARGIN_MS) {
       endRequested = true;
-      console.log("終端検知 → requestStop", position, player.video.duration);
-      player.requestStop(); // onStopは自動発火しないのでこちらから requestStop して確実に発火させる
+      console.log("終端検知 → requestStop", position, duration);
+      player.requestStop(); // onStopを発火させる
       return;
     }
 
