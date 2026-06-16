@@ -6,8 +6,12 @@ const POINTS_PER_BLOCK = () => maxScore / wordBlocks.length;
 const RATING_THRESHOLDS = { PERFECT: 0.95, GOOD: 0.8 }; // GOODの値以下はBAD
 const RATING_MULTIPLIER = { PERFECT: 1.0, GOOD: 0.6, BAD: 0 }; // 精度ごとのスコア加算の重み
 
+// レーンに量子化（声量→レーン番号→レーン中心Y)
+export const LANE_COUNT = 24;
+const toLane = (v01) => Math.max(0, Math.min(LANE_COUNT - 1, Math.floor(v01 * LANE_COUNT)));
+const laneCenterY = (lane) => (lane + 0.5) / LANE_COUNT; // 0-1（レーン中心の高さ）
+
 let wordBlocks = [];
-let maxAmp = 1;
 let score = 0;
 let maxScore = 0; // ブロック数確定後に設定（曲が変わっても理論最大値に収束させるため）
 
@@ -56,7 +60,6 @@ export function resetGame() {
 // 声量ブロックを事前構築 main側からonVideoReady1回呼ぶ
 // 毎フレーム getVocalAmplitude を呼ぶと波形がぶれるため、単語の先頭時刻で固定
 export function buildWordBlocks(player) {
-  maxAmp = player.getMaxVocalAmplitude() || 1;
   // フレーズ→単語の順に走査し、各ブロックに phraseIndex / slotIndex を貼る
   let phrase = player.video.firstPhrase;
   let phraseIndex = 0;
@@ -72,7 +75,7 @@ export function buildWordBlocks(player) {
           startTime: word.startTime,
           endTime: word.endTime,
           text: word.text,
-          normalizedAmp: player.getVocalAmplitude(word.startTime) / maxAmp,
+          rawAmp: player.getVocalAmplitude(word.startTime),
           phraseIndex,
           slotIndex: roster.length, // フレーズ内での位置＝現在の配列長
         });
@@ -86,6 +89,21 @@ export function buildWordBlocks(player) {
     phrase = phrase.next;
     phraseIndex++;
   }
+
+  // 曲内の声量 min/max で 0-1 にストレッチしてからレーンへ量子化する。
+  let min = Infinity;
+  let max = -Infinity;
+  for (const b of wordBlocks) {
+    if (b.rawAmp < min) min = b.rawAmp;
+    if (b.rawAmp > max) max = b.rawAmp;
+  }
+  const range = max - min || 1; // 全単語同声量（または0件）の保険
+  for (const b of wordBlocks) {
+    const stretched = (b.rawAmp - min) / range;
+    b.lane = toLane(stretched); // 判定で使うレーン番号
+    b.laneY = laneCenterY(b.lane); // 描画で使うレーン中心Y(0-1)
+  }
+
   maxScore = wordBlocks.length * RATING_MULTIPLIER.PERFECT; // 全ブロック PERFECT 時の理論最大値
 }
 
@@ -105,7 +123,7 @@ export function updateGame(position, touchedY) {
     score += POINTS_PER_BLOCK() * RATING_MULTIPLIER[rating];
     latestRating = rating;
     ratingCounts[rating]++;
-    pendingEffects.push({ normalizedY: activeBlock.normalizedAmp, rating });
+    pendingEffects.push({ normalizedY: activeBlock.laneY, rating });
     // 歌詞ビルボードへ判定確定を通知（該当スロットの不透明度が上がる）
     pendingLyricEvents.push({
       type: "rating",
@@ -128,13 +146,13 @@ export function updateGame(position, touchedY) {
       hitBlockIds.add(block.startTime);
     }
 
-    const distance = Math.abs(touchedY - block.normalizedAmp);
+    const distance = Math.abs(touchedY - block.laneY);
     const frameAccuracy = 1 - distance; // 1=ピッタリ, 0=最大ズレ
     accumAccuracy += frameAccuracy;
     accumFrames++;
     return {
       isOnBeat: frameAccuracy >= RATING_THRESHOLDS.PERFECT,
-      normalizedY: block.normalizedAmp,
+      normalizedY: block.laneY,
     };
   }
   return { isOnBeat: false, normalizedY: null };
