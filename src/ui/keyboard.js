@@ -3,8 +3,8 @@
 // main.js 経由では 20fpsに制限されうるので鍵盤ハイライトは別途RAFループ60fpsを使う
 
 import * as canvas from "../canvas/canvas.js";
+import { toLane } from "../lane.js"; // gameで使うレーン量子化を共有する
 
-const KEY_COUNT = 24;
 const HIGHLIGHT_COLOR = "#20B2AA";
 
 let svgEl = null;
@@ -39,8 +39,8 @@ export async function initKeyboard() {
     requestAnimationFrame(keyboardRenderLoop);
     if (!svgEl) return;
 
-    // プレイエリア内（0-1）を KEY_COUNT 分割して、触れているキーのindexを計算
-    const keyIndex = Math.min(KEY_COUNT - 1, Math.floor(canvas.getPlayAreaY() * KEY_COUNT));
+    // タッチ位置(0-1)を判定と同じ量子化でレーン化＝光らせるキーのindex
+    const keyIndex = toLane(canvas.getPlayAreaY());
 
     if (keyIndex === lastKeyIndex) return;
 

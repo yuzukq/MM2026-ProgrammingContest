@@ -1,15 +1,12 @@
 // game.js
 // ブロック生成やTextAlive のデータ処理とスコア計算，ゲームの内部ロジック周りを担当
 
+import { LANE_COUNT, toLane, laneCenterY } from "./lane.js"; // レーンの量子化用
+
 // 判定調整まわり
 const POINTS_PER_BLOCK = () => maxScore / wordBlocks.length;
 const LANE_TOLERANCE = { PERFECT: 0.5, GOOD: 1.5 }; // 平均レーン距離の許容値（小さいほど厳密）超過はBAD
 const RATING_MULTIPLIER = { PERFECT: 1.0, GOOD: 0.6, BAD: 0 }; // 精度ごとのスコア加算の重み
-
-// レーンに量子化（声量→レーン番号→レーン中心Y)
-export const LANE_COUNT = 24;
-const toLane = (v01) => Math.max(0, Math.min(LANE_COUNT - 1, Math.floor(v01 * LANE_COUNT)));
-const laneCenterY = (lane) => (lane + 0.5) / LANE_COUNT; // 0-1（レーン中心の高さ）
 
 let wordBlocks = [];
 let score = 0;
