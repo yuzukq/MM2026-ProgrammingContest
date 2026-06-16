@@ -177,8 +177,8 @@ player.addListener({
 
     const duration = player.video?.duration ?? 0;
 
-    // TextAlive(SongleTimer)は再生開始直後の2〜4フレーム、position を曲の duration として帰ってくる事象を観測している
-    // 本編内（先頭〜終端margin手前）の正常な位置を観測するまでは、このフレームを丸ごと捨てて、終端の誤検知を防ぐ
+    // iPad で再生開始直後の数フレーム position が duration に張り付き、終端と誤判定してリザルトへ誤遷移する(詳細は#31)ので
+    // 本編内（先頭〜終端margin手前）の正常位置を観測するまでフレームを捨てることで対処
     if (!endArmed) {
       if (duration > END_DETECT_MARGIN_MS && position < duration - END_DETECT_MARGIN_MS) {
         endArmed = true; // 正常な再生位置を観測 → 以降は通常処理
