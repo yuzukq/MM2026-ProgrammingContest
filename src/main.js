@@ -25,6 +25,10 @@ const STATE = {
 let state = STATE.SELECTION;
 let currentSong = null; // 現在プレイ中の曲（ハイスコア保存に使う）
 let lastBeatIndex = -1; // 直近に検知したビートの通し番号（拍の切り替わり検知に使う）
+let endRequested = false; // 終端で requestStop を多重発火させないためのフラグ
+
+// 終端検知のマージン[ms]
+const END_DETECT_MARGIN_MS = 250;
 
 // state遷移のトリガー
 // (遷移先, 遷移時に必要な情報(引数なしでは空オブジェクト))
@@ -45,6 +49,7 @@ function enter(s, ctx) {
       loading.showLoadingScreen();
       currentSong = ctx.song;
       lastBeatIndex = -1; // ビート検知をリセット
+      endRequested = false; // 終端検知フラグをリセット
       game.resetGame();
       player.createFromSongUrl(ctx.song.url, { video: ctx.song.video });
       break;
@@ -156,15 +161,23 @@ player.addListener({
     fontReady.then(() => loading.setLoadingReady());
   },
 
+  // 終端で停止されたらリザルトに遷移
+  onStop() {
+    if (state === STATE.PLAYING) {
+      transition(STATE.RESULT);
+    }
+  },
+
   // =====20fps毎に呼ばれる楽曲情報周りのゲームループ=====
   onTimeUpdate(position) {
     // プレイシーン以外ではスキップ
     if (state !== STATE.PLAYING) return;
 
-    // 楽曲の終端検知
-    if (position >= player.video.duration) {
-      console.log("自然終了", position, player.video.duration);
-      transition(STATE.RESULT);
+    // onTimeUpdate は離散的に飛ぶため最終tickが duration に届かず止まることがあり、position >= duration ちょうどだと取りこぼすのでマージンを引いて手前で終端とみなす
+    if (!endRequested && position >= player.video.duration - END_DETECT_MARGIN_MS) {
+      endRequested = true;
+      console.log("終端検知 → requestStop", position, player.video.duration);
+      player.requestStop(); // onStopは自動発火しないのでこちらから requestStop して確実に発火させる
       return;
     }
 
