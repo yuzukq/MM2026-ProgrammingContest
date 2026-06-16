@@ -1,19 +1,20 @@
 // game.js
 // ブロック生成やTextAlive のデータ処理とスコア計算，ゲームの内部ロジック周りを担当
 
+import { LANE_COUNT, toLane, laneCenterY } from "./lane.js"; // レーンの量子化用
+
 // 判定調整まわり
 const POINTS_PER_BLOCK = () => maxScore / wordBlocks.length;
-const RATING_THRESHOLDS = { PERFECT: 0.95, GOOD: 0.8 }; // GOODの値以下はBAD
+const LANE_TOLERANCE = { PERFECT: 0.5, GOOD: 1.5 }; // 平均レーン距離の許容値（小さいほど厳密）超過はBAD
 const RATING_MULTIPLIER = { PERFECT: 1.0, GOOD: 0.6, BAD: 0 }; // 精度ごとのスコア加算の重み
 
 let wordBlocks = [];
-let maxAmp = 1;
 let score = 0;
 let maxScore = 0; // ブロック数確定後に設定（曲が変わっても理論最大値に収束させるため）
 
 // ブロック単位の精度追跡
 let activeBlock = null; // 現在判定中のブロック
-let accumAccuracy = 0; // ブロックがアクティブな間の (1-distance) の累積
+let accumLaneDist = 0; // ブロックがアクティブな間の |playerLane - blockLane| の累積
 let accumFrames = 0; // 累積フレーム数（平均算出に使う）
 
 // 到着済みブロックの管理（startTime イベントの二重発火防止）
@@ -41,7 +42,7 @@ export function resetGame() {
   score = 0;
   maxScore = 0;
   activeBlock = null;
-  accumAccuracy = 0;
+  accumLaneDist = 0;
   accumFrames = 0;
   hitBlockIds.clear();
   pendingEffects = [];
@@ -56,7 +57,6 @@ export function resetGame() {
 // 声量ブロックを事前構築 main側からonVideoReady1回呼ぶ
 // 毎フレーム getVocalAmplitude を呼ぶと波形がぶれるため、単語の先頭時刻で固定
 export function buildWordBlocks(player) {
-  maxAmp = player.getMaxVocalAmplitude() || 1;
   // フレーズ→単語の順に走査し、各ブロックに phraseIndex / slotIndex を貼る
   let phrase = player.video.firstPhrase;
   let phraseIndex = 0;
@@ -72,7 +72,7 @@ export function buildWordBlocks(player) {
           startTime: word.startTime,
           endTime: word.endTime,
           text: word.text,
-          normalizedAmp: player.getVocalAmplitude(word.startTime) / maxAmp,
+          rawAmp: player.getVocalAmplitude(word.startTime),
           phraseIndex,
           slotIndex: roster.length, // フレーズ内での位置＝現在の配列長
         });
@@ -86,6 +86,21 @@ export function buildWordBlocks(player) {
     phrase = phrase.next;
     phraseIndex++;
   }
+
+  // ブロック内の声量 min/max で 0-1 にストレッチしてからレーンへ量子化する
+  let min = Infinity;
+  let max = -Infinity;
+  for (const b of wordBlocks) {
+    if (b.rawAmp < min) min = b.rawAmp; // 各単語startTimeでの最小声量
+    if (b.rawAmp > max) max = b.rawAmp; // 各単語startTimeでの最大声量
+  }
+  const range = max - min || 1; // 全単語同声量（または0件）の保険
+  for (const b of wordBlocks) {
+    const stretched = (b.rawAmp - min) / range;
+    b.lane = toLane(stretched); // 判定で使うレーン番号
+    b.laneY = laneCenterY(b.lane); // 描画で使うレーン中心Y(0-1)
+  }
+
   maxScore = wordBlocks.length * RATING_MULTIPLIER.PERFECT; // 全ブロック PERFECT 時の理論最大値
 }
 
@@ -93,19 +108,20 @@ export function buildWordBlocks(player) {
 export function updateGame(position, touchedY) {
   // 再生位置にかかってるブロックを探す（見つからない場合は null に統一）
   const block = wordBlocks.find((b) => b.startTime <= position && position < b.endTime) ?? null;
+  const playerLane = toLane(touchedY); // タッチ位置のレーン
 
   // アクティブブロックが切り替わった（前ブロック終了 or ブロックなし区間に入った）タイミングの検出
   if (activeBlock !== null && activeBlock !== block) {
-    const avgAccuracy = accumFrames > 0 ? accumAccuracy / accumFrames : 0; // ゼロ除算防止
+    const avgLaneDist = accumFrames > 0 ? accumLaneDist / accumFrames : LANE_COUNT; // ゼロ除算防止
 
     let rating = "BAD";
-    if (avgAccuracy >= RATING_THRESHOLDS.PERFECT) rating = "PERFECT";
-    else if (avgAccuracy >= RATING_THRESHOLDS.GOOD) rating = "GOOD";
+    if (avgLaneDist <= LANE_TOLERANCE.PERFECT) rating = "PERFECT";
+    else if (avgLaneDist <= LANE_TOLERANCE.GOOD) rating = "GOOD";
 
     score += POINTS_PER_BLOCK() * RATING_MULTIPLIER[rating];
     latestRating = rating;
     ratingCounts[rating]++;
-    pendingEffects.push({ normalizedY: activeBlock.normalizedAmp, rating });
+    pendingEffects.push({ normalizedY: activeBlock.laneY, rating });
     // 歌詞ビルボードへ判定確定を通知（該当スロットの不透明度が上がる）
     pendingLyricEvents.push({
       type: "rating",
@@ -115,7 +131,7 @@ export function updateGame(position, touchedY) {
     });
 
     // 次のブロックに備えてリセット
-    accumAccuracy = 0;
+    accumLaneDist = 0;
     accumFrames = 0;
   }
 
@@ -128,13 +144,12 @@ export function updateGame(position, touchedY) {
       hitBlockIds.add(block.startTime);
     }
 
-    const distance = Math.abs(touchedY - block.normalizedAmp);
-    const frameAccuracy = 1 - distance; // 1=ピッタリ, 0=最大ズレ
-    accumAccuracy += frameAccuracy;
+    const laneDist = Math.abs(playerLane - block.lane); // 同じレーンなら 0
+    accumLaneDist += laneDist;
     accumFrames++;
     return {
-      isOnBeat: frameAccuracy >= RATING_THRESHOLDS.PERFECT,
-      normalizedY: block.normalizedAmp,
+      isOnBeat: laneDist === 0, // 同じレーンに居る間だけタッチフラッシュ
+      normalizedY: block.laneY,
     };
   }
   return { isOnBeat: false, normalizedY: null };

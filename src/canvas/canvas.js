@@ -120,11 +120,11 @@ function canvasRenderLoop() {
   particleSystem.update(ctx);
 }
 
-// normalizedAmp(0-1) をプレイエリア内のcanvasピクセルY座標に変換する
-// ブロック描画・パーティクル生成時に使う
-function toPlayAreaCanvasY(normalizedAmp) {
+// 正規化Y(0-1, 上=1) をプレイエリア内のcanvasピクセルY座標に変換する
+// ブロック描画（レーン中心Y）・パーティクル生成時に使う
+function toPlayAreaCanvasY(normalizedY) {
   const range = PLAY_AREA_BOTTOM - PLAY_AREA_TOP;
-  return (PLAY_AREA_TOP + (1 - normalizedAmp) * range) * canvas.height;
+  return (PLAY_AREA_TOP + (1 - normalizedY) * range) * canvas.height;
 }
 
 // ワードブロックを描画する（drawFrame 内部からのみ呼ぶ）
@@ -152,7 +152,7 @@ function drawWordBlocks(position, wordBlocks) {
     // 右端が判定ラインより左 or 左端が画面右端より右はスキップ
     if (blockPosX + blockWidth < judgmentX || blockPosX > canvas.width) continue;
 
-    const blockPosY = toPlayAreaCanvasY(block.normalizedAmp) - blockHeight / 2;
+    const blockPosY = toPlayAreaCanvasY(block.laneY) - blockHeight / 2;
     ctx.beginPath();
     ctx.roundRect(blockPosX, blockPosY, blockWidth, blockHeight, 4);
     ctx.fill();
