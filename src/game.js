@@ -5,7 +5,7 @@ import { LANE_COUNT, toLane, laneCenterY } from "./lane.js"; // レーンの量�
 
 // 判定調整まわり
 const POINTS_PER_BLOCK = () => maxScore / wordBlocks.length;
-const LANE_TOLERANCE = { PERFECT: 0.5, GOOD: 1.5 }; // 平均レーン距離の許容値（小さいほど厳密）超過はBAD
+const LANE_TOLERANCE = { PERFECT: 1.5, GOOD: 2.5 }; // 平均レーン距離の許容値。±1.0レーンずれは PERFECT・±2は GOOD・超過はBAD
 const RATING_MULTIPLIER = { PERFECT: 1.0, GOOD: 0.6, BAD: 0 }; // 精度ごとのスコア加算の重み
 
 let wordBlocks = [];
@@ -148,7 +148,7 @@ export function updateGame(position, touchedY) {
     accumLaneDist += laneDist;
     accumFrames++;
     return {
-      isOnBeat: laneDist === 0, // 同じレーンに居る間だけタッチフラッシュ
+      isOnBeat: laneDist <= 1, // 同じ or 隣レーンに居る間はタッチフラッシュ
       normalizedY: block.laneY,
     };
   }

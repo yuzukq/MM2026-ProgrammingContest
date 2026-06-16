@@ -3,12 +3,15 @@
 // main.js 経由では 20fpsに制限されうるので鍵盤ハイライトは別途RAFループ60fpsを使う
 
 import * as canvas from "../canvas/canvas.js";
-import { toLane } from "../lane.js"; // gameで使うレーン量子化を共有する
+import { LANE_COUNT, toLane } from "../lane.js"; // gameで使うレーン量子化を共有する
 
 const HIGHLIGHT_COLOR = "#20B2AA";
+// キー内の高さがこの割合ぶん境界に寄っていたら、近い側の隣接キーも点灯（指の太さ対策で直感性UP）
+const BOUNDARY_THRESHOLD = 0.4;
 
 let svgEl = null;
 let lastKeyIndex = -1;
+let lastNeighborIndex = -1; // 前フレームで隣接点灯したキー（なければ-1）
 
 // ── public ──────────────────────────────
 
@@ -40,15 +43,28 @@ export async function initKeyboard() {
     if (!svgEl) return;
 
     // タッチ位置(0-1)を判定と同じ量子化でレーン化＝光らせるキーのindex
-    const keyIndex = toLane(canvas.getPlayAreaY());
+    const y = canvas.getPlayAreaY();
+    const keyIndex = toLane(y);
+    const fraction = y * LANE_COUNT - Math.floor(y * LANE_COUNT); // キー内の高さ(0-1)
 
-    if (keyIndex === lastKeyIndex) return;
+    // 境界に寄っている側の隣接キーを点灯（キー高さの BOUNDARY_THRESHOLD 以内）
+    let neighborIndex = -1;
+    if (fraction > 1 - BOUNDARY_THRESHOLD && keyIndex < LANE_COUNT - 1) {
+      neighborIndex = keyIndex + 1; // 上の隣
+    } else if (fraction < BOUNDARY_THRESHOLD && keyIndex > 0) {
+      neighborIndex = keyIndex - 1; // 下の隣
+    }
 
-    // 前フレームのハイライトをリセットして新しいキーを点灯
+    if (keyIndex === lastKeyIndex && neighborIndex === lastNeighborIndex) return;
+
+    // 前フレームのハイライトをリセットして新しいキー＋隣接を点灯
     resetKey(lastKeyIndex);
+    resetKey(lastNeighborIndex);
     highlightKey(keyIndex);
+    if (neighborIndex !== -1) highlightKey(neighborIndex);
 
     lastKeyIndex = keyIndex;
+    lastNeighborIndex = neighborIndex;
   }
   keyboardRenderLoop();
 }
