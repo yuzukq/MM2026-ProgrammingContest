@@ -48,6 +48,7 @@ function enter(s, ctx) {
     case STATE.LOADING:
       selection.hideSelectionScreen();
       loading.showLoadingScreen();
+      ui.preloadUI(); // ロード画面の裏でプログレスバー素材を読み込み
       currentSong = ctx.song;
       lastBeatIndex = -1; // ビート検知をリセット
       endRequested = false; // 終端検知フラグをリセット

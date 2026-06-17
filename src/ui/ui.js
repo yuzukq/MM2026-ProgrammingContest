@@ -14,9 +14,15 @@ let butterflyEl = null; // 蝶（left を更新）
 
 // ── public ──────────────────────────────
 
+// LOADING 中素材読み込み
+// オーバーレイ(z20)に隠れるので見た目への影響はなし
+export function preloadUI() {
+  if (!progressBarEl) buildProgressBar();
+}
+
 // 初回だけ DOM を構築し、毎回 progress を曲頭にリセットする
 export function initUI(songTitle) {
-  if (!progressBarEl) buildProgressBar();
+  if (!progressBarEl) buildProgressBar(); // preloadUI で構築済みならスキップ
   updateProgress(0); // 新しい曲の頭にリセット
   // TODO: top-ui 素材到着後に曲名(songTitle)をセット。現状は index.html に title 要素なし。
 }
