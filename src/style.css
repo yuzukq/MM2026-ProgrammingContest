@@ -162,14 +162,14 @@ body {
   pointer-events: none;
   overflow: visible; /* 蝶がバー上へはみ出すのを許可 */
 }
-/* 茎レイヤー：常時フルで表示 */
-#progress-bar .stem {
+/* 開花レイヤー： clip-path は updateProgress が更新 */
+#progress-bar .bloom {
   display: block;
   width: 100%;
   height: auto;
 }
-/* 開花レイヤー：茎に重ね、clip-path で progress 分だけ出現させる*/
-#progress-bar .bloom {
+/* 茎レイヤー：開花の下に敷くベースライン 常時開花が未到達区間も見える */
+#progress-bar .stem {
   position: absolute;
   bottom: 0;
   left: 0;
