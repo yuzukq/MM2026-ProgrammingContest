@@ -150,3 +150,40 @@ body {
   color: white;
   font-size: 20px;
 }
+
+/* z-index: 10  下部プログレスバー（茎＋開花＋蝶） */
+/* 横をフル幅に敷き、高さは幅基準でアスペクト比を維持する */
+#progress-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 10;
+  pointer-events: none;
+  overflow: visible; /* 蝶がバー上へはみ出すのを許可 */
+}
+/* 開花レイヤー： clip-path は updateProgress が更新 */
+#progress-bar .bloom {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+/* 茎レイヤー：開花の下に敷くベースライン 常時開花が未到達区間も見える */
+#progress-bar .stem {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: auto;
+}
+/* 蝶：開花の先端に乗る
+left は updateProgress が更新 */
+#progress-bar .butterfly {
+  position: absolute;
+  left: 0;
+  bottom: 55%;
+  height: 70%;
+  width: auto;
+  transform: translateX(-50%);
+  transition: left 0.12s linear; /* 20fps更新の滑らか化 */
+}
