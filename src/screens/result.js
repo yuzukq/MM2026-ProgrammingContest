@@ -14,17 +14,21 @@ const MISS_OPACITY = 0.2; // 未判定(null)
 const WORD_STAGGER_MS = 40; // 1語ごとの刻み間隔
 const OPEN_MS = 900; // flap透過＋flapinner展開の所要（CSSと合わせること）
 const CARD_MS = 550; // カード登場の所要（CSSと合わせること）
+const CARD_W = 595.24; // lyriccard の viewBox 幅（テキスト中央寄せ／縮小の基準）
+const TEXT_MAX_W = 520; // 1行テキスト(title / artist-score)の最大幅(user units)。超えたら縮小
+const AUTO_SCROLL_PX_PER_SEC = 50; // 歌詞の自動スクロール速度（固定・単調）
 
 let screenEl = null;
 let cardEl = null;
 let titleTextEl = null; // SVG <text id="title">
-let artistTextEl = null; // SVG <text id="artist">
-let scoreTextEl = null; // SVG <text id="score">
+let artistScoreEl = null; // SVG <text id="artist-score">（artist と score を1行に統合）
 let lyricEl = null; // 歌詞表示部分のHTMLオーバーレイ（スクロール用）
 let hintEl = null; // 「タップして選曲に戻る」
 let onRestartCallback = null;
 let canReturn = false; // スクロール最下到達で解禁するため
 let timers = []; // 演出の setTimeout
+let scrollRaf = 0; // 自動スクロールの requestAnimationFrame ハンドル
+let scrollCtl = null; // 自動スクロール関連リスナの一括解除用 AbortController
 
 // ── public ──────────────────────────────
 
@@ -39,8 +43,8 @@ export function showResultScreen({ score, ratingCounts, collectedLyrics, title, 
 
   // テキスト反映
   if (titleTextEl) titleTextEl.textContent = title ?? "";
-  if (artistTextEl) artistTextEl.textContent = artist ?? "";
-  if (scoreTextEl) scoreTextEl.textContent = String(Math.floor(score));
+  if (artistScoreEl)
+    artistScoreEl.textContent = `Artist: ${artist ?? ""}　Score: ${Math.floor(score)}`;
   renderLyrics(collectedLyrics ?? []);
 
   // 状態を「封筒閉じ・カード未登場」に戻す
@@ -50,6 +54,9 @@ export function showResultScreen({ score, ratingCounts, collectedLyrics, title, 
   lyricEl.scrollTop = 0;
   screenEl.classList.remove("opened", "card-in");
   screenEl.style.display = "flex";
+  // 表示後に測って、はみ出す1行テキストはフォント縮小して収める
+  fitText(titleTextEl, TEXT_MAX_W);
+  fitText(artistScoreEl, TEXT_MAX_W);
 
   // reflow を挟んでからクラス付与＝transition を発火させる
   void screenEl.offsetWidth;
@@ -60,7 +67,7 @@ export function showResultScreen({ score, ratingCounts, collectedLyrics, title, 
       timers.push(
         setTimeout(() => {
           lyricEl.classList.add("inscribe"); // 3) 歌詞を刻む
-          setupScrollGate(); // 4) スクロール最下で復帰解禁
+          autoScrollLyrics(); // 4) 固定速度で自動スクロール（最下で復帰解禁・手動でも可）
         }, CARD_MS)
       );
     }, OPEN_MS)
@@ -94,17 +101,9 @@ async function buildDOM() {
   screenEl.append(envelopeEl, cardEl, hintEl);
   document.body.appendChild(screenEl);
 
-  // タップで復帰（解禁後のみ）
+  // タップで復帰（解禁後のみ）。click はスクロールのドラッグでは発火しないので
+  // 「歌詞をスクロールしただけで戻ってしまう」誤爆が起きない（手動で見返せる）。
   screenEl.addEventListener("click", handleReturn);
-  screenEl.addEventListener(
-    "touchend",
-    (e) => {
-      // 歌詞スクロール中の誤タップ防止、解禁前は何もしない
-      if (canReturn) e.preventDefault();
-      handleReturn();
-    },
-    { passive: false }
-  );
 
   // 2枚の SVG を並行 fetch・インライン展開
   const [envSvg, cardSvg] = await Promise.all([
@@ -117,9 +116,31 @@ async function buildDOM() {
 
   // カードSVGの text 参照を取得し、#lyric プレースホルダは除去（HTMLで描くので）
   titleTextEl = cardSvgEl.querySelector("#title");
-  artistTextEl = cardSvgEl.querySelector("#artist");
-  scoreTextEl = cardSvgEl.querySelector("#score");
+  artistScoreEl = cardSvgEl.querySelector("#artist-score");
   cardSvgEl.querySelector("#lyric")?.remove();
+
+  // 1行テキストはカード中央へ中央寄せ
+  recenterX(titleTextEl, CARD_W / 2);
+  recenterX(artistScoreEl, CARD_W / 2);
+}
+
+// SVG <text> の transform の x をカード中心に揃える
+function recenterX(el, cx) {
+  if (!el) return;
+  const ty =
+    (/translate\([\d.]+[ ,]+([\d.]+)/.exec(el.getAttribute("transform") || "") || [])[1] ?? "0";
+  el.setAttribute("transform", `translate(${cx} ${ty})`);
+}
+
+// 1行テキストの幅を測り、maxW を超えていたらフォントを縮小して収める
+function fitText(el, maxW) {
+  if (!el) return;
+  el.style.fontSize = ""; // 既定サイズに戻して測る
+  const w = el.getBBox().width;
+  if (w > maxW) {
+    const base = parseFloat(getComputedStyle(el).fontSize) || 0;
+    if (base) el.style.fontSize = `${(base * maxW) / w}px`;
+  }
 }
 
 // 回収歌詞をフレーズ×単語で描く
@@ -133,7 +154,7 @@ function renderLyrics(collected) {
       const span = document.createElement("span");
       span.className = "lyric-word";
       span.textContent = text;
-      span.style.setProperty("--op", rating ? RATING_OPACITY[rating] : MISS_OPACITY); // 単語ごとに rating に応じて不透明度を載せる
+      span.style.setProperty("--op", rating ? RATING_OPACITY[rating] : MISS_OPACITY); // rating で不透明度
       span.style.animationDelay = `${order * WORD_STAGGER_MS}ms`;
       line.appendChild(span);
       order++;
@@ -142,21 +163,38 @@ function renderLyrics(collected) {
   }
 }
 
-// スクロール最下で復帰を解禁
-function setupScrollGate() {
-  const needsScroll = lyricEl.scrollHeight > lyricEl.clientHeight + 4;
-  if (!needsScroll) {
+// 歌詞を固定速度で最下まで自動スクロール
+function autoScrollLyrics() {
+  scrollCtl?.abort();
+  scrollCtl = new AbortController();
+  const sig = scrollCtl.signal;
+
+  const maxScroll = lyricEl.scrollHeight - lyricEl.clientHeight;
+  if (maxScroll <= 4) {
     enableReturn(); // 収まりきってたら即解禁
     return;
   }
-  lyricEl.addEventListener("scroll", onLyricScroll);
-}
 
-function onLyricScroll() {
-  if (lyricEl.scrollTop + lyricEl.clientHeight >= lyricEl.scrollHeight - 4) {
-    enableReturn();
-    lyricEl.removeEventListener("scroll", onLyricScroll);
-  }
+  // 最下到達で解禁（自動・手動どちらのスクロールでも）
+  lyricEl.addEventListener(
+    "scroll",
+    () => {
+      if (lyricEl.scrollTop + lyricEl.clientHeight >= lyricEl.scrollHeight - 4) enableReturn();
+    },
+    { signal: sig }
+  );
+  // ユーザー操作で自動スクロールを停止し手動に委ねる
+  const stopAuto = () => cancelAnimationFrame(scrollRaf);
+  lyricEl.addEventListener("wheel", stopAuto, { signal: sig, passive: true });
+  lyricEl.addEventListener("touchstart", stopAuto, { signal: sig, passive: true });
+
+  let last = performance.now();
+  const step = (now) => {
+    lyricEl.scrollTop += (AUTO_SCROLL_PX_PER_SEC * (now - last)) / 1000;
+    last = now;
+    if (lyricEl.scrollTop < maxScroll - 1) scrollRaf = requestAnimationFrame(step);
+  };
+  scrollRaf = requestAnimationFrame(step);
 }
 
 function enableReturn() {
@@ -171,4 +209,8 @@ function handleReturn() {
 function clearTimers() {
   timers.forEach(clearTimeout);
   timers = [];
+  if (scrollRaf) cancelAnimationFrame(scrollRaf);
+  scrollRaf = 0;
+  scrollCtl?.abort();
+  scrollCtl = null;
 }
