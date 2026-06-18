@@ -106,6 +106,14 @@ body {
   width: auto;
 }
 
+/* カード本文用フォント（Noto Serif JP サブセット・自前ホスト。build-card-font.py で生成） */
+@font-face {
+  font-family: "NotoSerifJP";
+  src: url("/assets/fonts/NotoSerifJP-subset.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
 /* z-index: 20  リザルト画面 */
 #result-screen {
   position: fixed;
@@ -115,26 +123,123 @@ body {
   height: 100%;
   z-index: 20;
   display: none;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.85);
-  color: white;
+  background: transparent; /* 仮の黒マスクは撤去。最終的な2D背景素材は後で差し込む */
   cursor: pointer;
 }
 
-#result-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  font-size: 24px;
+/* 封筒（4レイヤーのインラインSVG）。中央配置。カード登場で隠れる前提なので z は低め */
+#result-envelope {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  height: 60vh;
+  aspect-ratio: 1085.28 / 1166.88;
+  z-index: 1;
+  pointer-events: none;
+}
+#result-envelope svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+/* 開封演出: flap をゆっくり透過 ＋ flapinner を下→上に展開 */
+#result-envelope svg #flap {
+  transition: opacity 0.8s ease;
+}
+#result-envelope svg #flapinner {
+  clip-path: inset(100% 0 0 0); /* 初期は全隠し */
+  transition: clip-path 0.8s ease;
+}
+#result-screen.opened #result-envelope svg #flap {
+  opacity: 0;
+}
+#result-screen.opened #result-envelope svg #flapinner {
+  clip-path: inset(0 0 0 0); /* 下→上に開く */
 }
 
+/* 歌詞カード。封筒より手前(z:2)で覆う。初期は小さく隠れ、card-in でシュッと拡大登場 */
+#result-card {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  height: 90vh;
+  aspect-ratio: 595.24 / 842.42;
+  z-index: 2;
+  container-type: size; /* 子の cqw 基準にする（フォントサイズ追従） */
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.12);
+  transition:
+    transform 0.55s cubic-bezier(0.22, 1.2, 0.36, 1),
+    opacity 0.3s ease;
+}
+#result-screen.card-in #result-card {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+#result-card svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+/* カード内テキストは全て Noto Serif JP に統一（スコープ化後の .cls 指定に勝つよう !important） */
+#result-card svg text {
+  font-family: "NotoSerifJP", serif !important;
+}
+
+/* 歌詞オーバーレイ：lyriccard の #lyric 領域に合わせて配置・スクロール */
+#card-lyric {
+  position: absolute;
+  left: 7.86%; /* 46.77 / 595.24 */
+  right: 7.86%;
+  top: 22.4%; /* 188.65 / 842.42 */
+  bottom: 6%;
+  overflow-y: auto;
+  pointer-events: auto;
+  color: #231815;
+  font-family: "NotoSerifJP", serif;
+  font-size: 4.2cqw; /* 25 / 595.24 */
+  line-height: 1.7;
+  -webkit-overflow-scrolling: touch;
+}
+.lyric-line {
+  margin: 0 0 0.5em;
+}
+.lyric-word {
+  display: inline-block;
+  opacity: 0; /* inscribe で --op まで上げる */
+}
+#card-lyric.inscribe .lyric-word {
+  animation: lyric-inscribe 0.4s ease forwards;
+}
+@keyframes lyric-inscribe {
+  from {
+    opacity: 0;
+    transform: translateY(0.2em);
+  }
+  to {
+    opacity: var(--op);
+    transform: none;
+  }
+}
+
+/* 復帰ヒント。スクロール最下で .show が付くまで隠す */
 #result-hint {
-  margin-top: 24px;
+  position: fixed;
+  bottom: 3vh;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  margin: 0;
+  color: white;
   font-size: 16px;
-  opacity: 0.5;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+#result-hint.show {
+  opacity: 0.7;
 }
 
 /* z-index: 10  HTML UI レイヤー */
