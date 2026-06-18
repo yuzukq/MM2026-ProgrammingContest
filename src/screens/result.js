@@ -7,9 +7,8 @@ import { inlineSvg } from "../inline-svg.js"; // インライン展開のヘル�
 const ENVELOPE_SRC = "/assets/envelope.svg";
 const LYRICCARD_SRC = "/assets/lyriccard.svg";
 
-// 判定→不透明度（PERFECT=くっきり、未判定/BAD=薄く）
+// 判定→不透明度（PERFECT=くっきり、BAD=薄く）。触れられなかった単語も game 側で BAD 判定される
 const RATING_OPACITY = { PERFECT: 1.0, GOOD: 0.5, BAD: 0.2 };
-const MISS_OPACITY = 0.2; // 未判定(null)
 
 const WORD_STAGGER_MS = 40; // 1語ごとの刻み間隔
 const OPEN_MS = 900; // flap透過＋flapinner展開の所要（CSSと合わせること）
@@ -37,7 +36,7 @@ export function initResult(onRestart) {
   buildDOM(); // 非同期で SVG を fetch・展開
 }
 
-export function showResultScreen({ score, ratingCounts, collectedLyrics, title, artist }) {
+export function showResultScreen({ score, collectedLyrics, title, artist }) {
   if (!cardEl) return;
   clearTimers();
 
@@ -154,7 +153,7 @@ function renderLyrics(collected) {
       const span = document.createElement("span");
       span.className = "lyric-word";
       span.textContent = text;
-      span.style.setProperty("--op", rating ? RATING_OPACITY[rating] : MISS_OPACITY); // rating で不透明度
+      span.style.setProperty("--op", RATING_OPACITY[rating] ?? RATING_OPACITY.BAD); // rating で不透明度（未判定は BAD 扱い）
       span.style.animationDelay = `${order * WORD_STAGGER_MS}ms`;
       line.appendChild(span);
       order++;
