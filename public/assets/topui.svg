@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="topui" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3840 216">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #4d4d4d;
+      }
+
+      .cls-2 {
+        fill: #666;
+      }
+
+      .cls-3 {
+        fill: #b3b3b3;
+      }
+
+      .cls-4 {
+        fill: #fff;
+        font-family: KozGoPr6N-Regular-83pv-RKSJ-H, 'Kozuka Gothic Pr6N';
+        font-size: 90px;
+      }
+
+      .cls-5 {
+        fill: #333;
+      }
+
+      .cls-6 {
+        fill: #1a1a1a;
+      }
+    </style>
+  </defs>
+  <g id="base">
+    <rect id="back" class="cls-1" x="384" y="41.65" width="3456" height="149.9"/>
+    <rect id="line-bottom-under" class="cls-5" x="384" y="191.55" width="3456" height="24.45"/>
+    <g id="rhythm">
+      <rect class="cls-3" x="384.02" y="116.6" width="5.91" height="92.93"/>
+      <polygon class="cls-3" points="477.06 209.52 471.15 209.52 471.11 174.76 477.03 174.76 477.06 209.52"/>
+      <rect class="cls-3" x="558.25" y="153.43" width="5.91" height="56.09"/>
+      <polygon class="cls-3" points="651.29 209.52 645.38 209.52 645.34 174.76 651.25 174.76 651.29 209.52"/>
+      <rect class="cls-3" x="732.47" y="153.43" width="5.91" height="56.09"/>
+      <polygon class="cls-3" points="825.52 209.52 819.61 209.52 819.57 174.76 825.48 174.76 825.52 209.52"/>
+      <rect class="cls-3" x="906.7" y="153.43" width="5.91" height="56.09"/>
+      <polygon class="cls-3" points="999.75 209.52 993.83 209.52 993.8 174.76 999.71 174.76 999.75 209.52"/>
+      <rect class="cls-3" x="1080.93" y="116.6" width="5.91" height="92.93"/>
+      <polygon class="cls-3" points="1173.97 209.52 1168.06 209.52 1168.02 174.76 1173.94 174.76 1173.97 209.52"/>
+      <rect class="cls-3" x="1255.16" y="153.43" width="5.91" height="56.09"/>
+      <polygon class="cls-3" points="1348.2 209.52 1342.29 209.52 1342.25 174.76 1348.16 174.76 1348.2 209.52"/>
+      <rect class="cls-3" x="1429.38" y="153.43" width="5.91" height="56.09"/>
+      <polygon class="cls-3" points="1522.43 209.52 1516.52 209.52 1516.48 174.76 1522.39 174.76 1522.43 209.52"/>
+      <rect class="cls-3" x="1603.61" y="153.43" width="5.91" height="56.09"/>
+      <polygon class="cls-3" points="1696.66 209.52 1690.74 209.52 1690.71 174.76 1696.62 174.76 1696.66 209.52"/>
+      <rect class="cls-3" x="1777.84" y="116.6" width="5.91" height="92.93"/>
+      <polygon class="cls-3" points="1870.89 209.52 1864.97 209.52 1864.93 174.76 1870.85 174.76 1870.89 209.52"/>
+      <rect class="cls-3" x="1952.07" y="153.43" width="5.91" height="56.09"/>
+      <polygon class="cls-3" points="2045.11 209.52 2039.2 209.52 2039.16 174.76 2045.07 174.76 2045.11 209.52"/>
+      <rect class="cls-3" x="2126.29" y="153.43" width="5.91" height="56.09"/>
+      <polygon class="cls-3" points="2219.34 209.52 2213.43 209.52 2213.39 174.76 2219.3 174.76 2219.34 209.52"/>
+      <rect class="cls-3" x="2300.52" y="153.43" width="5.91" height="56.09"/>
+      <polygon class="cls-3" points="2393.57 209.52 2387.66 209.52 2387.62 174.76 2393.53 174.76 2393.57 209.52"/>
+      <rect class="cls-3" x="2474.75" y="116.6" width="5.91" height="92.93"/>
+      <polygon class="cls-3" points="2567.8 209.52 2561.88 209.52 2561.85 174.76 2567.76 174.76 2567.8 209.52"/>
+      <rect class="cls-3" x="2648.98" y="153.43" width="5.91" height="56.09"/>
+      <polygon class="cls-3" points="2742.02 209.52 2736.11 209.52 2736.07 174.76 2741.99 174.76 2742.02 209.52"/>
+      <rect class="cls-3" x="2823.21" y="153.43" width="5.91" height="56.09"/>
+      <polygon class="cls-3" points="2916.25 209.52 2910.34 209.52 2910.3 174.76 2916.21 174.76 2916.25 209.52"/>
+      <rect class="cls-3" x="2997.43" y="153.43" width="5.91" height="56.09"/>
+      <polygon class="cls-3" points="3090.48 209.52 3084.57 209.52 3084.53 174.76 3090.44 174.76 3090.48 209.52"/>
+      <rect class="cls-3" x="3171.66" y="116.6" width="5.91" height="92.93"/>
+      <polygon class="cls-3" points="3264.71 209.52 3258.79 209.52 3258.76 174.76 3264.67 174.76 3264.71 209.52"/>
+      <rect class="cls-3" x="3345.89" y="153.43" width="5.91" height="56.09"/>
+      <polygon class="cls-3" points="3438.93 209.52 3433.02 209.52 3432.98 174.76 3438.9 174.76 3438.93 209.52"/>
+      <rect class="cls-3" x="3520.12" y="153.43" width="5.91" height="56.09"/>
+      <polygon class="cls-3" points="3613.16 209.52 3607.25 209.52 3607.21 174.76 3613.12 174.76 3613.16 209.52"/>
+      <rect class="cls-3" x="3694.34" y="153.43" width="5.91" height="56.09"/>
+      <polygon class="cls-3" points="3787.39 209.52 3781.48 209.52 3781.44 174.76 3787.35 174.76 3787.39 209.52"/>
+    </g>
+    <rect id="line-bottom-top" class="cls-6" x="384" y="209.52" width="3456" height="6.48"/>
+    <rect id="line-top" class="cls-2" x="384" y="0" width="3456" height="41.65"/>
+  </g>
+  <g id="left">
+    <g id="base-2" data-name="base">
+      <g id="line">
+        <rect class="cls-5" width="384" height="191.55"/>
+      </g>
+      <g id="back-2" data-name="back">
+        <rect class="cls-6" y="191.55" width="384" height="24.45"/>
+      </g>
+    </g>
+    <g id="icon">
+      <rect class="cls-3" x="236.77" y="83.28" width="35.13" height="24.99"/>
+      <rect class="cls-3" x="289.26" y="83.28" width="52.34" height="24.99"/>
+      <rect class="cls-3" x="236.77" y="46.62" width="104.83" height="24.99"/>
+      <rect class="cls-3" x="236.84" y="119.93" width="104.83" height="24.99"/>
+    </g>
+  </g>
+  <text id="title" class="cls-4" transform="translate(425.6 142.2)"><tspan x="0" y="0">♪タイトル</tspan></text>
+  <text id="score" class="cls-4" transform="translate(2852.0565 142.2002)"><tspan x="0" y="0">9999999999</tspan></text>
+  <text class="cls-4" transform="translate(3474.3672 142.2002)"><tspan x="0" y="0">rating</tspan></text>
+</svg>
