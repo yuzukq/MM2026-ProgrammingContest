@@ -266,7 +266,12 @@ body {
   width: 100%;
   height: 100%;
 }
-
+/* 判定テキスト: 白縁取り */
+/*#top-ui #rating {
+  stroke: #fff;
+  stroke-width: 6;
+  paint-order: stroke fill;
+}*/
 
 /* z-index: 10  下部プログレスバー（茎＋開花＋蝶） */
 /* 横をフル幅に敷き、高さは幅基準でアスペクト比を維持する */

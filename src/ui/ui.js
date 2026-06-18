@@ -7,8 +7,8 @@ import { inlineSvg } from "../inline-svg.js";
 
 // 素材パス（public/assets/ に置く → /assets/ で配信）
 const TOP_UI_SRC = "/assets/topui.svg";
-
 const TITLE_MAX_W = 1150;
+const RATING_COLOR = { PERFECT: "#ce206e", GOOD: "#20ce3d", BAD: "#888888" };
 const PROGRESS_STEM_SRC = "/assets/progressbar-stem.svg"; // 下レイヤー（茎）
 const PROGRESS_BLOOM_SRC = "/assets/progressbar.svg"; // 上レイヤー（開花）
 const PROGRESS_BUTTERFLY_SRC = "/assets/progressIndicator.svg"; // 蝶（先端）
@@ -46,7 +46,10 @@ export function initUI(songTitle) {
 // onTimeUpdate で毎フレーム：HUD一式（上部UI/ 進捗バー）を更新する。
 export function updateUI({ score, rating, progress }) {
   if (topScoreEl) topScoreEl.textContent = `Score: ${Math.floor(score)}`;
-  if (rating && topRatingEl) topRatingEl.textContent = rating;
+  if (rating && topRatingEl) {
+    topRatingEl.textContent = rating;
+    topRatingEl.style.fill = RATING_COLOR[rating] ?? RATING_COLOR.BAD;
+  }
   updateProgress(progress);
 }
 
