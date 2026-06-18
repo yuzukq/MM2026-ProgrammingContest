@@ -4,6 +4,7 @@
 
 import * as canvas from "../canvas/canvas.js";
 import { LANE_COUNT, toLane } from "../lane.js"; // gameで使うレーン量子化を共有する
+import { inlineSvg } from "../inline-svg.js"; // インライン展開のヘルパー
 
 const HIGHLIGHT_COLOR = "#20B2AA";
 // キー内の高さがこの割合ぶん境界に寄っていたら、近い側の隣接キーも点灯（指の太さ対策で直感性UP）
@@ -31,9 +32,8 @@ export async function initKeyboard() {
   // 取得したSVGをDOMに直接埋め込み
   const wrapper = document.createElement("div");
   wrapper.id = "keyboard-wrapper";
-  wrapper.innerHTML = svgText;
   document.body.appendChild(wrapper);
-  svgEl = wrapper.querySelector("svg");
+  svgEl = inlineSvg(wrapper, svgText); // （<style> をスコープ化）
   // デフォルトのアスペクト比維持を無効化しコンテナいっぱいに引き伸ばす
   svgEl.setAttribute("preserveAspectRatio", "none");
 
