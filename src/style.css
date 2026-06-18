@@ -188,8 +188,14 @@ body {
 #result-card svg text {
   font-family: "NotoSerifJP", serif !important;
 }
+/* title / artist-score はアンカー中心で中央揃え（既定の start だと右へ伸びて見切れる） */
+#result-card svg #title,
+#result-card svg #artist-score {
+  text-anchor: middle;
+}
 
-/* 歌詞オーバーレイ：lyriccard の #lyric 領域に合わせて配置・スクロール */
+/* 歌詞オーバーレイ：lyriccard の #lyric 領域に合わせて配置。
+   手動スクロール可（overflow:auto）だがスクロールバーは隠す。初回は自動スクロールで送る */
 #card-lyric {
   position: absolute;
   left: 7.86%; /* 46.77 / 595.24 */
@@ -202,7 +208,10 @@ body {
   font-family: "NotoSerifJP", serif;
   font-size: 4.2cqw; /* 25 / 595.24 */
   line-height: 1.7;
-  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Firefox: スクロールバー非表示 */
+}
+#card-lyric::-webkit-scrollbar {
+  display: none; /* WebKit: スクロールバー非表示 */
 }
 .lyric-line {
   margin: 0 0 0.5em;
