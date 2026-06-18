@@ -16,7 +16,7 @@
 
       .cls-4 {
         fill: #fff;
-        font-family: KozGoPr6N-Regular-83pv-RKSJ-H, 'Kozuka Gothic Pr6N';
+        font-family: Noto Sans JP, 'Source Han Sans';
         font-size: 90px;
       }
 
@@ -93,7 +93,7 @@
       <rect class="cls-3" x="236.84" y="119.93" width="104.83" height="24.99"/>
     </g>
   </g>
-  <text id="title" class="cls-4" transform="translate(425.6 142.2)"><tspan x="0" y="0">♪タイトル</tspan></text>
-  <text id="score" class="cls-4" transform="translate(2852.0565 142.2002)"><tspan x="0" y="0">9999999999</tspan></text>
-  <text id="rating" class="cls-4" transform="translate(3474.3672 142.2002)"><tspan x="0" y="0">rating</tspan></text>
+  <text id="rating" class="cls-4" transform="translate(425.6 142.2)"><tspan x="0" y="0">Rating</tspan></text>
+  <text id="score" class="cls-4" transform="translate(2000 142.2002)"><tspan x="0" y="0">Score: 9999999999</tspan></text>
+  <text id="title" class="cls-4" transform="translate(3800 142.2002)"><tspan x="0" y="0">♪タイトル</tspan></text>
 </svg>
