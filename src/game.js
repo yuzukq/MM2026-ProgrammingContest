@@ -31,9 +31,6 @@ let phrases = []; // フレーズ単位のタイムライン {roster, startTime,
 // 直近のレーティング（UI 表示用）
 let latestRating = null;
 
-// 判定カウンタ
-const ratingCounts = { PERFECT: 0, GOOD: 0, BAD: 0 };
-
 // リザルト歌詞カード用：phraseRatings[phraseIndex][slotIndex] = "PERFECT"|"GOOD"|"BAD"
 const phraseRatings = [];
 
@@ -52,9 +49,6 @@ export function resetGame() {
   pendingLyricEvents = [];
   phrases = [];
   latestRating = null;
-  ratingCounts.PERFECT = 0;
-  ratingCounts.GOOD = 0;
-  ratingCounts.BAD = 0;
   phraseRatings.length = 0;
 }
 
@@ -124,7 +118,6 @@ export function updateGame(position, touchedY) {
 
     score += POINTS_PER_BLOCK() * RATING_MULTIPLIER[rating];
     latestRating = rating;
-    ratingCounts[rating]++;
     // リザルト歌詞カード用に該当単語の判定を記録（phraseIndex / slotIndex で歌詞へ復元）
     (phraseRatings[activeBlock.phraseIndex] ??= [])[activeBlock.slotIndex] = rating;
     pendingEffects.push({ normalizedY: activeBlock.laneY, rating });
@@ -205,7 +198,4 @@ export function getMaxScore() {
 }
 export function getLatestRating() {
   return latestRating;
-}
-export function getRatingCounts() {
-  return { ...ratingCounts };
 }

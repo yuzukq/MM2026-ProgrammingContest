@@ -75,8 +75,6 @@ function enter(s, ctx) {
       }
       result.showResultScreen({
         score,
-        maxScore: game.getMaxScore(),
-        ratingCounts: game.getRatingCounts(),
         collectedLyrics: game.getCollectedLyrics(),
         title: currentSong?.title,
         artist: currentSong?.artist,
