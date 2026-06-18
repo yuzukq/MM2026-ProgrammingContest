@@ -140,13 +140,6 @@ const player = new Player({
   vocalAmplitudeEnabled: true,
 });
 
-// =======デバッグ用後で消す（曲の90%地点にシーク）=====================
-window.__debugSkip = () => {
-  if (player.video?.duration) player.requestMediaSeek(player.video.duration * 0.9);
-};
-// ==============================================================
-
-// ★一時的なFPS計測用
 startFpsMeter();
 player.addListener({
   // TextAlive の準備ができたら呼ばれる

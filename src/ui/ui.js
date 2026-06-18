@@ -1,13 +1,19 @@
 // ui.js
 // プレイ中の HTML UI レイヤーを担当する。
-//   - 画面上部: スコア / レーティング（現状は index.html の静的 span を更新。top-ui 素材は未到着）
+//   - 画面上部: DAW ステータスUI（曲名・スコア表示）
 //   - 画面下部: プログレスバー（茎レイヤー常時表示＋開花レイヤーを progress でクリップ開花、先端に蝶）
 
+import { inlineSvg } from "../inline-svg.js";
+
 // 素材パス（public/assets/ に置く → /assets/ で配信）
+const TOP_UI_SRC = "/assets/topui.svg";
 const PROGRESS_STEM_SRC = "/assets/progressbar-stem.svg"; // 下レイヤー（茎）
 const PROGRESS_BLOOM_SRC = "/assets/progressbar.svg"; // 上レイヤー（開花）
 const PROGRESS_BUTTERFLY_SRC = "/assets/progressIndicator.svg"; // 蝶（先端）
 
+let topUiEl = null; // 上部UIのラッパ（初回のみ構築）
+let topTitleEl = null; // SVG <text id="title">
+let topScoreEl = null; // SVG <text id="score">
 let progressBarEl = null; // 下部バーのラッパ（初回のみ構築）
 let bloomEl = null; // 開花レイヤー（clip-path を更新）
 let butterflyEl = null; // 蝶（left を更新）
@@ -18,24 +24,36 @@ let butterflyEl = null; // 蝶（left を更新）
 // オーバーレイ(z20)に隠れるので見た目への影響はなし
 export function preloadUI() {
   if (!progressBarEl) buildProgressBar();
+  if (!topUiEl) buildTopUI();
 }
 
-// 初回だけ DOM を構築し、毎回 progress を曲頭にリセットする
+// 初回だけ DOM を構築し、毎回 progress を曲頭・曲名・スコアをリセットする
 export function initUI(songTitle) {
-  if (!progressBarEl) buildProgressBar(); // preloadUI で構築済みならスキップ
-  updateProgress(0); // 新しい曲の頭にリセット
-  // TODO: top-ui 素材到着後に曲名(songTitle)をセット。現状は index.html に title 要素なし。
+  if (!progressBarEl) buildProgressBar();
+  if (!topUiEl) buildTopUI();
+  updateProgress(0);
+  if (topTitleEl) topTitleEl.textContent = songTitle ?? "";
+  if (topScoreEl) topScoreEl.textContent = "0";
 }
 
-// onTimeUpdate で毎フレーム：HUD一式（score / rating / 進捗バー）を更新する。
-export function updateUI({ score, rating, progress }) {
-  // top-ui 素材未導入のうちは index.html の静的 span を直接更新
-  document.querySelector("#score").textContent = `score: ${Math.floor(score)}`;
-  if (rating) document.querySelector("#rating").textContent = rating;
+// onTimeUpdate で毎フレーム：HUD一式（score / 進捗バー）を更新する。
+export function updateUI({ score, progress }) {
+  if (topScoreEl) topScoreEl.textContent = Math.floor(score);
   updateProgress(progress);
 }
 
 // ── internal ────────────────────────────
+
+async function buildTopUI() {
+  topUiEl = document.createElement("div");
+  topUiEl.id = "top-ui";
+  document.body.appendChild(topUiEl);
+  const svgText = await fetch(TOP_UI_SRC).then((r) => r.text());
+  const svgEl = inlineSvg(topUiEl, svgText);
+  svgEl.setAttribute("preserveAspectRatio", "none");
+  topTitleEl = svgEl.querySelector("#title");
+  topScoreEl = svgEl.querySelector("#score");
+}
 
 // 下部プログレスバーを構築（茎・開花・蝶の3枚を重ねる）
 function buildProgressBar() {
