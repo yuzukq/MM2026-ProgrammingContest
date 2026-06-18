@@ -147,11 +147,11 @@ body {
 }
 /* 開封演出: flap をゆっくり透過 ＋ flapinner を下→上に展開 */
 #result-envelope svg #flap {
-  transition: opacity 0.8s ease;
+  transition: opacity 1s ease;
 }
 #result-envelope svg #flapinner {
   clip-path: inset(100% 0 0 0); /* 初期は全隠し */
-  transition: clip-path 0.8s ease;
+  transition: clip-path 1.4s ease;
 }
 #result-screen.opened #result-envelope svg #flap {
   opacity: 0;
