@@ -2,6 +2,8 @@
 // リザルト画面：封筒(envelope.svg)を開封→歌詞カード(lyriccard.svg)が登場し、
 // 回収できた歌詞を判定の不透明度付きで刻む
 
+import { inlineSvg } from "../inline-svg.js"; // インライン展開のヘルパー
+
 const ENVELOPE_SRC = "/assets/envelope.svg";
 const LYRICCARD_SRC = "/assets/lyriccard.svg";
 
@@ -109,33 +111,15 @@ async function buildDOM() {
     fetch(ENVELOPE_SRC).then((r) => r.text()),
     fetch(LYRICCARD_SRC).then((r) => r.text()),
   ]);
-  envelopeEl.innerHTML = envSvg;
-  scopeSvgStyles(envelopeEl, "#result-envelope");
-  cardEl.innerHTML = cardSvg;
-  scopeSvgStyles(cardEl, "#result-card");
+  inlineSvg(envelopeEl, envSvg);
+  const cardSvgEl = inlineSvg(cardEl, cardSvg); // スタイルのスコープ限定
   cardEl.appendChild(lyricEl); // 歌詞オーバーレイはカードSVGの上に重ねる
 
   // カードSVGの text 参照を取得し、#lyric プレースホルダは除去（HTMLで描くので）
-  const cardSvgEl = cardEl.querySelector("svg");
   titleTextEl = cardSvgEl.querySelector("#title");
   artistTextEl = cardSvgEl.querySelector("#artist");
   scoreTextEl = cardSvgEl.querySelector("#score");
   cardSvgEl.querySelector("#lyric")?.remove();
-}
-
-// インライン展開した SVG の <style> を scope 配下へ限定する。
-// イラレ書き出しの .cls-* はファイル間で同名衝突し、グローバルに漏れて他の素材を汚染してるので各セレクタを書き換えて暫定対処。
-function scopeSvgStyles(containerEl, scope) {
-  const styleEl = containerEl.querySelector("svg style");
-  if (!styleEl) return;
-  styleEl.textContent = styleEl.textContent.replace(
-    /([^{}]+)(\{[^}]*\})/g,
-    (_, selectors, body) =>
-      selectors
-        .split(",")
-        .map((s) => `${scope} ${s.trim()}`)
-        .join(", ") + body
-  );
 }
 
 // 回収歌詞をフレーズ×単語で描く
