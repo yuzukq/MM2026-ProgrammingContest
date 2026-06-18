@@ -3,6 +3,7 @@
 // 曲が確定したら onSongSelectedCallback(song) を呼び、main.js がローディングへ遷移する
 
 import { SONGS } from "../data/songs.js";
+import { inlineSvg } from "../inline-svg.js"; // インライン展開のヘルパー
 
 const CARD_SVG_SRC = "/assets/selectcard.svg";
 const CARD_STEP = 140; // 隣カードまでの縦オフセット(px)
@@ -57,9 +58,8 @@ function buildDOM(svgTemplate) {
     const card = document.createElement("div");
     card.className = "song-card";
 
-    // SVGテンプレートをカードに埋め込む
-    card.innerHTML = svgTemplate;
-    const svg = card.querySelector("svg");
+    //  <style> をスコープ化してSVGテンプレートをカードに埋め込む
+    const svg = inlineSvg(card, svgTemplate);
 
     // tspan分割して属性と値で改行
     svg.querySelector("#title").innerHTML =

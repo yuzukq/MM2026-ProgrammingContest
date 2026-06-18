@@ -31,8 +31,8 @@ let phrases = []; // フレーズ単位のタイムライン {roster, startTime,
 // 直近のレーティング（UI 表示用）
 let latestRating = null;
 
-// 判定カウンタ
-const ratingCounts = { PERFECT: 0, GOOD: 0, BAD: 0 };
+// リザルト歌詞カード用：phraseRatings[phraseIndex][slotIndex] = "PERFECT"|"GOOD"|"BAD"
+const phraseRatings = [];
 
 // 『こたえて』のコーラス区間の1msダミーワードを除外する閾値
 const CHORUS_NOISE_THRESHOLD = 50;
@@ -49,9 +49,7 @@ export function resetGame() {
   pendingLyricEvents = [];
   phrases = [];
   latestRating = null;
-  ratingCounts.PERFECT = 0;
-  ratingCounts.GOOD = 0;
-  ratingCounts.BAD = 0;
+  phraseRatings.length = 0;
 }
 
 // 声量ブロックを事前構築 main側からonVideoReady1回呼ぶ
@@ -120,7 +118,8 @@ export function updateGame(position, touchedY) {
 
     score += POINTS_PER_BLOCK() * RATING_MULTIPLIER[rating];
     latestRating = rating;
-    ratingCounts[rating]++;
+    // リザルト歌詞カード用に該当単語の判定を記録（phraseIndex / slotIndex で歌詞へ復元）
+    (phraseRatings[activeBlock.phraseIndex] ??= [])[activeBlock.slotIndex] = rating;
     pendingEffects.push({ normalizedY: activeBlock.laneY, rating });
     // 歌詞ビルボードへ判定確定を通知（該当スロットの不透明度が上がる）
     pendingLyricEvents.push({
@@ -178,6 +177,19 @@ export function getLyricTimeline() {
 export function getWordBlocks() {
   return wordBlocks;
 }
+
+// リザルト歌詞カード用：全フレーズの全単語と、その単語が取れたか(rating)を結合して返す。
+// rating は "PERFECT"|"GOOD"|"BAD"、未判定（曲終了時にアクティブ等）は null。空フレーズは除外。
+export function getCollectedLyrics() {
+  return phrases
+    .map((p, phraseIndex) => ({
+      words: p.roster.map((text, slotIndex) => ({
+        text,
+        rating: phraseRatings[phraseIndex]?.[slotIndex] ?? null,
+      })),
+    }))
+    .filter((p) => p.words.length > 0);
+}
 export function getScore() {
   return score;
 }
@@ -186,7 +198,4 @@ export function getMaxScore() {
 }
 export function getLatestRating() {
   return latestRating;
-}
-export function getRatingCounts() {
-  return { ...ratingCounts };
 }
