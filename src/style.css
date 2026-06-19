@@ -266,6 +266,10 @@ body {
   width: 100%;
   height: 100%;
 }
+/* UIテキストは五線譜と共通の Mochiy Pop Oneに統一 */
+#top-ui svg text {
+  font-family: "Mochiy Pop One", sans-serif;
+}
 /* 判定テキスト: 白縁取り */
 #top-ui #rating {
   stroke: #fff;
