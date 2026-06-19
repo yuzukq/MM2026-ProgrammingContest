@@ -267,11 +267,14 @@ body {
   height: 100%;
 }
 /* 判定テキスト: 白縁取り */
-/*#top-ui #rating {
+#top-ui #rating {
   stroke: #fff;
   stroke-width: 6;
   paint-order: stroke fill;
-}*/
+  transform-box: fill-box;
+  /*pop アニメ(WAAPI)が文字中心で拡縮するよう transform 基準を設定*/
+  transform-origin: center;
+}
 
 /* z-index: 10  下部プログレスバー（茎＋開花＋蝶） */
 /* 横をフル幅に敷き、高さは幅基準でアスペクト比を維持する */

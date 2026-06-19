@@ -226,6 +226,7 @@ player.addListener({
     ui.updateUI({
       score: game.getScore(),
       rating: game.getLatestRating(),
+      ratingSeq: game.getLatestRatingSeq(),
       progress,
     });
   },

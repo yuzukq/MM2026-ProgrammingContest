@@ -1,11 +1,9 @@
 // ui.js
-// プレイ中の HTML UI レイヤーを担当する。
-//   - 画面上部: DAW ステータスUI（曲名・スコア表示・判定）
-//   - 画面下部: プログレスバー（茎レイヤー常時表示＋開花レイヤーを progress でクリップ開花、先端に蝶）
+// 画面上部: DAW ステータスUI（曲名・スコア表示・判定）
+// 画面下部: プログレスバー（茎レイヤー常時表示＋開花レイヤーを progress でクリップ開花、先端に蝶）
 
 import { inlineSvg } from "../inline-svg.js";
 
-// 素材パス（public/assets/ に置く → /assets/ で配信）
 const TOP_UI_SRC = "/assets/topui.svg";
 const TITLE_MAX_W = 1150;
 const RATING_COLOR = { PERFECT: "#ce206e", GOOD: "#20ce3d", BAD: "#888888" };
@@ -17,6 +15,8 @@ let topUiEl = null; // 上部UIのラッパ（初回のみ構築）
 let topTitleEl = null; // SVG <text id="title">
 let topScoreEl = null; // SVG <text id="score">
 let topRatingEl = null; // SVG <text id="rating">
+let lastRatingSeq = 0; // 直近に pop した判定の seq（新しい判定ごとに pop。同値連続でも鳴る）
+let ratingAnim = null; // 進行中の pop アニメ（連続変化時に積み重ねない）
 let progressBarEl = null; // 下部バーのラッパ（初回のみ構築）
 let bloomEl = null; // 開花レイヤー（clip-path を更新）
 let butterflyEl = null; // 蝶（left を更新）
@@ -37,20 +37,40 @@ export function initUI(songTitle) {
   updateProgress(0);
   if (topScoreEl) topScoreEl.textContent = "Score: 0";
   if (topRatingEl) topRatingEl.textContent = "";
+  lastRatingSeq = 0; // 新しい曲：seq がリセットされるので合わせる
   if (topTitleEl) {
     topTitleEl.textContent = songTitle ?? "";
     fitTopTitle();
   }
 }
 
-// onTimeUpdate で毎フレーム：HUD一式（上部UI/ 進捗バー）を更新する。
-export function updateUI({ score, rating, progress }) {
+// onTimeUpdate で毎フレーム：HUD一式を更新する。
+export function updateUI({ score, rating, ratingSeq, progress }) {
   if (topScoreEl) topScoreEl.textContent = `Score: ${Math.floor(score)}`;
-  if (rating && topRatingEl) {
+  // 「新しい判定が確定した瞬間」だけ差し替えて pop
+  if (rating && ratingSeq !== lastRatingSeq && topRatingEl) {
+    // 同値連続でも鳴る／毎フレームは鳴らさない
+    lastRatingSeq = ratingSeq;
     topRatingEl.textContent = rating;
     topRatingEl.style.fill = RATING_COLOR[rating] ?? RATING_COLOR.BAD;
+    popRating(topRatingEl);
   }
   updateProgress(progress);
+}
+
+// 判定テキストを「パッと跳ねる」ように1回再生する。
+// WA-API の composite:"add" で scale だけを位置の上に重ねる
+// https://developer.mozilla.org/ja/docs/Web/API/Web_Animations_API/
+function popRating(el) {
+  ratingAnim?.cancel(); // 連続変化時に scale を積み重ねない
+  ratingAnim = el.animate(
+    [
+      { transform: "scale(0.4)" },
+      { transform: "scale(1.25)", offset: 0.55 },
+      { transform: "scale(1)" },
+    ],
+    { duration: 280, easing: "cubic-bezier(0.34, 1.56, 0.64, 1)", composite: "add" }
+  );
 }
 
 // ── internal ────────────────────────────
