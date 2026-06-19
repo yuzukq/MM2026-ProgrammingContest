@@ -1,7 +1,10 @@
 // debug-fps.js
 // 表示: FPS（0.5s平均） / now（直近フレームの所要ms） / worst（直近の最悪フレーム時間ms）
 
+const ENABLED = false; // ← true にすると左上にオーバーレイ表示
+
 export function startFpsMeter() {
+  if (!ENABLED) return;
   const el = document.createElement("div");
   el.style.cssText =
     "position:fixed;top:4px;left:4px;z-index:9999;padding:4px 8px;" +

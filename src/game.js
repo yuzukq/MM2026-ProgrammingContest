@@ -30,6 +30,7 @@ let phrases = []; // フレーズ単位のタイムライン {roster, startTime,
 
 // 直近のレーティング（UI 表示用）
 let latestRating = null;
+let latestRatingSeq = 0; // 判定が確定するたびに++。同値連続(PERFECT→PERFECT)でも"新しい判定"を検知できる
 
 // リザルト歌詞カード用：phraseRatings[phraseIndex][slotIndex] = "PERFECT"|"GOOD"|"BAD"
 const phraseRatings = [];
@@ -49,6 +50,7 @@ export function resetGame() {
   pendingLyricEvents = [];
   phrases = [];
   latestRating = null;
+  latestRatingSeq = 0;
   phraseRatings.length = 0;
 }
 
@@ -118,6 +120,7 @@ export function updateGame(position, touchedY) {
 
     score += POINTS_PER_BLOCK() * RATING_MULTIPLIER[rating];
     latestRating = rating;
+    latestRatingSeq++; // 判定確定 → seq を進める（UI の pop トリガー）
     // リザルト歌詞カード用に該当単語の判定を記録（phraseIndex / slotIndex で歌詞へ復元）
     (phraseRatings[activeBlock.phraseIndex] ??= [])[activeBlock.slotIndex] = rating;
     pendingEffects.push({ normalizedY: activeBlock.laneY, rating });
@@ -198,4 +201,7 @@ export function getMaxScore() {
 }
 export function getLatestRating() {
   return latestRating;
+}
+export function getLatestRatingSeq() {
+  return latestRatingSeq;
 }

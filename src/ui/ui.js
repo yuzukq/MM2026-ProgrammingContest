@@ -1,13 +1,22 @@
 // ui.js
-// プレイ中の HTML UI レイヤーを担当する。
-//   - 画面上部: スコア / レーティング（現状は index.html の静的 span を更新。top-ui 素材は未到着）
-//   - 画面下部: プログレスバー（茎レイヤー常時表示＋開花レイヤーを progress でクリップ開花、先端に蝶）
+// 画面上部: DAW ステータスUI（曲名・スコア表示・判定）
+// 画面下部: プログレスバー（茎レイヤー常時表示＋開花レイヤーを progress でクリップ開花、先端に蝶）
 
-// 素材パス（public/assets/ に置く → /assets/ で配信）
+import { inlineSvg } from "../inline-svg.js";
+
+const TOP_UI_SRC = "/assets/topui.svg";
+const TITLE_MAX_W = 1150;
+const RATING_COLOR = { PERFECT: "#ce206e", GOOD: "#20ce3d", BAD: "#888888" };
 const PROGRESS_STEM_SRC = "/assets/progressbar-stem.svg"; // 下レイヤー（茎）
 const PROGRESS_BLOOM_SRC = "/assets/progressbar.svg"; // 上レイヤー（開花）
 const PROGRESS_BUTTERFLY_SRC = "/assets/progressIndicator.svg"; // 蝶（先端）
 
+let topUiEl = null; // 上部UIのラッパ（初回のみ構築）
+let topTitleEl = null; // SVG <text id="title">
+let topScoreEl = null; // SVG <text id="score">
+let topRatingEl = null; // SVG <text id="rating">
+let lastRatingSeq = 0; // 直近に pop した判定の seq（新しい判定ごとに pop。同値連続でも鳴る）
+let ratingAnim = null; // 進行中の pop アニメ（連続変化時に積み重ねない）
 let progressBarEl = null; // 下部バーのラッパ（初回のみ構築）
 let bloomEl = null; // 開花レイヤー（clip-path を更新）
 let butterflyEl = null; // 蝶（left を更新）
@@ -18,24 +27,77 @@ let butterflyEl = null; // 蝶（left を更新）
 // オーバーレイ(z20)に隠れるので見た目への影響はなし
 export function preloadUI() {
   if (!progressBarEl) buildProgressBar();
+  if (!topUiEl) buildTopUI();
 }
 
-// 初回だけ DOM を構築し、毎回 progress を曲頭にリセットする
+// 初回だけ DOM を構築し、毎回 progress を曲頭・曲名・スコアをリセットする
 export function initUI(songTitle) {
-  if (!progressBarEl) buildProgressBar(); // preloadUI で構築済みならスキップ
-  updateProgress(0); // 新しい曲の頭にリセット
-  // TODO: top-ui 素材到着後に曲名(songTitle)をセット。現状は index.html に title 要素なし。
+  if (!progressBarEl) buildProgressBar();
+  if (!topUiEl) buildTopUI();
+  updateProgress(0);
+  if (topScoreEl) topScoreEl.textContent = "Score: 0";
+  if (topRatingEl) topRatingEl.textContent = "";
+  lastRatingSeq = 0; // 新しい曲：seq がリセットされるので合わせる
+  if (topTitleEl) {
+    topTitleEl.textContent = songTitle ?? "";
+    fitTopTitle();
+  }
 }
 
-// onTimeUpdate で毎フレーム：HUD一式（score / rating / 進捗バー）を更新する。
-export function updateUI({ score, rating, progress }) {
-  // top-ui 素材未導入のうちは index.html の静的 span を直接更新
-  document.querySelector("#score").textContent = `score: ${Math.floor(score)}`;
-  if (rating) document.querySelector("#rating").textContent = rating;
+// onTimeUpdate で毎フレーム：HUD一式を更新する。
+export function updateUI({ score, rating, ratingSeq, progress }) {
+  if (topScoreEl) topScoreEl.textContent = `Score: ${Math.floor(score)}`;
+  // 「新しい判定が確定した瞬間」だけ差し替えて pop
+  if (rating && ratingSeq !== lastRatingSeq && topRatingEl) {
+    // 同値連続でも鳴る／毎フレームは鳴らさない
+    lastRatingSeq = ratingSeq;
+    topRatingEl.textContent = rating;
+    topRatingEl.style.fill = RATING_COLOR[rating] ?? RATING_COLOR.BAD;
+    popRating(topRatingEl);
+  }
   updateProgress(progress);
 }
 
+// 判定テキストを「パッと跳ねる」ように1回再生する。
+// WA-API の composite:"add" で scale だけを位置の上に重ねる
+// https://developer.mozilla.org/ja/docs/Web/API/Web_Animations_API/
+function popRating(el) {
+  ratingAnim?.cancel(); // 連続変化時に scale を積み重ねない
+  ratingAnim = el.animate(
+    [
+      { transform: "scale(0.4)" },
+      { transform: "scale(1.25)", offset: 0.55 },
+      { transform: "scale(1)" },
+    ],
+    { duration: 280, easing: "cubic-bezier(0.34, 1.56, 0.64, 1)", composite: "add" }
+  );
+}
+
 // ── internal ────────────────────────────
+
+async function buildTopUI() {
+  topUiEl = document.createElement("div");
+  topUiEl.id = "top-ui";
+  document.body.appendChild(topUiEl);
+  const svgText = await fetch(TOP_UI_SRC).then((r) => r.text());
+  const svgEl = inlineSvg(topUiEl, svgText);
+  svgEl.setAttribute("preserveAspectRatio", "none");
+  topTitleEl = svgEl.querySelector("#title");
+  topTitleEl.setAttribute("text-anchor", "end");
+  topScoreEl = svgEl.querySelector("#score");
+  topRatingEl = svgEl.querySelector("#rating");
+}
+
+// 曲名が TITLE_MAX_W を超えていたらフォントを縮小して収める
+function fitTopTitle() {
+  if (!topTitleEl) return;
+  topTitleEl.style.fontSize = "";
+  const w = topTitleEl.getBBox().width;
+  if (w > TITLE_MAX_W) {
+    const base = parseFloat(getComputedStyle(topTitleEl).fontSize) || 0;
+    if (base) topTitleEl.style.fontSize = `${(base * TITLE_MAX_W) / w}px`;
+  }
+}
 
 // 下部プログレスバーを構築（茎・開花・蝶の3枚を重ねる）
 function buildProgressBar() {
