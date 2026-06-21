@@ -211,7 +211,7 @@ player.addListener({
     // 曲の進捗(0..1)
     const progress = position / player.video.duration;
     // findChorus が非nullならサビ区間
-    const inChorus = !!player.findChorus(position);
+    const isInChorus = !!player.findChorus(position);
 
     // threeレイヤー描画用の状態のみ更新
     scene.updateScene({
@@ -220,7 +220,7 @@ player.addListener({
       isNewBeat,
       beat,
       lyricRatings: game.popLyricEvents(), // 歌詞ビルボードの判定結果
-      inChorus,
+      isInChorus,
       animEvents: game.popAnimEvents(), // VRMワンショットアニメの要求
     });
     // HUD一式を現在の状態で更新（score / rating ＋ 進捗バー）

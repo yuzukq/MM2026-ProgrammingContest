@@ -74,10 +74,10 @@ export function initCamera(sceneCamera, controls) {
 }
 
 // scene.updateScene からonTimeUpdate駆動でサビ判定でプリセット切替トリガーを打つ
-export function updateCamera({ inChorus }) {
+export function updateCamera({ isInChorus }) {
   if (DEBUG_CAMERA) return; // デバッグ中はプリセット駆動しない
 
-  const wantPreset = inChorus ? "chorus" : "verse";
+  const wantPreset = isInChorus ? "chorus" : "verse";
   if (wantPreset !== curPreset) startTransition(wantPreset);
 }
 

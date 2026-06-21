@@ -117,14 +117,14 @@ export function updateScene({
   isNewBeat,
   beat,
   lyricRatings,
-  inChorus,
+  isInChorus,
   animEvents,
 }) {
   // 曲の進行に合わせて空の状況を動かす
   sky.updateSky(progress);
 
   // サビ判定でカメラワークプリセット切替
-  cameraRig.updateCamera({ inChorus });
+  cameraRig.updateCamera({ isInChorus });
 
   // ビートに合わせて水面に波紋生成
   if (isNewBeat && beat) {
