@@ -28,6 +28,9 @@ let pendingEffects = [];
 let pendingLyricEvents = [];
 let phrases = []; // フレーズ単位のタイムライン {roster, startTime, endTime}。lyric への登録元
 
+// VRMワンショットアニメーションのキュー
+let pendingAnimEvents = [];
+
 // 直近のレーティング（UI 表示用）
 let latestRating = null;
 let latestRatingSeq = 0; // 判定が確定するたびに++。同値連続(PERFECT→PERFECT)でも"新しい判定"を検知できる
@@ -48,6 +51,7 @@ export function resetGame() {
   hitBlockIds.clear();
   pendingEffects = [];
   pendingLyricEvents = [];
+  pendingAnimEvents = [];
   phrases = [];
   latestRating = null;
   latestRatingSeq = 0;
@@ -123,6 +127,15 @@ export function updateGame(position, touchedY) {
     latestRatingSeq++; // 判定確定 → seq を進める（UI の pop トリガー）
     // リザルト歌詞カード用に該当単語の判定を記録（phraseIndex / slotIndex で歌詞へ復元）
     (phraseRatings[activeBlock.phraseIndex] ??= [])[activeBlock.slotIndex] = rating;
+
+    const pi = activeBlock.phraseIndex;
+    const phraseLen = phrases[pi]?.roster.length ?? 0;
+    // フレーズ最後の単語が確定したとき
+    if (phraseLen > 0 && activeBlock.slotIndex === phraseLen - 1) {
+      const perfectCount = phraseRatings[pi].filter((r) => r === "PERFECT").length;
+      // フレーズ全単語が PERFECT なら VRM ワンショットを要求
+      if (perfectCount === phraseLen) pendingAnimEvents.push({ type: "perfectPhrase" });
+    }
     pendingEffects.push({ normalizedY: activeBlock.laneY, rating });
     // 歌詞ビルボードへ判定確定を通知（該当スロットの不透明度が上がる）
     pendingLyricEvents.push({
@@ -169,6 +182,13 @@ export function popPendingEffects() {
 export function popLyricEvents() {
   const events = pendingLyricEvents;
   pendingLyricEvents = [];
+  return events;
+}
+
+// VRMワンショットアニメの要求を取り出す（scene 経由で animator が再生）
+export function popAnimEvents() {
+  const events = pendingAnimEvents;
+  pendingAnimEvents = [];
   return events;
 }
 

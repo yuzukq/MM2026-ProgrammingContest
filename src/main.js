@@ -221,6 +221,7 @@ player.addListener({
       beat,
       lyricRatings: game.popLyricEvents(), // 歌詞ビルボードの判定結果
       inChorus,
+      animEvents: game.popAnimEvents(), // VRMワンショットアニメの要求
     });
     // HUD一式を現在の状態で更新（score / rating ＋ 進捗バー）
     ui.updateUI({

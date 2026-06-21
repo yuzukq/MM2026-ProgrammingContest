@@ -6,12 +6,18 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { VRMLoaderPlugin } from "@pixiv/three-vrm";
+import { VRMAnimationLoaderPlugin, createVRMAnimationClip } from "@pixiv/three-vrm-animation";
 import * as sky from "./sky.js";
 import * as water from "./water.js";
 import * as lyric from "./lyric.js";
 import * as cameraRig from "./camera.js"; // 命名被るから名前空間わけた
+import * as animator from "./vrm-animator.js"; // VRMアニメの再生制御
 
 let scene, camera, renderer, vrm;
+let clock; // VRMアニメ更新用の delta 取得
+
+// game の意味イベント type → 再生する VRMA クリップ名
+const ANIM_FOR_EVENT = { perfectPhrase: "perfect-phrase" };
 
 // ── public ──────────────────────────────
 
@@ -23,6 +29,7 @@ export function initScene() {
   renderer = new THREE.WebGLRenderer({ antialias: true });
   camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 100000); //FOV,アスペクト比,near,far
   vrm = null;
+  clock = new THREE.Clock();
 
   renderer.setSize(window.innerWidth, window.innerHeight);
   // モバイル(タッチ端末)は塗る画素数(fillrate)が重いので解像度上限を下げる。
@@ -57,17 +64,18 @@ export function initScene() {
   // =============歌詞ビルボード=================
   lyric.initLyric(scene, camera);
 
-  // VRMローダー
+  // VRMローダー（VRM本体＋VRMAアニメの両対応）
   const loader = new GLTFLoader();
-
   loader.register((parser) => new VRMLoaderPlugin(parser));
+  loader.register((parser) => new VRMAnimationLoaderPlugin(parser));
 
-  loader.load("./assets/models/MMmiku/MMmiku.vrm", (gltf) => {
+  loader.load("/assets/vrm/miku/miku.vrm", (gltf) => {
     vrm = gltf.userData.vrm;
     vrm.scene.position.set(0.8, -1.12, 5.0);
     vrm.scene.rotation.set(0, THREE.MathUtils.degToRad(-50), 0);
     scene.add(vrm.scene);
-    console.log(vrm);
+    animator.initAnimator(vrm);
+    loadVrmAnimations(loader); // VRMA を読み込んで animator に登録
   });
 
   // =============カメラワーク=================
@@ -103,7 +111,15 @@ export function loadLyricFont() {
 
 // "3D オブジェクト（位置・色・密度など）の状態を更新するだけで、renderer.render() は呼ばない！"
 // "レンダリングは sceneRenderLoop() が毎フレーム行う！"
-export function updateScene({ position, progress, isNewBeat, beat, lyricRatings, inChorus }) {
+export function updateScene({
+  position,
+  progress,
+  isNewBeat,
+  beat,
+  lyricRatings,
+  inChorus,
+  animEvents,
+}) {
   // 曲の進行に合わせて空の状況を動かす
   sky.updateSky(progress);
 
@@ -121,15 +137,38 @@ export function updateScene({ position, progress, isNewBeat, beat, lyricRatings,
   if (lyricRatings && lyricRatings.length) {
     lyric.applyRatings(lyricRatings);
   }
+
+  // game の意味イベントに応じて VRM ワンショットアニメを発火
+  if (animEvents) {
+    for (const e of animEvents) {
+      const name = ANIM_FOR_EVENT[e.type];
+      if (name) animator.playOneShot(name);
+    }
+  }
 }
 
 // ── internal ────────────────────────────
 
+// VRMA アニメをロードして animator に登録する。今は検証用ワンショット1本。
+// 今後 idle 等を足すならここに load を追加し、基本ループは animator.setBaseLoop(name) で起動する。
+function loadVrmAnimations(loader) {
+  loader.load("/assets/vrm/miku/animations/perfect-phrase.vrma", (gltf) => {
+    const vrmAnim = gltf.userData.vrmAnimations?.[0];
+    if (!vrmAnim) return;
+    const clip = createVRMAnimationClip(vrmAnim, vrm);
+    animator.register("perfect-phrase", clip, { loop: false });
+  });
+}
+
 // 演出やモデルの状態を毎フレーム画面に反映させる描画ループ（initScene から起動）
 function sceneRenderLoop() {
   requestAnimationFrame(sceneRenderLoop);
+  const delta = clock.getDelta();
   cameraRig.tickCamera(); // カメラのプリセット補間（またはデバッグ自由飛行）を camera に適用
   water.updateWater(sky.getSunDirection()); // 法線スクロール＋太陽方向を空と同期
   lyric.updateLyric(); // 歌詞ビルボードの波・ライフサイクル更新
+  // VRM: ボーン(animator)→（将来）表情(expression) の順に状態を作り、最後に vrm.update で一括反映
+  animator.updateAnimator(delta); // mixer を進める（vrm.update はしない）
+  vrm?.update(delta); // ボーン正規化・スプリングボーンを反映（表情レイヤー追加後もここで一括）
   renderer.render(scene, camera);
 }
