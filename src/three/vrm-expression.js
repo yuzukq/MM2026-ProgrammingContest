@@ -38,6 +38,9 @@ export function emote(name, ms) {
   emoteName = name;
   emoteDuration = ms;
   emoteElapsed = 0;
+  // ======================================================
+  console.log("表情を再生", emoteName, emoteDuration);
+  // ======================================================
 }
 
 // 曲頭リセット（口閉じ・感情クリア）
