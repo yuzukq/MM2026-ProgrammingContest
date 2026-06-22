@@ -11,13 +11,16 @@ import * as sky from "./sky.js";
 import * as water from "./water.js";
 import * as lyric from "./lyric.js";
 import * as cameraRig from "./camera.js"; // 命名被るから名前空間わけた
-import * as animator from "./vrm-animator.js"; // VRMアニメの再生制御
+import * as animator from "./vrm-animator.js"; // VRMアニメの再生制御（ボーン）
+import * as expression from "./vrm-expression.js"; // VRM表情（リップシンク・感情）
 
 let scene, camera, renderer, vrm;
 let clock; // VRMアニメ更新用の delta 取得
 
-// game の意味イベント type → 再生する VRMA クリップ名
-const ANIM_FOR_EVENT = { perfectPhrase: "perfect-phrase" };
+// イベントのシンボル定義 { ボーンのワンショット名, 感情表情 }
+const ANIM_MAP = {
+  perfectPhrase: { oneShot: "perfect-phrase", emote: { name: "happy", ms: 900 } },
+};
 
 // ── public ──────────────────────────────
 
@@ -75,6 +78,7 @@ export function initScene() {
     vrm.scene.rotation.set(0, THREE.MathUtils.degToRad(-50), 0);
     scene.add(vrm.scene);
     animator.initAnimator(vrm);
+    expression.initExpression(vrm);
     loadVrmAnimations(loader); // VRMA を読み込んで animator に登録
   });
 
@@ -119,6 +123,7 @@ export function updateScene({
   lyricRatings,
   isInChorus,
   animEvents,
+  mouthVowel,
 }) {
   // 曲の進行に合わせて空の状況を動かす
   sky.updateSky(progress);
@@ -138,11 +143,16 @@ export function updateScene({
     lyric.applyRatings(lyricRatings);
   }
 
-  // game の意味イベントに応じて VRM ワンショットアニメを発火
+  // 現在発声中の文字の母音口形
+  expression.setMouthVowel(mouthVowel ?? null);
+
+  // game の意味イベントに応じて VRMA＋ブレンドシェイプを発火
   if (animEvents) {
     for (const e of animEvents) {
-      const name = ANIM_FOR_EVENT[e.type];
-      if (name) animator.playOneShot(name);
+      const m = ANIM_MAP[e.type];
+      if (!m) continue;
+      if (m.oneShot) animator.playOneShot(m.oneShot);
+      if (m.emote) expression.emote(m.emote.name, m.emote.ms);
     }
   }
 }
@@ -160,15 +170,17 @@ function loadVrmAnimations(loader) {
   });
 }
 
-// 演出やモデルの状態を毎フレーム画面に反映させる描画ループ（initScene から起動）
+// 演出やモデルの状態を毎フレーム画面に反映させる描画ループ
 function sceneRenderLoop() {
   requestAnimationFrame(sceneRenderLoop);
   const delta = clock.getDelta();
   cameraRig.tickCamera(); // カメラのプリセット補間（またはデバッグ自由飛行）を camera に適用
   water.updateWater(sky.getSunDirection()); // 法線スクロール＋太陽方向を空と同期
   lyric.updateLyric(); // 歌詞ビルボードの波・ライフサイクル更新
-  // VRM: ボーン(animator)→（将来）表情(expression) の順に状態を作り、最後に vrm.update で一括反映
-  animator.updateAnimator(delta); // mixer を進める（vrm.update はしない）
-  vrm?.update(delta); // ボーン正規化・スプリングボーンを反映（表情レイヤー追加後もここで一括）
+
+  // VRMの見た目反映まわり
+  animator.updateAnimator(delta);
+  expression.update(delta);
+  vrm?.update(delta); // ボーン正規化・スプリングボーン・表情を一括反映
   renderer.render(scene, camera);
 }
