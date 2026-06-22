@@ -28,6 +28,9 @@ export function initExpression(vrm) {
 // 口形のセットする
 export function setMouthVowel(shape) {
   mouthTarget = shape;
+  // ======================================================
+  console.log("母音のシェイプをセット", mouthTarget);
+  // ======================================================
 }
 
 // 一時表情を再生する
