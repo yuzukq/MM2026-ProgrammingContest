@@ -25,9 +25,9 @@ const CAM_PRESETS = {
 const EASE_MS = 1500; // プリセット切替の補間時間
 
 // デバッグ操作速度
-const MOVE = 0.15; // カメラ移動(WASD/QE)
-const ROT = 0.02; // 視点回転(矢印)
-const STAFF_MOVE = 0.05; // 五線譜移動(IJKL/UO)
+const MOVE = 0.1; // カメラ移動(WASD/QE)
+const ROT = 0.01; // 視点回転(矢印)
+const STAFF_MOVE = 0.01; // 五線譜移動(IJKL/UO)
 
 let camera = null;
 
