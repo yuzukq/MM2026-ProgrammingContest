@@ -10,9 +10,9 @@ const DEBUG_CAMERA = false;
 const CAM_PRESETS = {
   // Aメロなどサビ以外の構図
   verse: {
-    position: [-0.45, -0.15, 9.1],
-    target: [-0.45, 0.15, 4.11],
-    staffPos: [0.0, 1.4, -3.0],
+    position: [0.25, -0.03, 6.63],
+    target: [0.99, 0.66, 1.73],
+    staffPos: [0.46, 3.07, -7.11],
   },
   // サビの構図
   chorus: {
