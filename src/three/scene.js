@@ -202,7 +202,7 @@ function sceneRenderLoop() {
   const phaseRaw =
     beatDurMs > 0 ? beatPhaseRaw + (performance.now() - beatPhaseAt) / beatDurMs : beatPhaseRaw;
   animator.applyFrame(phaseRaw); // 位相駆動のループアニメーションのフレーム指定
-  animator.updateAnimator(delta); // mixer を進める
+  //animator.updateAnimator(delta); // mixer を進める
   expression.update(delta);
   vrm?.update(delta); // ボーン正規化・スプリングボーン・表情を一括反映
   renderer.render(scene, camera);
