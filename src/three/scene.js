@@ -17,6 +17,11 @@ import * as expression from "./vrm-expression.js"; // VRM表情（リップシ�
 let scene, camera, renderer, vrm;
 let clock; // VRMアニメ更新用の delta 取得
 
+// 基本ループの位相駆動用
+let beatPhaseRaw = 0; // 小節内の連続拍位置 (= beat.position-1 + beat.progress)
+let beatDurMs = 0; // 現在のビート間隔[ms]（補間の分母）
+let beatPhaseAt = 0; // 上記を観測した時刻（performance.now）
+
 // イベントのシンボル定義 { ボーンのワンショット名, 感情表情 }
 const ANIM_MAP = {
   perfectPhrase: { oneShot: "perfect-phrase", emote: { name: "happy", ms: 900 } },
@@ -84,7 +89,6 @@ export function initScene() {
 
   // =============カメラワーク=================
   // OrbitControls は initCamera 内で無効化される（カメラはプリセット駆動するため）。
-  // 参考: https://ics.media/tutorial-three/camera_orbitcontrols/
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.target.set(-0.45, 0.15, 4.11);
   cameraRig.initCamera(camera, controls); // サビ/それ以外のプリセット切替＋デバッグ操作
@@ -113,8 +117,7 @@ export function loadLyricFont() {
   return lyric.loadFont();
 }
 
-// "3D オブジェクト（位置・色・密度など）の状態を更新するだけで、renderer.render() は呼ばない！"
-// "レンダリングは sceneRenderLoop() が毎フレーム行う！"
+// "3D オブジェクト（位置・色・密度など）の状態を更新する
 export function updateScene({
   position,
   progress,
@@ -136,7 +139,14 @@ export function updateScene({
     water.spawnRipple(beat.position === 1); // ダウンビートはデカく
   }
 
-  // 歌詞ビルボードの更新（描画は sceneRenderLoop() の updateLyric が担当）
+  // 現在ビートの間隔(位相)をアンカーする
+  if (beat) {
+    beatPhaseRaw = beat.position - 1 + beat.progress(position);
+    beatDurMs = beat.duration;
+    beatPhaseAt = performance.now();
+  }
+
+  // 歌詞ビルボードの更新
   lyric.schedule(position);
   // 判定確定したスロットの不透明度を反映
   if (lyricRatings && lyricRatings.length) {
@@ -159,9 +169,18 @@ export function updateScene({
 
 // ── internal ────────────────────────────
 
-// VRMA アニメをロードして animator に登録する。今は検証用ワンショット1本。
-// 今後 idle 等を足すならここに load を追加し、基本ループは animator.setBaseLoop(name) で起動する。
+// VRMA アニメをロードして animator に登録する
+// TODO: アニメーション追加、基本ループは animator.setBaseLoop(name) で起動する
 function loadVrmAnimations(loader) {
+  // 基本ループ: 手振りジャンプ（2拍ループ・位相0=着地手左） : TODO 後でこいつはサビ区間のループに
+  loader.load("/assets/vrm/miku/animations/Loop_HandWave_dammy.vrma", (gltf) => {
+    const vrmAnim = gltf.userData.vrmAnimations?.[0];
+    if (!vrmAnim) return;
+    const clip = createVRMAnimationClip(vrmAnim, vrm);
+    animator.register("jump", clip, { loop: true, beatsPerCycle: 2 });
+    animator.setBaseLoop("jump");
+  });
+  // ワンショット: フレーズ完走
   loader.load("/assets/vrm/miku/animations/perfect-phrase.vrma", (gltf) => {
     const vrmAnim = gltf.userData.vrmAnimations?.[0];
     if (!vrmAnim) return;
@@ -179,7 +198,11 @@ function sceneRenderLoop() {
   lyric.updateLyric(); // 歌詞ビルボードの波・ライフサイクル更新
 
   // VRMの見た目反映まわり
-  animator.updateAnimator(delta);
+  // 基本ループの位相を最後のビートアンカーから時間補間して 60fps で滑らかに進める
+  const phaseRaw =
+    beatDurMs > 0 ? beatPhaseRaw + (performance.now() - beatPhaseAt) / beatDurMs : beatPhaseRaw;
+  animator.applyFrame(phaseRaw); // 位相駆動のループアニメーションのフレーム指定
+  animator.updateAnimator(delta); // mixer を進める
   expression.update(delta);
   vrm?.update(delta); // ボーン正規化・スプリングボーン・表情を一括反映
   renderer.render(scene, camera);
