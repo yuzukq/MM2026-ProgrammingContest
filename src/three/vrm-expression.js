@@ -8,7 +8,7 @@ const MOUTH_KEYS = ["aa", "ih", "ou", "ee", "oh"];
 const mouthWeights = { aa: 0, ih: 0, ou: 0, ee: 0, oh: 0 };
 let mouthTarget = null; // "aa".."oh"(母音) | "_pak"(母音不明=口パク) | null(発声なし=口閉じ)
 let pakPhase = 0;
-const MOUTH_LERP = 1.0; // 口形の追従速度（0-1）
+const MOUTH_LERP = 0.2; // 口形の追従速度（0-1）
 const MOUTH_OPEN = 0.7; // 母音時の開き
 const PAK_SPEED = 5; // 口パク速度 [rad/s]
 const PAK_OPEN = 1.0; // 口パクの開き
