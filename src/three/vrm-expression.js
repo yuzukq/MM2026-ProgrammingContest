@@ -8,16 +8,16 @@ const MOUTH_KEYS = ["aa", "ih", "ou", "ee", "oh"];
 const mouthWeights = { aa: 0, ih: 0, ou: 0, ee: 0, oh: 0 };
 let mouthTarget = null; // "aa".."oh"(母音) | "_pak"(母音不明=口パク) | null(発声なし=口閉じ)
 let pakPhase = 0;
-const MOUTH_LERP = 0.3; // 口形の追従速度（0-1）
+const MOUTH_LERP = 1.0; // 口形の追従速度（0-1）
 const MOUTH_OPEN = 0.7; // 母音時の開き
-const PAK_SPEED = 9; // 口パク速度 [rad/s]
-const PAK_OPEN = 0.5; // 口パクの開き
+const PAK_SPEED = 5; // 口パク速度 [rad/s]
+const PAK_OPEN = 1.0; // 口パクの開き
 
 // ── 感情チャンネル ──
 let emoteName = null;
 let emoteElapsed = 0;
 let emoteDuration = 0;
-const EMOTE_PEAK = 0.85; // 感情ピーク weight
+const EMOTE_PEAK = 1.0; // 感情ピーク weight
 
 // ── public ──────────────────────────────
 
@@ -29,7 +29,7 @@ export function initExpression(vrm) {
 export function setMouthVowel(shape) {
   mouthTarget = shape;
   // ======================================================
-  console.log("母音のシェイプをセット", mouthTarget);
+  // console.log("母音のシェイプをセット", mouthTarget);
   // ======================================================
 }
 
@@ -64,13 +64,16 @@ function updateMouth(delta) {
   if (mouthTarget === "_pak") {
     pakPhase += delta * PAK_SPEED;
     targets.aa = (Math.sin(pakPhase) * 0.5 + 0.5) * PAK_OPEN; // 「あ」を揺らす素朴な口パク
+    //console.log(`口パク中`);
   } else if (mouthTarget) {
     targets[mouthTarget] = MOUTH_OPEN; // 母音の口形を開く
+    // console.log(`口形変更: ${mouthTarget}`);
   }
   // 各母音 weight を目標へ補間してセット
   for (const k of MOUTH_KEYS) {
     mouthWeights[k] += (targets[k] - mouthWeights[k]) * MOUTH_LERP;
     exprMgr.setValue(k, mouthWeights[k]);
+    // console.log(`シェイプ: ${k}, mouthWeights[k]: ${mouthWeights[k]}`);
   }
 }
 
