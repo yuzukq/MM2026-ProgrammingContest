@@ -6,12 +6,29 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { VRMLoaderPlugin } from "@pixiv/three-vrm";
+import { VRMAnimationLoaderPlugin, createVRMAnimationClip } from "@pixiv/three-vrm-animation";
 import * as sky from "./sky.js";
 import * as water from "./water.js";
 import * as lyric from "./lyric.js";
 import * as cameraRig from "./camera.js"; // 命名被るから名前空間わけた
+import * as animator from "./vrm-animator.js"; // VRMアニメの再生制御（ボーン）
+import * as expression from "./vrm-expression.js"; // VRM表情（リップシンク・感情）
 
 let scene, camera, renderer, vrm;
+let clock; // VRMアニメ更新用の delta 取得
+
+// 基本ループの位相駆動用
+let beatPhaseRaw = 0; // 小節内の連続拍位置 (= beat.position-1 + beat.progress)
+let beatDurMs = 0; // 現在のビート間隔[ms]（補間の分母）
+let beatPhaseAt = 0; // 上記を観測した時刻（performance.now）
+
+// フレーズの PERFECT 割合 → 持続表情(mood)。フレーズ完了ごとに切り替える
+function moodForRatio(ratio) {
+  if (ratio >= 1) return "kirakira"; // 完走
+  if (ratio >= 0.8) return "happy"; // 8割
+  if (ratio >= 0.5) return "neutral"; // 半分
+  return "hau"; // それ以下
+}
 
 // ── public ──────────────────────────────
 
@@ -23,6 +40,7 @@ export function initScene() {
   renderer = new THREE.WebGLRenderer({ antialias: true });
   camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 100000); //FOV,アスペクト比,near,far
   vrm = null;
+  clock = new THREE.Clock();
 
   renderer.setSize(window.innerWidth, window.innerHeight);
   // モバイル(タッチ端末)は塗る画素数(fillrate)が重いので解像度上限を下げる。
@@ -57,22 +75,23 @@ export function initScene() {
   // =============歌詞ビルボード=================
   lyric.initLyric(scene, camera);
 
-  // VRMローダー
+  // VRMローダー（VRM本体＋VRMAアニメの両対応）
   const loader = new GLTFLoader();
-
   loader.register((parser) => new VRMLoaderPlugin(parser));
+  loader.register((parser) => new VRMAnimationLoaderPlugin(parser));
 
-  loader.load("./assets/models/MMmiku/MMmiku.vrm", (gltf) => {
+  loader.load("/assets/vrm/miku/miku.vrm", (gltf) => {
     vrm = gltf.userData.vrm;
     vrm.scene.position.set(0.8, -1.12, 5.0);
     vrm.scene.rotation.set(0, THREE.MathUtils.degToRad(-50), 0);
     scene.add(vrm.scene);
-    console.log(vrm);
+    animator.initAnimator(vrm);
+    expression.initExpression(vrm);
+    loadVrmAnimations(loader); // VRMA を読み込んで animator に登録
   });
 
   // =============カメラワーク=================
   // OrbitControls は initCamera 内で無効化される（カメラはプリセット駆動するため）。
-  // 参考: https://ics.media/tutorial-three/camera_orbitcontrols/
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.target.set(-0.45, 0.15, 4.11);
   cameraRig.initCamera(camera, controls); // サビ/それ以外のプリセット切替＋デバッグ操作
@@ -101,35 +120,97 @@ export function loadLyricFont() {
   return lyric.loadFont();
 }
 
-// "3D オブジェクト（位置・色・密度など）の状態を更新するだけで、renderer.render() は呼ばない！"
-// "レンダリングは sceneRenderLoop() が毎フレーム行う！"
-export function updateScene({ position, progress, isNewBeat, beat, lyricRatings, inChorus }) {
+// "3D オブジェクト（位置・色・密度など）の状態を更新する
+export function updateScene({
+  position,
+  progress,
+  isNewBeat,
+  beat,
+  lyricRatings,
+  isInChorus,
+  animEvents,
+  mouthVowel,
+}) {
   // 曲の進行に合わせて空の状況を動かす
   sky.updateSky(progress);
 
   // サビ判定でカメラワークプリセット切替
-  cameraRig.updateCamera({ inChorus });
+  cameraRig.updateCamera({ isInChorus });
+
+  // サビ/非サビで基本ループを切替
+  animator.setBaseLoop(isInChorus ? "chorus" : "verse");
 
   // ビートに合わせて水面に波紋生成
   if (isNewBeat && beat) {
     water.spawnRipple(beat.position === 1); // ダウンビートはデカく
   }
 
-  // 歌詞ビルボードの更新（描画は sceneRenderLoop() の updateLyric が担当）
+  // 現在ビートの間隔(位相)をアンカーする
+  if (beat) {
+    beatPhaseRaw = beat.position - 1 + beat.progress(position);
+    beatDurMs = beat.duration;
+    beatPhaseAt = performance.now();
+  }
+
+  // 歌詞ビルボードの更新
   lyric.schedule(position);
   // 判定確定したスロットの不透明度を反映
   if (lyricRatings && lyricRatings.length) {
     lyric.applyRatings(lyricRatings);
   }
+
+  // 現在発声中の文字の母音口形
+  expression.setMouthVowel(mouthVowel ?? null);
+
+  // フレーズ完了時の割合に応じて持続表情を切替る
+  if (animEvents) {
+    for (const e of animEvents) {
+      if (e.type !== "phraseComplete") continue;
+      expression.setMood(moodForRatio(e.perfectRatio));
+      if (e.perfectRatio >= 1) animator.playOneShot("perfect-phrase"); // 完走ならワンショット
+    }
+  }
 }
 
 // ── internal ────────────────────────────
 
-// 演出やモデルの状態を毎フレーム画面に反映させる描画ループ（initScene から起動）
+// VRMA アニメをロードして animator に登録する。
+function loadVrmAnimations(loader) {
+  // 基本ループanim
+  loadLoop(loader, "/assets/vrm/miku/animations/Loop_verse_dammy.vrma", "verse");
+  loadLoop(loader, "/assets/vrm/miku/animations/Loop_HandWave2.vrma", "chorus");
+  // ワンショットanim
+  loader.load("/assets/vrm/miku/animations/perfect-phrase.vrma", (gltf) => {
+    const vrmAnim = gltf.userData.vrmAnimations?.[0];
+    if (!vrmAnim) return;
+    animator.register("perfect-phrase", createVRMAnimationClip(vrmAnim, vrm), { loop: false });
+  });
+}
+
+// 位相駆動の基本ループ（2拍）をロードして登録
+function loadLoop(loader, uri, name) {
+  loader.load(uri, (gltf) => {
+    const vrmAnim = gltf.userData.vrmAnimations?.[0];
+    if (!vrmAnim) return;
+    animator.register(name, createVRMAnimationClip(vrmAnim, vrm), { loop: true, beatsPerCycle: 2 });
+  });
+}
+
+// 演出やモデルの状態を毎フレーム画面に反映させる描画ループ
 function sceneRenderLoop() {
   requestAnimationFrame(sceneRenderLoop);
+  const delta = clock.getDelta();
   cameraRig.tickCamera(); // カメラのプリセット補間（またはデバッグ自由飛行）を camera に適用
   water.updateWater(sky.getSunDirection()); // 法線スクロール＋太陽方向を空と同期
   lyric.updateLyric(); // 歌詞ビルボードの波・ライフサイクル更新
+
+  // VRMの見た目反映まわり
+  // 基本ループの位相を最後のビートアンカーから時間補間して 60fps で滑らかに進める
+  const phaseRaw =
+    beatDurMs > 0 ? beatPhaseRaw + (performance.now() - beatPhaseAt) / beatDurMs : beatPhaseRaw;
+  animator.applyFrame(phaseRaw); // 位相駆動のループアニメーションのフレーム指定
+  animator.updateAnimator(delta); // mixer を進める
+  expression.update(delta);
+  vrm?.update(delta); // ボーン正規化・スプリングボーン・表情を一括反映
   renderer.render(scene, camera);
 }

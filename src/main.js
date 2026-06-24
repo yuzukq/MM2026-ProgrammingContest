@@ -12,6 +12,7 @@ import * as keyboard from "./ui/keyboard.js";
 import * as selection from "./screens/selection.js";
 import * as loading from "./screens/loading.js";
 import * as result from "./screens/result.js";
+import { vowelOf } from "./vowel.js";
 import { startFpsMeter } from "./debug-fps.js"; // 完成前に消す
 
 // ===============ステートマシン===============
@@ -114,6 +115,16 @@ function initPlayScene() {
   playSceneInitialized = true;
 }
 
+// リップシンクの口形を返す
+function getMouthVowel(position) {
+  const char = player.video?.findChar(position);
+  const singing = char && char.startTime <= position && position < char.endTime;
+  // 発声していない区間は null(口閉じ)
+  if (!singing) return null;
+  // 母音が引ければ "aa".."oh"、漢字など母音不明は "_pak"(口パク)
+  return vowelOf(char.text) ?? "_pak";
+}
+
 // 選曲画面を初期化（SVGフェッチ完了まで await。表示は onAppReady → transition(SELECTION) のタイミング）
 // selection.js の onSongSelectedCallbackに曲が決まったら呼ぶ関数を渡す
 await selection.initSelection((song) => transition(STATE.LOADING, { song }));
@@ -211,7 +222,10 @@ player.addListener({
     // 曲の進捗(0..1)
     const progress = position / player.video.duration;
     // findChorus が非nullならサビ区間
-    const inChorus = !!player.findChorus(position);
+    const isInChorus = !!player.findChorus(position);
+
+    // リップシンク用の口形を求める
+    const mouthVowel = getMouthVowel(position);
 
     // threeレイヤー描画用の状態のみ更新
     scene.updateScene({
@@ -220,7 +234,9 @@ player.addListener({
       isNewBeat,
       beat,
       lyricRatings: game.popLyricEvents(), // 歌詞ビルボードの判定結果
-      inChorus,
+      isInChorus,
+      animEvents: game.popAnimEvents(), // VRMワンショットアニメの要求
+      mouthVowel,
     });
     // HUD一式を現在の状態で更新（score / rating ＋ 進捗バー）
     ui.updateUI({
