@@ -13,16 +13,25 @@ const MOUTH_OPEN = 0.7; // 母音時の開き
 const PAK_SPEED = 5; // 口パク速度 [rad/s]
 const PAK_OPEN = 1.0; // 口パクの開き
 
-// ── 感情チャンネル ──
-let emoteName = null;
-let emoteElapsed = 0;
-let emoteDuration = 0;
-const EMOTE_PEAK = 1.0; // 感情ピーク weight
+// 表情シェイプ制御 ──
+let moodTarget = null; // 目標表情名（"kirakira"/"happy"/"neutral"/"hau" など）
+const moodWeights = {};
+const MOOD_LERP = 0.08; // 切替を補間
+const MOOD_OPEN = 1.0; // 持続表情の強さ
+
+// ── blink 周り ──
+let blinkTimer = 0;
+let nextBlinkAt = 0;
+let blinkProgress = -1;
+const BLINK_MIN = 4; // 瞬き間隔の下限[s]
+const BLINK_MAX = 6; // 瞬き間隔の上限[s]
+const BLINK_DUR = 0.12; // 1回の瞬き所要[s]
 
 // ── public ──────────────────────────────
 
 export function initExpression(vrm) {
   exprMgr = vrm.expressionManager ?? null;
+  scheduleNextBlink();
 }
 
 // 口形のセットする
@@ -33,28 +42,28 @@ export function setMouthVowel(shape) {
   // ======================================================
 }
 
-// 一時表情を再生する
-export function emote(name, ms) {
-  emoteName = name;
-  emoteDuration = ms;
-  emoteElapsed = 0;
-  // ======================================================
-  console.log("表情を再生", emoteName, emoteDuration);
-  // ======================================================
+// 持続表情を切り替える
+export function setMood(name) {
+  moodTarget = name;
+  if (name && !(name in moodWeights)) moodWeights[name] = 0; // 初出の表情を管理対象に追加
 }
 
-// 曲頭リセット（口閉じ・感情クリア）
+// 曲頭リセット（口閉じ・表情クリア）
 export function resetExpression() {
   for (const k of MOUTH_KEYS) mouthWeights[k] = 0;
   mouthTarget = null;
-  emoteName = null;
+  moodTarget = null;
+  for (const k in moodWeights) moodWeights[k] = 0;
+  blinkProgress = -1;
+  scheduleNextBlink();
 }
 
 // weight を計算して setValue するだけ
 export function update(delta) {
   if (!exprMgr) return;
   updateMouth(delta);
-  updateEmote(delta);
+  updateMood();
+  updateBlink(delta);
 }
 
 // ── internal ────────────────────────────
@@ -77,13 +86,33 @@ function updateMouth(delta) {
   }
 }
 
-function updateEmote(delta) {
-  if (!emoteName) return;
-  emoteElapsed += delta * 1000;
-  const t = Math.min(1, emoteElapsed / emoteDuration);
-  exprMgr.setValue(emoteName, Math.sin(t * Math.PI) * EMOTE_PEAK); // 0→ピーク→0
-  if (t >= 1) {
-    exprMgr.setValue(emoteName, 0);
-    emoteName = null;
+// 持続表情目標表情を 1 へ、他を 0 へ補間して setValue する
+function updateMood() {
+  for (const name in moodWeights) {
+    const target = name === moodTarget ? MOOD_OPEN : 0;
+    moodWeights[name] += (target - moodWeights[name]) * MOOD_LERP;
+    exprMgr.setValue(name, moodWeights[name]);
   }
+}
+
+// 自動瞬き4-6秒のランダム間隔で blink を0→1→0
+function updateBlink(delta) {
+  if (blinkProgress >= 0) {
+    blinkProgress += delta / BLINK_DUR;
+    if (blinkProgress >= 1) {
+      exprMgr.setValue("blink", 0);
+      blinkProgress = -1; // 瞬き終了
+      scheduleNextBlink();
+    } else {
+      exprMgr.setValue("blink", Math.sin(blinkProgress * Math.PI)); // 0→1→0
+    }
+  } else {
+    blinkTimer += delta;
+    if (blinkTimer >= nextBlinkAt) blinkProgress = 0; // 瞬き開始
+  }
+}
+
+function scheduleNextBlink() {
+  blinkTimer = 0;
+  nextBlinkAt = BLINK_MIN + Math.random() * (BLINK_MAX - BLINK_MIN);
 }

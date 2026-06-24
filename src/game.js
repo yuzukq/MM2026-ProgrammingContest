@@ -28,7 +28,7 @@ let pendingEffects = [];
 let pendingLyricEvents = [];
 let phrases = []; // フレーズ単位のタイムライン {roster, startTime, endTime}。lyric への登録元
 
-// VRMワンショットアニメーションのキュー
+// フレーズ完了イベントのキュー
 let pendingAnimEvents = [];
 
 // 直近のレーティング（UI 表示用）
@@ -130,11 +130,10 @@ export function updateGame(position, touchedY) {
 
     const pi = activeBlock.phraseIndex;
     const phraseLen = phrases[pi]?.roster.length ?? 0;
-    // フレーズ最後の単語が確定したとき
+    // フレーズ最後の単語が確定したら、そのフレーズの PERFECT 割合をイベントとして出す
     if (phraseLen > 0 && activeBlock.slotIndex === phraseLen - 1) {
       const perfectCount = phraseRatings[pi].filter((r) => r === "PERFECT").length;
-      // フレーズ全単語が PERFECT なら VRM ワンショットを要求
-      if (perfectCount === phraseLen) pendingAnimEvents.push({ type: "perfectPhrase" });
+      pendingAnimEvents.push({ type: "phraseComplete", perfectRatio: perfectCount / phraseLen });
     }
     pendingEffects.push({ normalizedY: activeBlock.laneY, rating });
     // 歌詞ビルボードへ判定確定を通知（該当スロットの不透明度が上がる）

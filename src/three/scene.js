@@ -22,10 +22,13 @@ let beatPhaseRaw = 0; // 小節内の連続拍位置 (= beat.position-1 + beat.p
 let beatDurMs = 0; // 現在のビート間隔[ms]（補間の分母）
 let beatPhaseAt = 0; // 上記を観測した時刻（performance.now）
 
-// イベントのシンボル定義 { ボーンのワンショット名, 感情表情 }
-const ANIM_MAP = {
-  perfectPhrase: { oneShot: "perfect-phrase", emote: { name: "happy", ms: 900 } },
-};
+// フレーズの PERFECT 割合 → 持続表情(mood)。フレーズ完了ごとに切り替える
+function moodForRatio(ratio) {
+  if (ratio >= 1) return "kirakira"; // 完走
+  if (ratio >= 0.8) return "happy"; // 8割
+  if (ratio >= 0.5) return "neutral"; // 半分
+  return "hau"; // それ以下
+}
 
 // ── public ──────────────────────────────
 
@@ -159,13 +162,12 @@ export function updateScene({
   // 現在発声中の文字の母音口形
   expression.setMouthVowel(mouthVowel ?? null);
 
-  // game の意味イベントに応じて VRMA＋ブレンドシェイプを発火
+  // フレーズ完了時の割合に応じて持続表情を切替る
   if (animEvents) {
     for (const e of animEvents) {
-      const m = ANIM_MAP[e.type];
-      if (!m) continue;
-      if (m.oneShot) animator.playOneShot(m.oneShot);
-      if (m.emote) expression.emote(m.emote.name, m.emote.ms);
+      if (e.type !== "phraseComplete") continue;
+      expression.setMood(moodForRatio(e.perfectRatio));
+      if (e.perfectRatio >= 1) animator.playOneShot("perfect-phrase"); // 完走ならワンショット
     }
   }
 }
@@ -176,7 +178,7 @@ export function updateScene({
 function loadVrmAnimations(loader) {
   // 基本ループanim
   loadLoop(loader, "/assets/vrm/miku/animations/Loop_verse_dammy.vrma", "verse");
-  loadLoop(loader, "/assets/vrm/miku/animations/Loop_HandWave_dammy.vrma", "chorus");
+  loadLoop(loader, "/assets/vrm/miku/animations/Loop_HandWave.vrma", "chorus");
   // ワンショットanim
   loader.load("/assets/vrm/miku/animations/perfect-phrase.vrma", (gltf) => {
     const vrmAnim = gltf.userData.vrmAnimations?.[0];
