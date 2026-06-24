@@ -178,7 +178,7 @@ export function updateScene({
 function loadVrmAnimations(loader) {
   // 基本ループanim
   loadLoop(loader, "/assets/vrm/miku/animations/Loop_verse_dammy.vrma", "verse");
-  loadLoop(loader, "/assets/vrm/miku/animations/Loop_HandWave.vrma", "chorus");
+  loadLoop(loader, "/assets/vrm/miku/animations/Loop_HandWave2.vrma", "chorus");
   // ワンショットanim
   loader.load("/assets/vrm/miku/animations/perfect-phrase.vrma", (gltf) => {
     const vrmAnim = gltf.userData.vrmAnimations?.[0];
