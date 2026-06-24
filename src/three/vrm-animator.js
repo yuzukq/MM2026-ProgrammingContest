@@ -32,10 +32,9 @@ export function initAnimator(vrm) {
   });
 }
 
-// VRMA から作った clip を名前付きで登録。
+// VRMA を clip を名前付きで登録
 // loop=true: 位相駆動の基本ループ候補（LoopRepeat・ビート同期）
-// beatsPerCycle: 1ループが何拍ぶんか（手振りジャンプは2拍）
-// returnToLoop=false: ワンショット終了後にループへ戻さず終端ポーズで保持
+// beatsPerCycle: anim 1ループが何拍ぶんか
 export function register(
   name,
   clip,
@@ -46,7 +45,7 @@ export function register(
     action.setLoop(THREE.LoopRepeat, Infinity);
   } else {
     action.setLoop(THREE.LoopOnce, 1);
-    action.clampWhenFinished = true; // 終端ポーズで保持
+    action.clampWhenFinished = true; // ワンショットは終端ポーズで保持
   }
   actions[name] = action;
   metas[name] = { clipDuration: clip.duration, beatsPerCycle, phaseDriven: loop, returnToLoop };
@@ -90,10 +89,9 @@ function crossFadeTo(toName) {
   const to = actions[toName];
   const from = active && active !== toName ? actions[active] : null;
 
-  to.enabled = true;
+  to.reset(); // 前回ワンショットのクランプを解除する
   to.setEffectiveWeight(1);
   to.setEffectiveTimeScale(metas[toName].phaseDriven ? 0 : 1); // 位相駆動ループは自動進行させない
-  to.time = 0;
   to.play();
 
   if (from) from.crossFadeTo(to, FADE, false);
