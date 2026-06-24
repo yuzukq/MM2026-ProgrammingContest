@@ -1,27 +1,19 @@
 // vrm-animator.js
-// VRM のアニメーション再生だけを司るヘルパー
-// 「いつ何を再生するか」の判断は持たず、game のイベント等から playOneShot() を呼ぶ
-//
-// 設計方針:
-//   基本ループ1本を常時アクティブにする（= 戻り先の状態）
-//   基本ループは「位相駆動」: 自動進行を止め(setEffectiveTimeScale 0)、毎フレーム applyFrame() で
-//     ビートの位相に合わせて action.time を直書きする（着地がビートに吸着しドリフトしない）
-//   ワンショットは LoopOnce + clampWhenFinished（終端ポーズで保持）、通常の delta 駆動
-//   遷移は crossFade（戻りモーションを各アニメに焼かず、ここで吸収）
-//   ワンショット終了（mixer 'finished'）で基本ループへ crossFade で戻す
+// VRM アニメーション再生ヘルパー
+// 発火タイミングはもたず、sceneからanimを呼び出す
 
 import * as THREE from "three";
 
 let mixer = null;
 const actions = {}; // name -> AnimationAction
 const metas = {}; // name -> { clipDuration, beatsPerCycle, phaseDriven, returnToLoop }
-let baseLoop = null; // 常時ループの name（未設定でも可）
-let active = null; // 今ブレンドの主役 name
-const FADE = 0.3; // crossFade 秒
+let baseLoop = null;
+let active = null;
+const FADE = 0.5; // crossFade 秒
 
 // ── public ──────────────────────────────
 
-// Mixer を作りワンショット終了で基本ループへ戻す配線をする。
+// Mixer を作りワンショット終了で基本ループへ戻す配線をする
 export function initAnimator(vrm) {
   mixer = new THREE.AnimationMixer(vrm.scene);
   mixer.addEventListener("finished", (e) => {
@@ -53,7 +45,8 @@ export function register(
 
 // 基本ループを設定して再生開始する
 export function setBaseLoop(name) {
-  if (!actions[name]) return;
+  // 未ロード or 既に同じループなら何もしない
+  if (!actions[name] || baseLoop === name) return;
   baseLoop = name;
   crossFadeTo(name);
 }
@@ -75,8 +68,8 @@ export function applyFrame(phaseRaw) {
   actions[baseLoop].time = phase01 * meta.clipDuration;
 }
 
-// 毎フレーム mixer を進める（位相駆動ループは timeScale 0 なので進まず applyFrame の直書きが効く）。
-// VRM への反映（vrm.update）は scene が表情レイヤーと合わせて最後に1回呼ぶ
+// 毎フレーム mixer を進める
+// vrm.update は scene 側で表情レイヤーとまとめて行う
 export function updateAnimator(delta) {
   if (!mixer) return;
   mixer.update(delta);

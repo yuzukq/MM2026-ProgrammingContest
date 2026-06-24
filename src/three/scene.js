@@ -134,6 +134,9 @@ export function updateScene({
   // サビ判定でカメラワークプリセット切替
   cameraRig.updateCamera({ isInChorus });
 
+  // サビ/非サビで基本ループを切替
+  animator.setBaseLoop(isInChorus ? "chorus" : "verse");
+
   // ビートに合わせて水面に波紋生成
   if (isNewBeat && beat) {
     water.spawnRipple(beat.position === 1); // ダウンビートはデカく
@@ -169,23 +172,25 @@ export function updateScene({
 
 // ── internal ────────────────────────────
 
-// VRMA アニメをロードして animator に登録する
-// TODO: アニメーション追加、基本ループは animator.setBaseLoop(name) で起動する
+// VRMA アニメをロードして animator に登録する。
 function loadVrmAnimations(loader) {
-  // 基本ループ: 手振りジャンプ（2拍ループ・位相0=着地手左） : TODO 後でこいつはサビ区間のループに
-  loader.load("/assets/vrm/miku/animations/Loop_HandWave_dammy.vrma", (gltf) => {
-    const vrmAnim = gltf.userData.vrmAnimations?.[0];
-    if (!vrmAnim) return;
-    const clip = createVRMAnimationClip(vrmAnim, vrm);
-    animator.register("jump", clip, { loop: true, beatsPerCycle: 2 });
-    animator.setBaseLoop("jump");
-  });
-  // ワンショット: フレーズ完走
+  // 基本ループanim
+  loadLoop(loader, "/assets/vrm/miku/animations/Loop_verse_dammy.vrma", "verse");
+  loadLoop(loader, "/assets/vrm/miku/animations/Loop_HandWave_dammy.vrma", "chorus");
+  // ワンショットanim
   loader.load("/assets/vrm/miku/animations/perfect-phrase.vrma", (gltf) => {
     const vrmAnim = gltf.userData.vrmAnimations?.[0];
     if (!vrmAnim) return;
-    const clip = createVRMAnimationClip(vrmAnim, vrm);
-    animator.register("perfect-phrase", clip, { loop: false });
+    animator.register("perfect-phrase", createVRMAnimationClip(vrmAnim, vrm), { loop: false });
+  });
+}
+
+// 位相駆動の基本ループ（2拍）をロードして登録
+function loadLoop(loader, uri, name) {
+  loader.load(uri, (gltf) => {
+    const vrmAnim = gltf.userData.vrmAnimations?.[0];
+    if (!vrmAnim) return;
+    animator.register(name, createVRMAnimationClip(vrmAnim, vrm), { loop: true, beatsPerCycle: 2 });
   });
 }
 
