@@ -8,6 +8,7 @@ let screenEl = null;
 let hintEl = null;
 let onStartCallback = null;
 let isReady = false; // onVideoReady が来るまでタップを受け付けない
+let inTransition = false;
 
 // ── public ──────────────────────────────
 
@@ -23,6 +24,17 @@ export function showLoadingScreen() {
 
 export function hideLoadingScreen() {
   screenEl.style.display = "none";
+  isReady = false;
+  inTransition = false;
+  screenEl.style.pointerEvents = "";
+}
+
+// タップ確定後 onComplete を発火する
+export function startPlayTransition(onComplete) {
+  if (inTransition) return;
+  inTransition = true;
+  screenEl.style.pointerEvents = "none";
+  setTimeout(onComplete, 3000);
 }
 
 // onVideoReady から呼ぶ：タップ受付を有効にしてヒントを切り替える
@@ -66,6 +78,6 @@ function buildDOM() {
 
 // player.requestPlay()とtransition(STATE.PLAYING)を実行
 function handleTap() {
-  if (!isReady) return;
+  if (!isReady || inTransition) return;
   onStartCallback?.();
 }

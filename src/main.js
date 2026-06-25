@@ -56,9 +56,12 @@ function enter(s, ctx) {
       endArmed = false; // 再生開始時の position 張り付き対策
       game.resetGame();
       player.createFromSongUrl(ctx.song.url, { video: ctx.song.video });
+      scene.initScene(); // ローディング画面の裏で Three.js シーン＋VRM をプリロード
       break;
     case STATE.PLAYING:
-      initPlayScene();
+      canvas.initCanvas();
+      keyboard.initKeyboard();
+      scene.resetSceneState(); // 2曲目以降の VRM 表情をリセット
       scene.registerLyricTimeline(game.getLyricTimeline()); // gameロジックで作ったタイムラインをlyric.jsまで飛ばす
       ui.initUI(currentSong?.title);
       canvas.startCanvasLoop();
@@ -104,17 +107,6 @@ function exit(s) {
 }
 // ===========================================
 
-// Three.js・Canvas・Keyboard は PLAYING 遷移時に初めてinitする
-let playSceneInitialized = false;
-
-function initPlayScene() {
-  if (playSceneInitialized) return;
-  scene.initScene();
-  canvas.initCanvas();
-  keyboard.initKeyboard();
-  playSceneInitialized = true;
-}
-
 // リップシンクの口形を返す
 function getMouthVowel(position) {
   const char = player.video?.findChar(position);
@@ -130,10 +122,12 @@ function getMouthVowel(position) {
 await selection.initSelection((song) => transition(STATE.LOADING, { song }));
 
 // ロード画面を初期化
-// ロード完了画面のタップにrequestPlayをコールバックとして仕込むため
+// ロード完了画面のタップにrequestPlayをコールバックとして仕込む
 loading.initLoading(() => {
-  player.requestPlay();
-  transition(STATE.PLAYING);
+  loading.startPlayTransition(() => {
+    player.requestPlay();
+    transition(STATE.PLAYING);
+  });
 });
 
 // リザルト画面を初期化

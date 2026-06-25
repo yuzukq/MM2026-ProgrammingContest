@@ -11,6 +11,7 @@ const HIGHLIGHT_COLOR = "#20B2AA";
 const BOUNDARY_THRESHOLD = 0.4;
 
 let svgEl = null;
+let initialized = false;
 let lastKeyIndex = -1;
 let lastNeighborIndex = -1; // 前フレームで隣接点灯したキー（なければ-1）
 
@@ -25,6 +26,8 @@ export function hideKeyboard() {
 }
 
 export async function initKeyboard() {
+  if (initialized) return;
+  initialized = true;
   // SVGファイルをテキストとして取得
   const res = await fetch("/assets/keyboard.svg");
   const svgText = await res.text();
