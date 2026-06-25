@@ -185,7 +185,7 @@ export function updateScene({
 // VRMA アニメをロードして animator に登録する。
 function loadVrmAnimations(loader) {
   // 基本ループanim
-  loadLoop(loader, "/assets/vrm/miku/animations/Loop_verse_dammy.vrma", "verse");
+  loadLoop(loader, "/assets/vrm/miku/animations/Loop_verse.vrma", "verse");
   loadLoop(loader, "/assets/vrm/miku/animations/Loop_HandWave2.vrma", "chorus");
   // ワンショットanim
   loader.load("/assets/vrm/miku/animations/perfect-phrase.vrma", (gltf) => {
