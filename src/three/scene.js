@@ -16,6 +16,7 @@ import * as expression from "./vrm-expression.js"; // VRM表情（リップシ�
 
 let scene, camera, renderer, vrm;
 let clock; // VRMアニメ更新用の delta 取得
+let initialized = false;
 
 // 基本ループの位相駆動用
 let beatPhaseRaw = 0; // 小節内の連続拍位置 (= beat.position-1 + beat.progress)
@@ -34,6 +35,8 @@ function moodForRatio(ratio) {
 
 // 起動時に1回だけ呼ぶ。Three.js の初期化・アニメーションループの開始を行う。
 export function initScene() {
+  if (initialized) return;
+  initialized = true;
   // =============シーン初期化=================
   scene = new THREE.Scene();
 
@@ -52,7 +55,7 @@ export function initScene() {
   renderer.toneMappingExposure = 0.25; // 露出（全体の明るさ。GUIのexposure）
   // width/height:100% を明示（cssText が setSize 設定のCSSサイズを上書きするため。
   renderer.domElement.style.cssText =
-    "position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;";
+    "position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;";
   document.body.appendChild(renderer.domElement);
 
   // =============カメラ=================
@@ -107,6 +110,11 @@ export function initScene() {
 
   // =============描画ループ開始=================
   sceneRenderLoop();
+}
+
+// VRM 表情状態をリセットする
+export function resetSceneState() {
+  expression.resetExpression();
 }
 
 // lyric.js へタイムラインを渡す中継ぎ用．
