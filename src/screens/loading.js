@@ -2,8 +2,6 @@
 // 選曲後〜曲ロード完了までのロード画面を担当する
 // ロード完了（setLoadingReady）後にタップされたら onStartCallback を呼ぶ
 
-const IMG_SRC = "/assets/loading.png";
-
 let screenEl = null;
 let hintEl = null;
 let onStartCallback = null;
@@ -41,7 +39,7 @@ export function startPlayTransition(onComplete) {
 export function setLoadingReady() {
   isReady = true;
   screenEl.style.cursor = "pointer";
-  hintEl.textContent = "タップしてスタート";
+  hintEl.textContent = "Tap to Start";
   hintEl.style.opacity = "1";
 }
 
@@ -51,16 +49,10 @@ function buildDOM() {
   screenEl = document.createElement("div");
   screenEl.id = "loading-screen";
 
-  const img = document.createElement("img");
-  img.id = "loading-image";
-  img.src = IMG_SRC;
-  img.alt = "";
-
   hintEl = document.createElement("p");
   hintEl.id = "loading-hint";
-  hintEl.textContent = "ロード中...";
+  hintEl.textContent = "";
 
-  screenEl.appendChild(img);
   screenEl.appendChild(hintEl);
   document.body.appendChild(screenEl);
 

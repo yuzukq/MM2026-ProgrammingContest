@@ -9,6 +9,8 @@ import * as game from "./game.js";
 import * as canvas from "./canvas/canvas.js";
 import * as ui from "./ui/ui.js";
 import * as keyboard from "./ui/keyboard.js";
+import * as title from "./screens/title.js";
+import * as credits from "./screens/credits.js";
 import * as selection from "./screens/selection.js";
 import * as loading from "./screens/loading.js";
 import * as result from "./screens/result.js";
@@ -17,13 +19,14 @@ import { startFpsMeter } from "./debug-fps.js"; // 完成前に消す
 
 // ===============ステートマシン===============
 const STATE = {
+  TITLE: "title",
   SELECTION: "selection",
   LOADING: "loading",
   PLAYING: "playing",
   RESULT: "result",
 };
-// 選曲シーンがエントリ
-let state = STATE.SELECTION;
+// タイトル画面がエントリ
+let state = STATE.TITLE;
 let currentSong = null; // 現在プレイ中の曲（ハイスコア保存に使う）
 let lastBeatIndex = -1; // 直近に検知したビートの通し番号（拍の切り替わり検知に使う）
 let endRequested = false; // 終端で requestStop を多重発火させないためのフラグ
@@ -43,6 +46,10 @@ function transition(to, ctx = {}) {
 // 次ステートに入る時に実行する関数呼び出し
 function enter(s, ctx) {
   switch (s) {
+    case STATE.TITLE:
+      title.showTitleScreen();
+      credits.showCreditsBtn();
+      break;
     case STATE.SELECTION:
       selection.showSelectionScreen(); // 選曲画面の描画
       break;
@@ -91,6 +98,10 @@ function enter(s, ctx) {
 // 現在ステートから出る時に実行する関数呼び出し
 function exit(s) {
   switch (s) {
+    case STATE.TITLE:
+      title.hideTitleScreen();
+      credits.hideCreditsBtn();
+      break;
     case STATE.LOADING:
       loading.hideLoadingScreen();
       break;
@@ -117,7 +128,10 @@ function getMouthVowel(position) {
   return vowelOf(char.text) ?? "_pak";
 }
 
-// 選曲画面を初期化（SVGフェッチ完了まで await。表示は onAppReady → transition(SELECTION) のタイミング）
+// 選曲ステートへの遷移をタイトル画面にコールバック
+title.initTitle(() => transition(STATE.SELECTION));
+credits.initCredits();
+
 // selection.js の onSongSelectedCallbackに曲が決まったら呼ぶ関数を渡す
 await selection.initSelection((song) => transition(STATE.LOADING, { song }));
 
@@ -150,7 +164,7 @@ player.addListener({
   // TextAlive の準備ができたら呼ばれる
   onAppReady(app) {
     if (!app.songUrl) {
-      transition(STATE.SELECTION);
+      transition(STATE.TITLE);
     }
   },
   // 歌詞・タイミングデータの読み込みが完了したら呼ばれる

@@ -6,6 +6,10 @@ import { inlineSvg } from "../inline-svg.js"; // インライン展開のヘル�
 
 const ENVELOPE_SRC = "/assets/envelope.svg";
 const LYRICCARD_SRC = "/assets/lyriccard.svg";
+const MIKU_HAPPY_SRC = "/assets/result_miku_happy.png";
+const MIKU_NORMAL_SRC = "/assets/result_miku_normal.png";
+
+const SCORE_HAPPY_THRESHOLD = 400;
 
 // 判定→不透明度（PERFECT=くっきり、BAD=薄く）。触れられなかった単語も game 側で BAD 判定される
 const RATING_OPACITY = { PERFECT: 1.0, GOOD: 0.4, BAD: 0.2 };
@@ -18,6 +22,7 @@ const TEXT_MAX_W = 520; // 1行テキスト(title / artist-score)の最大幅(us
 const AUTO_SCROLL_PX_PER_SEC = 50; // 歌詞の自動スクロール速度
 
 let screenEl = null;
+let mikuEl = null;
 let cardEl = null;
 let titleTextEl = null; // SVG <text id="title">
 let artistScoreEl = null; // SVG <text id="artist-score">（artist と score を1行に統合）
@@ -39,6 +44,9 @@ export function initResult(onRestart) {
 export function showResultScreen({ score, collectedLyrics, title, artist }) {
   if (!cardEl) return;
   clearTimers();
+
+  // スコアに応じて表情差分を切り替え
+  if (mikuEl) mikuEl.src = score >= SCORE_HAPPY_THRESHOLD ? MIKU_HAPPY_SRC : MIKU_NORMAL_SRC;
 
   // テキスト反映
   if (titleTextEl) titleTextEl.textContent = title ?? "";
@@ -97,7 +105,11 @@ async function buildDOM() {
   hintEl.id = "result-hint";
   hintEl.textContent = "タップして選曲に戻る";
 
-  screenEl.append(envelopeEl, cardEl, hintEl);
+  mikuEl = document.createElement("img");
+  mikuEl.id = "result-miku";
+  mikuEl.alt = "";
+
+  screenEl.append(mikuEl, envelopeEl, cardEl, hintEl);
   document.body.appendChild(screenEl);
 
   // タップで復帰（解禁後のみ）。click はスクロールのドラッグでは発火しないので

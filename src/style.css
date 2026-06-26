@@ -3,7 +3,6 @@ body {
   width: 100%;
   height: 100dvh; /* dvh: アドレスバー表示/非表示に合わせた実際の表示領域に合わせる */
   overflow: hidden; /* はみ出た部分は非表示 */
-  background-color: #202020; /* 背景は Three.js レンダラー層で作成するため仮置き */
   background-size: cover;
   background-position: center;
   user-select: none; /* 長押しによるテキスト範囲選択を無効化 */
@@ -35,6 +34,18 @@ body {
   height: 100%;
 }
 
+/* z-index: 20  タイトル画面 */
+#title-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: none;
+  background-image: url("/assets/title.png");
+  background-size: cover;
+  background-position: center;
+  cursor: pointer;
+}
+
 /* z-index: 20  ロード画面（選曲後〜タップ開始まで） */
 #loading-screen {
   position: fixed;
@@ -48,20 +59,23 @@ body {
   align-items: center;
   justify-content: center;
   background: #202020;
+  background-image: url("/assets/loading_still.png");
+  background-size: cover;
+  background-position: center;
   cursor: default;
 }
 
-#loading-image {
-  max-width: 100%;
-  max-height: 85%;
-  object-fit: contain;
-}
-
 #loading-hint {
+  position: relative;
+  z-index: 1;
   margin: 16px 0 0;
-  color: white;
-  font-size: 18px;
-  opacity: 0.5;
+  color: #8bffff;
+  font-family: "MochiyPopOne", sans-serif;
+  font-size: 24px;
+  letter-spacing: 0.12em;
+  -webkit-text-stroke: 1px white;
+  text-shadow: 0 0 4px white;
+  opacity: 0;
   transition: opacity 0.3s ease;
 }
 
@@ -76,7 +90,9 @@ body {
   display: none; /* showSelectionScreen() で flex に切り替える */
   align-items: left;
   justify-content: left;
-  background: rgba(0, 0, 0, 0.85);
+  background-image: url("/assets/background.png");
+  background-size: cover;
+  background-position: center;
 }
 
 #selection-cards {
@@ -106,11 +122,19 @@ body {
   width: auto;
 }
 
-/* カード本文用フォント（Noto Serif JP サブセット・自前ホスト。build-card-font.py で生成） */
+/* カード本文用フォント */
 @font-face {
   font-family: "NotoSerifJP";
   src: url("/assets/fonts/NotoSerifJP-subset.woff2") format("woff2");
   font-weight: 100 900;
+  font-display: swap;
+}
+
+/* 歌詞・上部UIで使っているフォントを流用*/
+@font-face {
+  font-family: "MochiyPopOne";
+  src: url("/assets/fonts/MochiyPopOne-subset.woff2") format("woff2");
+  font-weight: normal;
   font-display: swap;
 }
 
@@ -125,7 +149,9 @@ body {
   display: none;
   align-items: center;
   justify-content: center;
-  background: transparent; /* 仮の黒マスクは撤去。最終的な2D背景素材は後で差し込む */
+  background-image: url("/assets/background.png");
+  background-size: cover;
+  background-position: center;
   cursor: pointer;
 }
 
@@ -160,7 +186,8 @@ body {
   clip-path: inset(0 0 0 0); /* 下→上に開く */
 }
 
-/* 歌詞カード。封筒より手前(z:2)で覆う。初期は小さく隠れ、card-in でシュッと拡大登場 */
+/* 歌詞カード。封筒より手前(z:2)で覆う
+    初期は小さく隠れ、card-in で拡大登場 */
 #result-card {
   position: fixed;
   left: 50%;
@@ -168,7 +195,7 @@ body {
   height: 90vh;
   aspect-ratio: 595.24 / 842.42;
   z-index: 2;
-  container-type: size; /* 子の cqw 基準にする（フォントサイズ追従） */
+  container-type: size; /* 子の cqw 基準にする */
   opacity: 0;
   transform: translate(-50%, -50%) scale(0.12);
   transition:
@@ -192,6 +219,10 @@ body {
 #result-card svg #title,
 #result-card svg #artist-score {
   text-anchor: middle;
+  fill: #a4700f;
+  stroke: white;
+  stroke-width: 2px;
+  paint-order: stroke fill;
 }
 
 /* 歌詞オーバーレイ：lyriccard の #lyric 領域に合わせて配置。
@@ -204,7 +235,8 @@ body {
   bottom: 6%;
   overflow-y: auto;
   pointer-events: auto;
-  color: #231815;
+  color: #a4700f;
+  text-shadow: 0 0 1px white;
   font-family: "NotoSerifJP", serif;
   font-size: 4.2cqw; /* 25 / 595.24 */
   line-height: 1.7;
@@ -234,6 +266,24 @@ body {
   }
 }
 
+/* リザルトスチルの表情差分：lyriccard の左に配置
+    card-in と同タイミングでフェードイン */
+/* right: 50% + カード半幅(31.8vh) + ギャップ でカード左端に揃える */
+#result-miku {
+  position: fixed;
+  right: calc(50% + 31.8vh + 8px);
+  bottom: 5vh;
+  height: 45vh;
+  width: auto;
+  object-fit: contain;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+#result-screen.card-in #result-miku {
+  opacity: 1;
+}
+
 /* 復帰ヒント。スクロール最下で .show が付くまで隠す */
 #result-hint {
   position: fixed;
@@ -242,13 +292,107 @@ body {
   transform: translateX(-50%);
   z-index: 3;
   margin: 0;
-  color: white;
-  font-size: 16px;
+  color: #a4700f;
+  font-family: "NotoSerifJP", serif;
+  font-size: 24px;
+  letter-spacing: 0.15em;
+  -webkit-text-stroke: 0.2px white;
   opacity: 0;
   transition: opacity 0.4s ease;
 }
 #result-hint.show {
   opacity: 0.7;
+}
+
+/* z-index: 21  クレジットボタン: タイトル画面右上の「ⓘ」 */
+#credits-btn {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 21;
+  display: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid gray;
+  background: rgba(0, 0, 0, 0.1);
+  color: gray;
+  font-size: 18px;
+  font-style: italic;
+  font-weight: bold;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-text-stroke: 0;
+  text-shadow: none;
+  transition: background 0.2s ease;
+}
+
+#credits-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* z-index: 30  クレジットモーダル */
+#credits-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: rgba(0, 0, 0, 0.6);
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+#credits-card {
+  position: relative;
+  height: 90vh;
+  aspect-ratio: 595.24 / 842.42;
+  container-type: size;
+}
+
+#credits-card svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+#credits-card svg text {
+  font-family: "NotoSerifJP", serif !important;
+}
+
+#credits-card svg #title {
+  text-anchor: middle;
+  fill: #a4700f;
+  stroke: white;
+  stroke-width: 2px;
+  paint-order: stroke fill;
+}
+
+/* クレジット本文：lyriccard の #lyric 領域に対応 */
+#credits-content {
+  position: absolute;
+  left: 7.86%;
+  right: 7.86%;
+  top: 14%; /* title直下、artist-score非表示分を詰める */
+  bottom: 6%;
+  overflow-y: auto;
+  color: #a4700f;
+  text-shadow: 0 0 1px white;
+  font-family: "NotoSerifJP", serif;
+  font-size: 3.6cqw;
+  line-height: 1.7;
+  overflow-wrap: break-word;
+  word-break: auto-phrase; /* 日本語の自然な文節で改行 */
+  line-break: strict;
+  scrollbar-width: none;
+}
+
+#credits-content::-webkit-scrollbar {
+  display: none;
+}
+
+#credits-content p {
+  margin: 0 0 0.5em;
 }
 
 /* z-index: 10  上部UI（topui.svg）: 全幅に敷き詰め、高さ10vh固定 */
