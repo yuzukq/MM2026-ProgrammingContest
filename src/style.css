@@ -219,7 +219,7 @@ body {
 #result-card svg #title,
 #result-card svg #artist-score {
   text-anchor: middle;
-  fill: #d8900f;
+  fill: #a4700f;
   stroke: white;
   stroke-width: 2px;
   paint-order: stroke fill;
@@ -235,7 +235,7 @@ body {
   bottom: 6%;
   overflow-y: auto;
   pointer-events: auto;
-  color: #d8900f;
+  color: #a4700f;
   text-shadow: 0 0 1px white;
   font-family: "NotoSerifJP", serif;
   font-size: 4.2cqw; /* 25 / 595.24 */
@@ -292,7 +292,7 @@ body {
   transform: translateX(-50%);
   z-index: 3;
   margin: 0;
-  color: #d8900f;
+  color: #a4700f;
   font-family: "NotoSerifJP", serif;
   font-size: 24px;
   letter-spacing: 0.15em;
@@ -362,7 +362,7 @@ body {
 
 #credits-card svg #title {
   text-anchor: middle;
-  fill: #d8900f;
+  fill: #a4700f;
   stroke: white;
   stroke-width: 2px;
   paint-order: stroke fill;
@@ -373,16 +373,17 @@ body {
   position: absolute;
   left: 7.86%;
   right: 7.86%;
-  top: 22.4%;
+  top: 14%; /* title直下、artist-score非表示分を詰める */
   bottom: 6%;
   overflow-y: auto;
-  /*color: #231815;*/
-  color: #d8900f;
+  color: #a4700f;
   text-shadow: 0 0 1px white;
-
   font-family: "NotoSerifJP", serif;
-  font-size: 4.2cqw;
+  font-size: 3.6cqw;
   line-height: 1.7;
+  overflow-wrap: break-word;
+  word-break: auto-phrase; /* 日本語の自然な文節で改行 */
+  line-break: strict;
   scrollbar-width: none;
 }
 
