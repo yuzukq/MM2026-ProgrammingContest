@@ -59,7 +59,7 @@ body {
   align-items: center;
   justify-content: center;
   background: #202020;
-  background-image: url("/assets/loading_still.png");
+  background-image: url("/assets/loading.png");
   background-size: cover;
   background-position: center;
   cursor: default;
