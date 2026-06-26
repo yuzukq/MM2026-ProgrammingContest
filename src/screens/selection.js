@@ -162,5 +162,5 @@ function updateCards() {
 
 function getHighScore(songId) {
   const stored = localStorage.getItem(`highscore_${songId}`);
-  return stored !== null ? stored : "---";
+  return stored !== null ? Math.floor(Number(stored)) : "---";
 }
