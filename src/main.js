@@ -160,7 +160,7 @@ player.addListener({
   // TextAlive の準備ができたら呼ばれる
   onAppReady(app) {
     if (!app.songUrl) {
-      transition(STATE.SELECTION);
+      transition(STATE.TITLE);
     }
   },
   // 歌詞・タイミングデータの読み込みが完了したら呼ばれる
