@@ -66,13 +66,16 @@ body {
   cursor: default;
 }
 
-/* tap to start */
 #loading-hint {
   position: relative;
   z-index: 1;
   margin: 16px 0 0;
-  color: white;
-  font-size: 18px;
+  color: #8bffff;
+  font-family: "MochiyPopOne", sans-serif;
+  font-size: 24px;
+  letter-spacing: 0.12em;
+  -webkit-text-stroke: 1px white;
+  text-shadow: 0 0 4px white;
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -120,11 +123,19 @@ body {
   width: auto;
 }
 
-/* カード本文用フォント（Noto Serif JP サブセット・自前ホスト。build-card-font.py で生成） */
+/* カード本文用フォント */
 @font-face {
   font-family: "NotoSerifJP";
   src: url("/assets/fonts/NotoSerifJP-subset.woff2") format("woff2");
   font-weight: 100 900;
+  font-display: swap;
+}
+
+/* 歌詞・上部UIで使っているフォントを流用*/
+@font-face {
+  font-family: "MochiyPopOne";
+  src: url("/assets/fonts/MochiyPopOne-subset.woff2") format("woff2");
+  font-weight: normal;
   font-display: swap;
 }
 
@@ -276,8 +287,12 @@ body {
   transform: translateX(-50%);
   z-index: 3;
   margin: 0;
-  color: white;
-  font-size: 16px;
+  color: #d8900f;
+  font-family: "NotoSerifJP", serif;
+  font-size: 24px;
+  letter-spacing: 0.15em;
+  -webkit-text-stroke: 0.2px white;
+  text-shadow: 0 0px 4px white;
   opacity: 0;
   transition: opacity 0.4s ease;
 }
