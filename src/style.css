@@ -35,6 +35,18 @@ body {
   height: 100%;
 }
 
+/* z-index: 20  タイトル画面 */
+#title-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: none;
+  background-image: url("/assets/title.png");
+  background-size: cover;
+  background-position: center;
+  cursor: pointer;
+}
+
 /* z-index: 20  ロード画面（選曲後〜タップ開始まで） */
 #loading-screen {
   position: fixed;
@@ -48,20 +60,20 @@ body {
   align-items: center;
   justify-content: center;
   background: #202020;
+  background-image: url("/assets/loading_still.png");
+  background-size: cover;
+  background-position: center;
   cursor: default;
 }
 
-#loading-image {
-  max-width: 100%;
-  max-height: 85%;
-  object-fit: contain;
-}
-
+/* tap to start */
 #loading-hint {
+  position: relative;
+  z-index: 1;
   margin: 16px 0 0;
   color: white;
   font-size: 18px;
-  opacity: 0.5;
+  opacity: 0;
   transition: opacity 0.3s ease;
 }
 
@@ -76,7 +88,9 @@ body {
   display: none; /* showSelectionScreen() で flex に切り替える */
   align-items: left;
   justify-content: left;
-  background: rgba(0, 0, 0, 0.85);
+  background-image: url("/assets/background.png");
+  background-size: cover;
+  background-position: center;
 }
 
 #selection-cards {
@@ -125,7 +139,9 @@ body {
   display: none;
   align-items: center;
   justify-content: center;
-  background: transparent; /* 仮の黒マスクは撤去。最終的な2D背景素材は後で差し込む */
+  background-image: url("/assets/background.png");
+  background-size: cover;
+  background-position: center;
   cursor: pointer;
 }
 
@@ -232,6 +248,24 @@ body {
     opacity: var(--op);
     transform: none;
   }
+}
+
+/* リザルトスチルの表情差分：lyriccard の左に配置
+    card-in と同タイミングでフェードイン */
+/* right: 50% + カード半幅(31.8vh) + ギャップ でカード左端に揃える */
+#result-miku {
+  position: fixed;
+  right: calc(50% + 31.8vh + 8px);
+  bottom: 5vh;
+  height: 45vh;
+  width: auto;
+  object-fit: contain;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+#result-screen.card-in #result-miku {
+  opacity: 1;
 }
 
 /* 復帰ヒント。スクロール最下で .show が付くまで隠す */
