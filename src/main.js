@@ -10,6 +10,7 @@ import * as canvas from "./canvas/canvas.js";
 import * as ui from "./ui/ui.js";
 import * as keyboard from "./ui/keyboard.js";
 import * as title from "./screens/title.js";
+import * as credits from "./screens/credits.js";
 import * as selection from "./screens/selection.js";
 import * as loading from "./screens/loading.js";
 import * as result from "./screens/result.js";
@@ -47,6 +48,7 @@ function enter(s, ctx) {
   switch (s) {
     case STATE.TITLE:
       title.showTitleScreen();
+      credits.showCreditsBtn();
       break;
     case STATE.SELECTION:
       selection.showSelectionScreen(); // 選曲画面の描画
@@ -98,6 +100,7 @@ function exit(s) {
   switch (s) {
     case STATE.TITLE:
       title.hideTitleScreen();
+      credits.hideCreditsBtn();
       break;
     case STATE.LOADING:
       loading.hideLoadingScreen();
@@ -127,6 +130,7 @@ function getMouthVowel(position) {
 
 // 選曲ステートへの遷移をタイトル画面にコールバック
 title.initTitle(() => transition(STATE.SELECTION));
+credits.initCredits();
 
 // selection.js の onSongSelectedCallbackに曲が決まったら呼ぶ関数を渡す
 await selection.initSelection((song) => transition(STATE.LOADING, { song }));
