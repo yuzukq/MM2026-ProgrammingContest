@@ -88,6 +88,7 @@ function popRating(el) {
 async function buildTopUI() {
   topUiEl = document.createElement("div");
   topUiEl.id = "top-ui";
+  topUiEl.style.display = "none";
   document.body.appendChild(topUiEl);
   const svgText = await fetch(TOP_UI_SRC).then((r) => r.text());
   const svgEl = inlineSvg(topUiEl, svgText);
@@ -113,6 +114,7 @@ function fitTopTitle() {
 function buildProgressBar() {
   progressBarEl = document.createElement("div");
   progressBarEl.id = "progress-bar";
+  progressBarEl.style.display = "none";
 
   const stem = document.createElement("img");
   stem.className = "stem";
