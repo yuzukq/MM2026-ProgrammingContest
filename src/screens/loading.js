@@ -18,11 +18,18 @@ export function initLoading(onStart) {
 }
 
 export function showLoadingScreen() {
+  screenEl.style.transition = "none";
+  screenEl.style.opacity = "0";
   screenEl.style.display = "flex";
+  void screenEl.offsetWidth; // reflow で opacity:0 を確定してから transition を付与
+  screenEl.style.transition = "opacity 0.4s ease";
+  screenEl.style.opacity = "1";
 }
 
 export function hideLoadingScreen() {
   // リセット
+  screenEl.style.transition = "none";
+  screenEl.style.opacity = "0";
   screenEl.style.display = "none";
   finishBgEl.style.opacity = "0";
   hintEl.textContent = "";
