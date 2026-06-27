@@ -458,14 +458,11 @@ body {
 #top-ui svg text {
   font-family: "Mochiy Pop One", sans-serif;
 }
-/* 判定テキスト: 白縁取り */
+/* 判定テキストの白縁取り*/
 #top-ui #rating {
   stroke: #fff;
   stroke-width: 6;
   paint-order: stroke fill;
-  transform-box: fill-box;
-  /*pop アニメ(WAAPI)が文字中心で拡縮するよう transform 基準を設定*/
-  transform-origin: center;
 }
 
 /* z-index: 10  下部プログレスバー（茎＋開花＋蝶） */

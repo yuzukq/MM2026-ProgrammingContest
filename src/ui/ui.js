@@ -16,6 +16,7 @@ let topUiEl = null; // 上部UIのラッパ（初回のみ構築）
 let topTitleEl = null; // SVG <text id="title">
 let topScoreEl = null; // SVG <text id="score">
 let topRatingEl = null; // SVG <text id="rating">
+let ratingPopEl = null; // rating の pop 専用ラッパー
 let lastRatingSeq = 0; // 直近に pop した判定の seq（新しい判定ごとに pop。同値連続でも鳴る）
 let ratingAnim = null; // 進行中の pop アニメ（連続変化時に積み重ねない）
 let progressBarEl = null; // 下部バーのラッパ（初回のみ構築）
@@ -64,13 +65,15 @@ export function updateUI({ score, rating, ratingSeq, progress }) {
     lastRatingSeq = ratingSeq;
     topRatingEl.textContent = rating;
     topRatingEl.style.fill = RATING_COLOR[rating] ?? RATING_COLOR.BAD;
-    popRating(topRatingEl);
+    popRating(ratingPopEl);
   }
   updateProgress(progress);
 }
 
 // 判定テキストを「パッと跳ねる」ように1回再生する。
-// WA-API の composite:"add" で scale だけを位置の上に重ねる
+// translateは <text> 側に恒常的に残し pop 専用ラッパ <g> を拡縮する
+// （text の transform 属性に CSS transform を add 合成する方法は Safari で取りこぼされ
+//   アニメーション中だけ translate が消えて文字が原点へ飛ぶ不具合があったため）
 // https://developer.mozilla.org/ja/docs/Web/API/Web_Animations_API/
 function popRating(el) {
   ratingAnim?.cancel(); // 連続変化時に scale を積み重ねない
@@ -80,7 +83,7 @@ function popRating(el) {
       { transform: "scale(1.25)", offset: 0.55 },
       { transform: "scale(1)" },
     ],
-    { duration: 280, easing: "cubic-bezier(0.34, 1.56, 0.64, 1)", composite: "add" }
+    { duration: 280, easing: "cubic-bezier(0.34, 1.56, 0.64, 1)" }
   );
 }
 
@@ -100,6 +103,18 @@ async function buildTopUI() {
   topRatingEl = svgEl.querySelector("#rating");
   // 全幅引き伸ばし時も文字だけアスペクト比を維持する
   keepTextAspect(svgEl, [topTitleEl, topScoreEl, topRatingEl]);
+  // pop は位置を持たない専用 <g> を拡縮する（iPad/Safari の translate 取りこぼし回避）
+  ratingPopEl = wrapPopGroup(topRatingEl);
+}
+
+// transform-box: fill-box で文字自身の中心を基準にスケールさせる。
+function wrapPopGroup(textEl) {
+  const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  textEl.parentNode.insertBefore(g, textEl);
+  g.appendChild(textEl);
+  g.style.transformBox = "fill-box";
+  g.style.transformOrigin = "center";
+  return g;
 }
 
 // 曲名が TITLE_MAX_W を超えていたらフォントを縮小して収める
