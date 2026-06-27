@@ -58,9 +58,9 @@ export function showResultScreen({ score, collectedLyrics, title, artist }) {
   canReturn = false;
   hintEl.classList.remove("show");
   lyricEl.classList.remove("inscribe");
-  lyricEl.scrollTop = 0;
   screenEl.classList.remove("opened", "card-in");
   screenEl.style.display = "flex";
+  lyricEl.scrollTop = 0; // flex の後に初期化すること
   // 表示後に測って、はみ出す1行テキストはフォント縮小して収める
   fitText(titleTextEl, TEXT_MAX_W);
   fitText(artistScoreEl, TEXT_MAX_W);
