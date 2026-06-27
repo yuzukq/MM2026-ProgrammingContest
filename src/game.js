@@ -4,7 +4,7 @@
 import { LANE_COUNT, toLane, laneCenterY } from "./lane.js"; // レーンの量子化用
 
 // 判定調整まわり
-const POINTS_PER_BLOCK = () => maxScore / wordBlocks.length;
+const TARGET_MAX_SCORE = 50000; // AP理論値
 const LANE_TOLERANCE = { PERFECT: 1.5, GOOD: 2.5 }; // 平均レーン距離の許容値。±1.0レーンずれは PERFECT・±2は GOOD・超過はBAD
 const RATING_MULTIPLIER = { PERFECT: 1.0, GOOD: 0.6, BAD: 0 }; // 精度ごとのスコア加算の重み
 
@@ -105,8 +105,11 @@ export function buildWordBlocks(player) {
     b.laneY = laneCenterY(b.lane); // 描画で使うレーン中心Y(0-1)
   }
 
-  maxScore = wordBlocks.length * RATING_MULTIPLIER.PERFECT; // 全ブロック PERFECT 時の理論最大値
+  maxScore = TARGET_MAX_SCORE;
 }
+
+// ノーツ数に関わらず理論値が収束するように加算はばを重みづけ
+const POINTS_PER_BLOCK = () => maxScore / wordBlocks.length;
 
 // onTimeUpdate で毎フレーム呼ぶ
 export function updateGame(position, touchedY) {
