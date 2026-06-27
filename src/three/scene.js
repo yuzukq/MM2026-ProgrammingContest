@@ -117,6 +117,14 @@ export function resetSceneState() {
   expression.resetExpression();
 }
 
+export function showRenderer() {
+  if (renderer) renderer.domElement.style.display = "";
+}
+
+export function hideRenderer() {
+  if (renderer) renderer.domElement.style.display = "none";
+}
+
 // lyric.js へタイムラインを渡す中継ぎ用．
 // 4モジュール伝搬(game → main → scene → lyric)が初なんでまどろっこしい気もするが一旦これで許して...
 export function registerLyricTimeline(timeline) {

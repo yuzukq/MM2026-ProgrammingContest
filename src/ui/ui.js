@@ -44,6 +44,16 @@ export function initUI(songTitle) {
   }
 }
 
+export function showUI() {
+  if (topUiEl) topUiEl.style.display = "";
+  if (progressBarEl) progressBarEl.style.display = "";
+}
+
+export function hideUI() {
+  if (topUiEl) topUiEl.style.display = "none";
+  if (progressBarEl) progressBarEl.style.display = "none";
+}
+
 // onTimeUpdate で毎フレーム：HUD一式を更新する。
 export function updateUI({ score, rating, ratingSeq, progress }) {
   if (topScoreEl) topScoreEl.textContent = `Score: ${Math.floor(score)}`;
