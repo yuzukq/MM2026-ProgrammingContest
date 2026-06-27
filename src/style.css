@@ -358,9 +358,9 @@ body {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  border: 2px solid gray;
+  border: 2px solid white;
   background: rgba(0, 0, 0, 0.1);
-  color: gray;
+  color: white;
   font-size: 18px;
   font-style: italic;
   font-weight: bold;
