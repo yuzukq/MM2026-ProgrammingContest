@@ -2,7 +2,7 @@
 // リザルト画面：封筒(envelope.svg)を開封→歌詞カード(lyriccard.svg)が登場し、
 // 回収できた歌詞を判定の不透明度付きで刻む
 
-import { inlineSvg } from "../inline-svg.js"; // インライン展開のヘルパー
+import * as InlineSvgHelper from "../inline-svg-helper.js";
 
 const ENVELOPE_SRC = "/assets/envelope.svg";
 const LYRICCARD_SRC = "/assets/lyriccard.svg";
@@ -15,7 +15,7 @@ const SCORE_HAPPY_THRESHOLD = 400;
 const RATING_OPACITY = { PERFECT: 1.0, GOOD: 0.4, BAD: 0.2 };
 
 const WORD_STAGGER_MS = 40; // 1語ごとの刻み間隔
-const OPEN_MS = 1500; // flap透過＋flapinner展開の所要（CSSと合わせること）
+const OPEN_MS = 2000; // flap透過＋flapinner展開の所要（CSSと合わせること）
 const CARD_MS = 550; // カード登場の所要（CSSと合わせること）
 const CARD_W = 595.24; // lyriccard の viewBox 幅（テキスト中央寄せ／縮小の基準）
 const TEXT_MAX_W = 520; // 1行テキスト(title / artist-score)の最大幅(user units)。超えたら縮小
@@ -58,9 +58,9 @@ export function showResultScreen({ score, collectedLyrics, title, artist }) {
   canReturn = false;
   hintEl.classList.remove("show");
   lyricEl.classList.remove("inscribe");
-  lyricEl.scrollTop = 0;
   screenEl.classList.remove("opened", "card-in");
   screenEl.style.display = "flex";
+  lyricEl.scrollTop = 0; // flex の後に初期化すること
   // 表示後に測って、はみ出す1行テキストはフォント縮小して収める
   fitText(titleTextEl, TEXT_MAX_W);
   fitText(artistScoreEl, TEXT_MAX_W);
@@ -121,8 +121,8 @@ async function buildDOM() {
     fetch(ENVELOPE_SRC).then((r) => r.text()),
     fetch(LYRICCARD_SRC).then((r) => r.text()),
   ]);
-  inlineSvg(envelopeEl, envSvg);
-  const cardSvgEl = inlineSvg(cardEl, cardSvg); // スタイルのスコープ限定
+  InlineSvgHelper.inlineSvg(envelopeEl, envSvg);
+  const cardSvgEl = InlineSvgHelper.inlineSvg(cardEl, cardSvg); // スタイルのスコープ限定
   cardEl.appendChild(lyricEl); // 歌詞オーバーレイはカードSVGの上に重ねる
 
   // カードSVGの text 参照を取得し、#lyric プレースホルダは除去（HTMLで描くので）

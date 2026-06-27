@@ -55,7 +55,7 @@ export function initScene() {
   renderer.toneMappingExposure = 0.25; // 露出（全体の明るさ。GUIのexposure）
   // width/height:100% を明示（cssText が setSize 設定のCSSサイズを上書きするため。
   renderer.domElement.style.cssText =
-    "position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;";
+    "position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;display:none;";
   document.body.appendChild(renderer.domElement);
 
   // =============カメラ=================
@@ -115,6 +115,14 @@ export function initScene() {
 // VRM 表情状態をリセットする
 export function resetSceneState() {
   expression.resetExpression();
+}
+
+export function showRenderer() {
+  if (renderer) renderer.domElement.style.display = "";
+}
+
+export function hideRenderer() {
+  if (renderer) renderer.domElement.style.display = "none";
 }
 
 // lyric.js へタイムラインを渡す中継ぎ用．

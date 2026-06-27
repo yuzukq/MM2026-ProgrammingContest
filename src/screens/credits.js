@@ -1,12 +1,11 @@
 // credits.js
 // タイトル画面右上のボタンとクレジットモーダルを管理する
 
-import { inlineSvg } from "../inline-svg.js";
+import * as InlineSvgHelper from "../inline-svg-helper.js";
 
 const LYRICCARD_SRC = "/assets/lyriccard.svg";
 
-// TODO: 後で差し替え
-const GAME_TITLE = "- TITLE -";
+const GAME_TITLE = "初音シンセサイザー";
 
 const CARD_W = 595.24;
 
@@ -38,8 +37,8 @@ const CREDITS_HTML = `
 <p><b>クレジット</b></p>
 <p>
   プログラム / モーション撮影：Yuzu<br>
-  イラスト / UIデザイン：ハッピー星人<br>
-  3Dモデリング / モーションビルダー：らだー
+  イラスト / UIデザイン：k4geri<br>
+  3Dモデリング / モーション修正：らだー
 </p>
 <br>
 <p><b>楽曲・サムネイル利用承諾（順不同・敬称略）</b></p>
@@ -124,7 +123,7 @@ async function buildModal() {
   cardEl.addEventListener("click", (e) => e.stopPropagation());
 
   const svgText = await fetch(LYRICCARD_SRC).then((r) => r.text());
-  const svgEl = inlineSvg(cardEl, svgText);
+  const svgEl = InlineSvgHelper.inlineSvg(cardEl, svgText);
 
   // タイトルテキストを設定して中央揃え
   const titleEl = svgEl.querySelector("#title");

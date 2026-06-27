@@ -3,19 +3,19 @@ body {
   width: 100%;
   height: 100dvh; /* dvh: アドレスバー表示/非表示に合わせた実際の表示領域に合わせる */
   overflow: hidden; /* はみ出た部分は非表示 */
+  background-image: url("/assets/background.png"); /* 共通背景 */
   background-size: cover;
   background-position: center;
   user-select: none; /* 長押しによるテキスト範囲選択を無効化 */
   -webkit-user-select: none;
-  cursor:
-    url("/cursor.png") 8 8,
-    auto;
 }
 
-*:active {
-  cursor:
-    url("/cursor-active.png") 8 8,
-    auto;
+body.playing {
+  cursor: url("/assets/cursor.png") 8 8, auto;
+}
+
+body.playing *:active {
+  cursor: url("/assets/cursor-active.png") 8 8, auto;
 }
 
 /* インラインSVG鍵盤：プレイエリア内に敷き詰め */
@@ -39,11 +39,15 @@ body {
   position: fixed;
   inset: 0;
   z-index: 20;
-  display: none;
-  background-image: url("/assets/title.png");
-  background-size: cover;
-  background-position: center;
+  display: none; /* showTitleScreen() で flex に切り替える */
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
+}
+
+#title-logo {
+  max-width: 70%;
+  pointer-events: none;
 }
 
 /* z-index: 20  ロード画面（選曲後〜タップ開始まで） */
@@ -58,25 +62,62 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #202020;
-  background-image: url("/assets/loading_still.png");
+  background-image: url("/assets/loading.png");
   background-size: cover;
   background-position: center;
   cursor: default;
 }
 
+#loading-finish-bg {
+  position: absolute;
+  inset: 0;
+  background-image: url("/assets/loading_finish.png");
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
 #loading-hint {
-  position: relative;
+  position: absolute;
+  bottom: 8vh;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 1;
-  margin: 16px 0 0;
+  white-space: nowrap;
   color: #8bffff;
   font-family: "MochiyPopOne", sans-serif;
-  font-size: 24px;
+  font-size: 32px;
   letter-spacing: 0.12em;
   -webkit-text-stroke: 1px white;
   text-shadow: 0 0 4px white;
   opacity: 0;
   transition: opacity 0.3s ease;
+}
+
+/* 選曲画面上部情報バー */
+#selection-top-ui {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 10vh;
+  pointer-events: none;
+}
+#selection-top-ui svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+#selection-top-ui svg text {
+  font-family: "Mochiy Pop One", sans-serif;
+}
+#selection-top-ui svg #rating {
+  stroke: #fff;
+  stroke-width: 6;
+  paint-order: stroke fill;
+  transform-box: fill-box;
+  transform-origin: center;
 }
 
 /* z-index: 20  選曲画面（プレイシーン開始前のみ表示） */
@@ -90,9 +131,6 @@ body {
   display: none; /* showSelectionScreen() で flex に切り替える */
   align-items: left;
   justify-content: left;
-  background-image: url("/assets/background.png");
-  background-size: cover;
-  background-position: center;
 }
 
 #selection-cards {
@@ -108,9 +146,7 @@ body {
 .song-card {
   position: absolute;
   cursor: pointer;
-  transition:
-    transform 0.25s ease,
-    opacity 0.25s ease;
+  transform-origin: left center; /* 左端固定で拡大して相対的にポジション操作する */
   will-change: transform, opacity;
   line-height: 0; /* SVG下の隙間をなくす */
 }
@@ -149,9 +185,6 @@ body {
   display: none;
   align-items: center;
   justify-content: center;
-  background-image: url("/assets/background.png");
-  background-size: cover;
-  background-position: center;
   cursor: pointer;
 }
 
@@ -177,7 +210,7 @@ body {
 }
 #result-envelope svg #flapinner {
   clip-path: inset(100% 0 0 0); /* 初期は全隠し */
-  transition: clip-path 1.4s ease;
+  transition: clip-path 1.6s ease;
 }
 #result-screen.opened #result-envelope svg #flap {
   opacity: 0;
@@ -304,6 +337,16 @@ body {
   opacity: 0.7;
 }
 
+/* z-index: 25  トランジションで使うオーバーレイ */
+#transition-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 25;
+  background: #f0f7ff;
+  opacity: 0;
+  pointer-events: none;
+}
+
 /* z-index: 21  クレジットボタン: タイトル画面右上の「ⓘ」 */
 #credits-btn {
   position: fixed;
@@ -314,9 +357,9 @@ body {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  border: 2px solid gray;
+  border: 2px solid white;
   background: rgba(0, 0, 0, 0.1);
-  color: gray;
+  color: white;
   font-size: 18px;
   font-style: italic;
   font-weight: bold;
@@ -414,14 +457,11 @@ body {
 #top-ui svg text {
   font-family: "Mochiy Pop One", sans-serif;
 }
-/* 判定テキスト: 白縁取り */
+/* 判定テキストの白縁取り*/
 #top-ui #rating {
   stroke: #fff;
   stroke-width: 6;
   paint-order: stroke fill;
-  transform-box: fill-box;
-  /*pop アニメ(WAAPI)が文字中心で拡縮するよう transform 基準を設定*/
-  transform-origin: center;
 }
 
 /* z-index: 10  下部プログレスバー（茎＋開花＋蝶） */

@@ -3,6 +3,7 @@
 // ロード完了（setLoadingReady）後にタップされたら onStartCallback を呼ぶ
 
 let screenEl = null;
+let finishBgEl = null;
 let hintEl = null;
 let onStartCallback = null;
 let isReady = false; // onVideoReady が来るまでタップを受け付けない
@@ -17,11 +18,23 @@ export function initLoading(onStart) {
 }
 
 export function showLoadingScreen() {
+  screenEl.style.transition = "none";
+  screenEl.style.opacity = "0";
   screenEl.style.display = "flex";
+  void screenEl.offsetWidth; // reflow で opacity:0 を確定してから transition を付与
+  screenEl.style.transition = "opacity 0.4s ease";
+  screenEl.style.opacity = "1";
 }
 
 export function hideLoadingScreen() {
+  // リセット
+  screenEl.style.transition = "none";
+  screenEl.style.opacity = "0";
   screenEl.style.display = "none";
+  finishBgEl.style.opacity = "0";
+  hintEl.textContent = "";
+  hintEl.style.opacity = "0";
+  screenEl.style.cursor = "";
   isReady = false;
   inTransition = false;
   screenEl.style.pointerEvents = "";
@@ -32,13 +45,14 @@ export function startPlayTransition(onComplete) {
   if (inTransition) return;
   inTransition = true;
   screenEl.style.pointerEvents = "none";
-  setTimeout(onComplete, 3000);
+  onComplete();
 }
 
 // onVideoReady から呼ぶ：タップ受付を有効にしてヒントを切り替える
 export function setLoadingReady() {
   isReady = true;
   screenEl.style.cursor = "pointer";
+  finishBgEl.style.opacity = "1"; // loading_finish.png へクロスフェード
   hintEl.textContent = "Tap to Start";
   hintEl.style.opacity = "1";
 }
@@ -49,10 +63,14 @@ function buildDOM() {
   screenEl = document.createElement("div");
   screenEl.id = "loading-screen";
 
+  finishBgEl = document.createElement("div");
+  finishBgEl.id = "loading-finish-bg";
+
   hintEl = document.createElement("p");
   hintEl.id = "loading-hint";
   hintEl.textContent = "";
 
+  screenEl.appendChild(finishBgEl);
   screenEl.appendChild(hintEl);
   document.body.appendChild(screenEl);
 

@@ -95,8 +95,22 @@ function updateMood() {
   }
 }
 
+// 瞬きキャンセル対象のシェイプ
+const BLINK_SKIP_MOODS = ["hau", "happy"];
+const WEIGHT = 0.9; // つまみは1まで行き切らないので
+
 // 自動瞬き4-6秒のランダム間隔で blink を0→1→0
 function updateBlink(delta) {
+  // 目をを操作するシェイプキー発動中は瞬きスキップ
+  if (BLINK_SKIP_MOODS.some((m) => (moodWeights[m] ?? 0) >= WEIGHT)) {
+    // 進行中の瞬きは中断して開いた状態（blink=0）へ戻す
+    if (blinkProgress >= 0) {
+      exprMgr.setValue("blink", 0);
+      blinkProgress = -1;
+      scheduleNextBlink();
+    }
+    return;
+  }
   if (blinkProgress >= 0) {
     blinkProgress += delta / BLINK_DUR;
     if (blinkProgress >= 1) {
