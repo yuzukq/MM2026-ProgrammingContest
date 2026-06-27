@@ -2,8 +2,7 @@
 // 画面上部: DAW ステータスUI（曲名・スコア表示・判定）
 // 画面下部: プログレスバー（茎レイヤー常時表示＋開花レイヤーを progress でクリップ開花、先端に蝶）
 
-import { inlineSvg } from "../inline-svg.js";
-import { keepTextAspect } from "../keep-text-aspect.js";
+import * as InlineSvgHelper from "../inline-svg-helper.js";
 
 const TOP_UI_SRC = "/assets/topui.svg";
 const TITLE_MAX_W = 1150;
@@ -95,14 +94,14 @@ async function buildTopUI() {
   topUiEl.style.display = "none";
   document.body.appendChild(topUiEl);
   const svgText = await fetch(TOP_UI_SRC).then((r) => r.text());
-  const svgEl = inlineSvg(topUiEl, svgText);
+  const svgEl = InlineSvgHelper.inlineSvg(topUiEl, svgText);
   svgEl.setAttribute("preserveAspectRatio", "none");
   topTitleEl = svgEl.querySelector("#title");
   topTitleEl.setAttribute("text-anchor", "end");
   topScoreEl = svgEl.querySelector("#score");
   topRatingEl = svgEl.querySelector("#rating");
   // 全幅引き伸ばし時も文字だけアスペクト比を維持する
-  keepTextAspect(svgEl, [topTitleEl, topScoreEl, topRatingEl]);
+  InlineSvgHelper.keepTextAspect(svgEl, [topTitleEl, topScoreEl, topRatingEl]);
   // pop は位置を持たない専用 <g> を拡縮する（iPad/Safari の translate 取りこぼし回避）
   ratingPopEl = wrapPopGroup(topRatingEl);
 }

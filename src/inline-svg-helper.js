@@ -1,6 +1,33 @@
-// keep-text-aspect.js
-// svg内の x/y 別倍率で引き伸ばさたテキストに対して横方向の引き伸ばしだけを打ち消す逆スケールを掛けて
-// 文字のアスペクト比を維持するためのヘルパー
+// inline-svg-helper.js
+// Illustrator 書き出しSVGをインライン展開・テキストアスペクト比補正の共通ヘルパー。
+
+let scopeSeq = 0;
+
+// container に svgText を展開し、内部 <style> があればコンテナ固有スコープへ限定する。
+// 返り値は展開された <svg> 要素（呼び出し側はこれを querySelector の起点に使う）。
+export function inlineSvg(container, svgText) {
+  container.innerHTML = svgText;
+  const styleEl = container.querySelector("svg style");
+  if (styleEl) {
+    const scope = `svg-scope-${scopeSeq++}`;
+    container.classList.add(scope);
+    styleEl.textContent = scopeSelectors(styleEl.textContent, `.${scope}`);
+  }
+  return container.querySelector("svg");
+}
+
+// CSS の各ルールのセレクタを scope 配下へ前置する
+// （`.cls-1, .cls-2 {…}` → `.scope .cls-1, .scope .cls-2 {…}`）。
+function scopeSelectors(css, scope) {
+  return css.replace(
+    /([^{}]+)(\{[^}]*\})/g,
+    (_, selectors, body) =>
+      selectors
+        .split(",")
+        .map((s) => `${scope} ${s.trim()}`)
+        .join(", ") + body
+  );
+}
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 

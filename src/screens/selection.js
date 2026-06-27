@@ -3,8 +3,7 @@
 // 曲が確定したら onSongSelectedCallback(song) を呼び、main.js がローディングへ遷移する
 
 import { SONGS } from "../data/songs.js";
-import { inlineSvg } from "../inline-svg.js"; // インライン展開のヘルパー
-import { keepTextAspect } from "../keep-text-aspect.js"; // 文字のアスペクト比を逆変換するヘルパー
+import * as InlineSvgHelper from "../inline-svg-helper.js";
 
 const CARD_SVG_SRC = "/assets/selectcard.svg";
 const TOP_UI_SRC = "/assets/topui.svg";
@@ -95,7 +94,7 @@ function buildSelectionTopUI(svgText) {
   selTopUiEl = document.createElement("div");
   selTopUiEl.id = "selection-top-ui";
 
-  const svgEl = inlineSvg(selTopUiEl, svgText);
+  const svgEl = InlineSvgHelper.inlineSvg(selTopUiEl, svgText);
   svgEl.setAttribute("preserveAspectRatio", "none");
 
   // rating は静的テキスト
@@ -113,7 +112,7 @@ function buildSelectionTopUI(svgText) {
   }
 
   // 全幅引き伸ばし時も文字だけアスペクト比を維持する
-  keepTextAspect(svgEl, [ratingEl, selTopScoreEl, selTopTitleEl]);
+  InlineSvgHelper.keepTextAspect(svgEl, [ratingEl, selTopScoreEl, selTopTitleEl]);
 
   screenEl.appendChild(selTopUiEl);
 }
@@ -130,7 +129,7 @@ function buildDOM(svgTemplate) {
     card.className = "song-card";
 
     //  <style> をスコープ化してSVGテンプレートをカードに埋め込む
-    const svg = inlineSvg(card, svgTemplate);
+    const svg = InlineSvgHelper.inlineSvg(card, svgTemplate);
 
     svg.querySelector("#title").innerHTML =
       `<tspan x="0" y="0">SONG NAME</tspan><tspan x="0" dy="1.2em" font-size="34px" font-weight="bold">${song.title}</tspan>`;

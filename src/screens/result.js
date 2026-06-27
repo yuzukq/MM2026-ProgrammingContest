@@ -2,7 +2,7 @@
 // リザルト画面：封筒(envelope.svg)を開封→歌詞カード(lyriccard.svg)が登場し、
 // 回収できた歌詞を判定の不透明度付きで刻む
 
-import { inlineSvg } from "../inline-svg.js"; // インライン展開のヘルパー
+import * as InlineSvgHelper from "../inline-svg-helper.js";
 
 const ENVELOPE_SRC = "/assets/envelope.svg";
 const LYRICCARD_SRC = "/assets/lyriccard.svg";
@@ -121,8 +121,8 @@ async function buildDOM() {
     fetch(ENVELOPE_SRC).then((r) => r.text()),
     fetch(LYRICCARD_SRC).then((r) => r.text()),
   ]);
-  inlineSvg(envelopeEl, envSvg);
-  const cardSvgEl = inlineSvg(cardEl, cardSvg); // スタイルのスコープ限定
+  InlineSvgHelper.inlineSvg(envelopeEl, envSvg);
+  const cardSvgEl = InlineSvgHelper.inlineSvg(cardEl, cardSvg); // スタイルのスコープ限定
   cardEl.appendChild(lyricEl); // 歌詞オーバーレイはカードSVGの上に重ねる
 
   // カードSVGの text 参照を取得し、#lyric プレースホルダは除去（HTMLで描くので）
