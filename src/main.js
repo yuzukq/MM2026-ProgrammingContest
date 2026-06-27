@@ -53,7 +53,7 @@ async function exit(s) {
       credits.hideCreditsBtn();
       break;
     case STATE.SELECTION:
-      await selection.hideSelectionScreen(); // 退場はプロミスする
+      await selection.hideSelectionScreen(300);
       break;
     case STATE.LOADING:
       loading.hideLoadingScreen();
@@ -82,7 +82,7 @@ function enter(s, ctx) {
       credits.showCreditsBtn();
       break;
     case STATE.SELECTION:
-      selection.showSelectionScreen(); // 選曲画面の描画
+      selection.showSelectionScreen(400);
       break;
     case STATE.LOADING:
       loading.showLoadingScreen();

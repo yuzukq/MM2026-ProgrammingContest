@@ -44,7 +44,7 @@ export async function initSelection(onSelected) {
   bindEvents();
 }
 
-export function showSelectionScreen() {
+export function showSelectionScreen(dur) {
   scrollOffset = selectedIndex; // 前回選択位置から再開
   updateCards();
   screenEl.style.display = "flex";
@@ -53,32 +53,31 @@ export function showSelectionScreen() {
   cardsContainerEl.style.transition = "none";
   cardsContainerEl.style.transform = "translateX(-620px)";
   void cardsContainerEl.offsetWidth;
-  cardsContainerEl.style.transition = "transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94)";
+  cardsContainerEl.style.transition = `transform ${dur}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
   cardsContainerEl.style.transform = "translateX(0)";
 
   // 上部バーを上からスライドイン
   selTopUiEl.style.transition = "none";
   selTopUiEl.style.transform = "translateY(-10vh)";
   void selTopUiEl.offsetWidth;
-  selTopUiEl.style.transition = "transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)";
+  selTopUiEl.style.transition = `transform ${dur}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
   selTopUiEl.style.transform = "translateY(0)";
 }
 
-export function hideSelectionScreen() {
-  const DURATION = 380;
+export function hideSelectionScreen(dur) {
   const easing = "cubic-bezier(0.55, 0, 1, 0.45)"; // ease-in (スライドイン の逆)
 
-  cardsContainerEl.style.transition = `transform ${DURATION}ms ${easing}`;
+  cardsContainerEl.style.transition = `transform ${dur}ms ${easing}`;
   cardsContainerEl.style.transform = "translateX(-620px)";
 
-  selTopUiEl.style.transition = `transform ${DURATION - 40}ms ${easing}`;
+  selTopUiEl.style.transition = `transform ${dur - 40}ms ${easing}`;
   selTopUiEl.style.transform = "translateY(-10vh)";
 
   return new Promise((resolve) => {
     setTimeout(() => {
       screenEl.style.display = "none";
       resolve();
-    }, DURATION);
+    }, dur);
   });
 }
 
