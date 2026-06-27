@@ -22,8 +22,12 @@ export function showLoadingScreen() {
 }
 
 export function hideLoadingScreen() {
+  // リセット
   screenEl.style.display = "none";
-  finishBgEl.style.opacity = "0"; // 次回のために元に戻す
+  finishBgEl.style.opacity = "0";
+  hintEl.textContent = "";
+  hintEl.style.opacity = "0";
+  screenEl.style.cursor = "";
   isReady = false;
   inTransition = false;
   screenEl.style.pointerEvents = "";
