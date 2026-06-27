@@ -12,7 +12,7 @@ const CAM_PRESETS = {
   verse: {
     position: [-0.17, 0.23, 6.77],
     target: [1.19, 0.36, 1.96],
-    staffPos: [2.3, 1.96, -7.11],
+    staffPos: [2.76, 1.96, -7.11],
   },
   // サビの構図
   chorus: {
