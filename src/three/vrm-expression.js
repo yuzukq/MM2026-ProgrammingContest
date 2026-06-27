@@ -97,6 +97,16 @@ function updateMood() {
 
 // 自動瞬き4-6秒のランダム間隔で blink を0→1→0
 function updateBlink(delta) {
+  // hauが出ている間は瞳が細められているので瞬きをスキップ
+  if ((moodWeights.hau ?? 0) >= 0.9) {
+    // 進行中の瞬きは中断して開いた状態（blink=0）へ戻す
+    if (blinkProgress >= 0) {
+      exprMgr.setValue("blink", 0);
+      blinkProgress = -1;
+      scheduleNextBlink();
+    }
+    return;
+  }
   if (blinkProgress >= 0) {
     blinkProgress += delta / BLINK_DUR;
     if (blinkProgress >= 1) {
