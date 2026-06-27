@@ -3,6 +3,7 @@
 // ロード完了（setLoadingReady）後にタップされたら onStartCallback を呼ぶ
 
 let screenEl = null;
+let finishBgEl = null;
 let hintEl = null;
 let onStartCallback = null;
 let isReady = false; // onVideoReady が来るまでタップを受け付けない
@@ -22,6 +23,7 @@ export function showLoadingScreen() {
 
 export function hideLoadingScreen() {
   screenEl.style.display = "none";
+  finishBgEl.style.opacity = "0"; // 次回のために元に戻す
   isReady = false;
   inTransition = false;
   screenEl.style.pointerEvents = "";
@@ -39,6 +41,7 @@ export function startPlayTransition(onComplete) {
 export function setLoadingReady() {
   isReady = true;
   screenEl.style.cursor = "pointer";
+  finishBgEl.style.opacity = "1"; // loading_finish.png へクロスフェード
   hintEl.textContent = "Tap to Start";
   hintEl.style.opacity = "1";
 }
@@ -49,10 +52,14 @@ function buildDOM() {
   screenEl = document.createElement("div");
   screenEl.id = "loading-screen";
 
+  finishBgEl = document.createElement("div");
+  finishBgEl.id = "loading-finish-bg";
+
   hintEl = document.createElement("p");
   hintEl.id = "loading-hint";
   hintEl.textContent = "";
 
+  screenEl.appendChild(finishBgEl);
   screenEl.appendChild(hintEl);
   document.body.appendChild(screenEl);
 

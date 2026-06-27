@@ -70,6 +70,16 @@ body {
   cursor: default;
 }
 
+#loading-finish-bg {
+  position: absolute;
+  inset: 0;
+  background-image: url("/assets/loading_finish.png");
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
 #loading-hint {
   position: relative;
   z-index: 1;
