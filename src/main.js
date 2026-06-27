@@ -59,7 +59,7 @@ async function exit(s) {
       loading.hideLoadingScreen();
       break;
     case STATE.PLAYING:
-      await fade.fadeIn(500); // 曲終端でフェードアウト後にリザルト
+      await fade.fadeIn(800); // 曲終端で幕下ろし
       canvas.stopCanvasLoop();
       keyboard.hideKeyboard();
       ui.hideUI();
@@ -83,7 +83,6 @@ function enter(s, ctx) {
       break;
     case STATE.SELECTION:
       selection.showSelectionScreen(); // 選曲画面の描画
-      // fade.fadeOut(100); // 幕を上げる
       break;
     case STATE.LOADING:
       selection.hideSelectionScreen();
@@ -96,7 +95,6 @@ function enter(s, ctx) {
       game.resetGame();
       player.createFromSongUrl(ctx.song.url, { video: ctx.song.video });
       scene.initScene(); // ローディング画面の裏で Three.js シーン＋VRM をプリロード
-      // fade.fadeOut(100);
       break;
     case STATE.PLAYING:
       scene.showRenderer();
@@ -127,7 +125,7 @@ function enter(s, ctx) {
         title: currentSong?.title,
         artist: currentSong?.artist,
       });
-      fade.fadeOut(100); // 幕上げ
+      fade.fadeOut(400); // 幕上げ
       break;
     }
   }

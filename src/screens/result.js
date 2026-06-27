@@ -15,7 +15,7 @@ const SCORE_HAPPY_THRESHOLD = 400;
 const RATING_OPACITY = { PERFECT: 1.0, GOOD: 0.4, BAD: 0.2 };
 
 const WORD_STAGGER_MS = 40; // 1語ごとの刻み間隔
-const OPEN_MS = 1500; // flap透過＋flapinner展開の所要（CSSと合わせること）
+const OPEN_MS = 2000; // flap透過＋flapinner展開の所要（CSSと合わせること）
 const CARD_MS = 550; // カード登場の所要（CSSと合わせること）
 const CARD_W = 595.24; // lyriccard の viewBox 幅（テキスト中央寄せ／縮小の基準）
 const TEXT_MAX_W = 520; // 1行テキスト(title / artist-score)の最大幅(user units)。超えたら縮小

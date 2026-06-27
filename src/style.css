@@ -185,7 +185,7 @@ body {
 }
 #result-envelope svg #flapinner {
   clip-path: inset(100% 0 0 0); /* 初期は全隠し */
-  transition: clip-path 1.4s ease;
+  transition: clip-path 1.6s ease;
 }
 #result-screen.opened #result-envelope svg #flap {
   opacity: 0;
@@ -317,7 +317,7 @@ body {
   position: fixed;
   inset: 0;
   z-index: 25;
-  background: #5ca0ef;
+  background: #f0f7ff;
   opacity: 0;
   pointer-events: none;
 }
