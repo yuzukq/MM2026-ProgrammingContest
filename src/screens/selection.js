@@ -4,6 +4,7 @@
 
 import { SONGS } from "../data/songs.js";
 import { inlineSvg } from "../inline-svg.js"; // インライン展開のヘルパー
+import { keepTextAspect } from "../keep-text-aspect.js"; // 文字のアスペクト比を逆変換するヘルパー
 
 const CARD_SVG_SRC = "/assets/selectcard.svg";
 const TOP_UI_SRC = "/assets/topui.svg";
@@ -84,10 +85,8 @@ export function hideSelectionScreen(dur) {
 // ── internal ────────────────────────────
 
 function updateSelectionTopUI() {
-  if (!selTopScoreEl || !selTopTitleEl) return;
-  const song = SONGS[selectedIndex];
-  selTopScoreEl.textContent = `HighScore: ${getHighScore(song.id)}`;
-  selTopTitleEl.textContent = song.title;
+  if (!selTopTitleEl) return;
+  selTopTitleEl.textContent = SONGS[selectedIndex].title;
 }
 
 // ======== DOM構築 ========
@@ -103,10 +102,18 @@ function buildSelectionTopUI(svgText) {
   const ratingEl = svgEl.querySelector("#rating");
   if (ratingEl) ratingEl.textContent = "Track selection";
 
-  // score・title は動的更新用に参照を保持
   selTopScoreEl = svgEl.querySelector("#score");
+  if (selTopScoreEl) selTopScoreEl.textContent = "";
+
+  // title は動的更新用に参照を保持
   selTopTitleEl = svgEl.querySelector("#title");
-  if (selTopTitleEl) selTopTitleEl.setAttribute("text-anchor", "end");
+  if (selTopTitleEl) {
+    selTopTitleEl.setAttribute("text-anchor", "end");
+    selTopTitleEl.textContent = "こたえて";
+  }
+
+  // 全幅引き伸ばし時も文字だけアスペクト比を維持する
+  keepTextAspect(svgEl, [ratingEl, selTopScoreEl, selTopTitleEl]);
 
   screenEl.appendChild(selTopUiEl);
 }
