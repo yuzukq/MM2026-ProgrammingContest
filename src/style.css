@@ -80,12 +80,15 @@ body {
 }
 
 #loading-hint {
-  position: relative;
+  position: absolute;
+  bottom: 8vh;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 1;
-  margin: 16px 0 0;
+  white-space: nowrap;
   color: #8bffff;
   font-family: "MochiyPopOne", sans-serif;
-  font-size: 24px;
+  font-size: 32px;
   letter-spacing: 0.12em;
   -webkit-text-stroke: 1px white;
   text-shadow: 0 0 4px white;
