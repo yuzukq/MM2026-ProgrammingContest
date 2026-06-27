@@ -14,6 +14,7 @@ import * as credits from "./screens/credits.js";
 import * as selection from "./screens/selection.js";
 import * as loading from "./screens/loading.js";
 import * as result from "./screens/result.js";
+import * as fade from "./transition.js";
 import { vowelOf } from "./vowel.js";
 import { startFpsMeter } from "./debug-fps.js"; // 完成前に消す
 
@@ -31,16 +32,45 @@ let currentSong = null; // 現在プレイ中の曲（ハイスコア保存に�
 let lastBeatIndex = -1; // 直近に検知したビートの通し番号（拍の切り替わり検知に使う）
 let endRequested = false; // 終端で requestStop を多重発火させないためのフラグ
 let endArmed = false; // 本編内の正常な再生位置を観測したら true。これが立つまで onTimeUpdate を捨てる
+let playRevealDone = false; // 初回ビート到達でオーバーレイを剥がすフラグ
 
 // 終端検知のマージン[ms]
 const END_DETECT_MARGIN_MS = 250;
 
 // state遷移のトリガー
-// (遷移先, 遷移時に必要な情報(引数なしでは空オブジェクト))
-function transition(to, ctx = {}) {
-  exit(state);
+async function transition(to, ctx = {}) {
+  const from = state;
   state = to;
+  if (from !== to) await exit(from); // 初回TITLEステートは exit をスキップ
   enter(to, ctx);
+}
+
+// 現在ステートから 出る時 に実行する関数呼び出し
+async function exit(s) {
+  switch (s) {
+    case STATE.TITLE:
+      // await fade.fadeIn(100); // 幕を下ろす
+      title.hideTitleScreen();
+      credits.hideCreditsBtn();
+      break;
+    case STATE.SELECTION:
+      // await fade.fadeIn(100);
+      break;
+    case STATE.LOADING:
+      loading.hideLoadingScreen();
+      break;
+    case STATE.PLAYING:
+      await fade.fadeIn(500); // 曲終端でフェードアウト後にリザルト
+      canvas.stopCanvasLoop();
+      keyboard.hideKeyboard();
+      break;
+    case STATE.RESULT:
+      await fade.fadeIn(300);
+      result.hideResultScreen();
+      break;
+    default:
+      break;
+  }
 }
 
 // 次ステートに入る時に実行する関数呼び出し
@@ -52,6 +82,7 @@ function enter(s, ctx) {
       break;
     case STATE.SELECTION:
       selection.showSelectionScreen(); // 選曲画面の描画
+      // fade.fadeOut(100); // 幕を上げる
       break;
     case STATE.LOADING:
       selection.hideSelectionScreen();
@@ -64,8 +95,11 @@ function enter(s, ctx) {
       game.resetGame();
       player.createFromSongUrl(ctx.song.url, { video: ctx.song.video });
       scene.initScene(); // ローディング画面の裏で Three.js シーン＋VRM をプリロード
+      // fade.fadeOut(100);
       break;
     case STATE.PLAYING:
+      fade.cover(); // T ポーズを即時隠蔽（初回ビート到達後に fadeOut で解除）
+      playRevealDone = false;
       canvas.initCanvas();
       keyboard.initKeyboard();
       scene.resetSceneState(); // 2曲目以降の VRM 表情をリセット
@@ -90,30 +124,9 @@ function enter(s, ctx) {
         title: currentSong?.title,
         artist: currentSong?.artist,
       });
+      fade.fadeOut(100); // 幕上げ
       break;
     }
-  }
-}
-
-// 現在ステートから出る時に実行する関数呼び出し
-function exit(s) {
-  switch (s) {
-    case STATE.TITLE:
-      title.hideTitleScreen();
-      credits.hideCreditsBtn();
-      break;
-    case STATE.LOADING:
-      loading.hideLoadingScreen();
-      break;
-    case STATE.PLAYING:
-      canvas.stopCanvasLoop();
-      keyboard.hideKeyboard();
-      break;
-    case STATE.RESULT:
-      result.hideResultScreen();
-      break;
-    default:
-      break;
   }
 }
 // ===========================================
@@ -128,15 +141,13 @@ function getMouthVowel(position) {
   return vowelOf(char.text) ?? "_pak";
 }
 
-// 選曲ステートへの遷移をタイトル画面にコールバック
+fade.initTransition();
+
 title.initTitle(() => transition(STATE.SELECTION));
 credits.initCredits();
 
-// selection.js の onSongSelectedCallbackに曲が決まったら呼ぶ関数を渡す
 await selection.initSelection((song) => transition(STATE.LOADING, { song }));
 
-// ロード画面を初期化
-// ロード完了画面のタップにrequestPlayをコールバックとして仕込む
 loading.initLoading(() => {
   loading.startPlayTransition(() => {
     player.requestPlay();
@@ -144,8 +155,6 @@ loading.initLoading(() => {
   });
 });
 
-// リザルト画面を初期化
-// タップで選曲画面に戻るコールバックを渡す
 result.initResult(() => transition(STATE.SELECTION));
 
 // 歌詞フォントを起動時から並行読込（プレイ開始までに揃える）。失敗時はフォールバック
@@ -204,7 +213,8 @@ player.addListener({
     // 終端検知: 本来の終端へ到達したら requestStop → onStop でリザルトへ
     if (!endRequested && position >= duration - END_DETECT_MARGIN_MS) {
       endRequested = true;
-      player.requestStop(); // onStopを発火させる
+      player.requestStop();
+      transition(STATE.RESULT); // ステートを RESULT に変更して exit時 に fade
       return;
     }
 
@@ -226,6 +236,12 @@ player.addListener({
     if (beat && beat.index !== lastBeatIndex) {
       isNewBeat = true;
       lastBeatIndex = beat.index;
+    }
+
+    // 初回ビート到達でオーバーレイを剥がす
+    if (isNewBeat && !playRevealDone) {
+      playRevealDone = true;
+      fade.fadeOut(400);
     }
     // 曲の進捗(0..1)
     const progress = position / player.video.duration;
