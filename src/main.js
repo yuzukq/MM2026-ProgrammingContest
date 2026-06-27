@@ -49,8 +49,7 @@ async function transition(to, ctx = {}) {
 async function exit(s) {
   switch (s) {
     case STATE.TITLE:
-      // await fade.fadeIn(100); // 幕を下ろす
-      title.hideTitleScreen();
+      title.startLogoFadeOut(400); // タイトルロゴをフェードアウト
       credits.hideCreditsBtn();
       break;
     case STATE.SELECTION:
@@ -63,9 +62,11 @@ async function exit(s) {
       await fade.fadeIn(500); // 曲終端でフェードアウト後にリザルト
       canvas.stopCanvasLoop();
       keyboard.hideKeyboard();
+      ui.hideUI();
+      scene.hideRenderer();
       break;
     case STATE.RESULT:
-      await fade.fadeIn(300);
+      // await fade.fadeIn(300);
       result.hideResultScreen();
       break;
     default:
@@ -98,6 +99,8 @@ function enter(s, ctx) {
       // fade.fadeOut(100);
       break;
     case STATE.PLAYING:
+      scene.showRenderer();
+      ui.showUI();
       fade.cover(); // T ポーズを即時隠蔽（初回ビート到達後に fadeOut で解除）
       playRevealDone = false;
       canvas.initCanvas();

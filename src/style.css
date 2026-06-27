@@ -3,6 +3,7 @@ body {
   width: 100%;
   height: 100dvh; /* dvh: アドレスバー表示/非表示に合わせた実際の表示領域に合わせる */
   overflow: hidden; /* はみ出た部分は非表示 */
+  background-image: url("/assets/background.png"); /* 共通背景 */
   background-size: cover;
   background-position: center;
   user-select: none; /* 長押しによるテキスト範囲選択を無効化 */
@@ -39,11 +40,15 @@ body {
   position: fixed;
   inset: 0;
   z-index: 20;
-  display: none;
-  background-image: url("/assets/title.png");
-  background-size: cover;
-  background-position: center;
+  display: none; /* showTitleScreen() で flex に切り替える */
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
+}
+
+#title-logo {
+  max-width: 70%;
+  pointer-events: none;
 }
 
 /* z-index: 20  ロード画面（選曲後〜タップ開始まで） */
@@ -90,9 +95,6 @@ body {
   display: none; /* showSelectionScreen() で flex に切り替える */
   align-items: left;
   justify-content: left;
-  background-image: url("/assets/background.png");
-  background-size: cover;
-  background-position: center;
 }
 
 #selection-cards {
@@ -149,9 +151,6 @@ body {
   display: none;
   align-items: center;
   justify-content: center;
-  background-image: url("/assets/background.png");
-  background-size: cover;
-  background-position: center;
   cursor: pointer;
 }
 

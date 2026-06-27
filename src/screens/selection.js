@@ -15,6 +15,7 @@ const WHEEL_COOLDOWN = 200; // ホイール連続スクロール抑制(ms)
 let selectedIndex = 0;
 let cardElements = [];
 let screenEl = null;
+let cardsContainerEl = null;
 let onSongSelectedCallback = null;
 
 // ── public ──────────────────────────────
@@ -31,6 +32,12 @@ export async function initSelection(onSelected) {
 export function showSelectionScreen() {
   refreshHighScores();
   screenEl.style.display = "flex";
+  // 左からスライドイン
+  cardsContainerEl.style.transition = "none";
+  cardsContainerEl.style.transform = "translateX(-620px)";
+  void cardsContainerEl.offsetWidth; // reflow でリセットを確定させてから transition を付与
+  cardsContainerEl.style.transition = "transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94)";
+  cardsContainerEl.style.transform = "translateX(0)";
 }
 
 export function hideSelectionScreen() {
@@ -51,7 +58,8 @@ function buildDOM(svgTemplate) {
   screenEl = document.createElement("div");
   screenEl.id = "selection-screen";
 
-  const cardsContainer = document.createElement("div");
+  cardsContainerEl = document.createElement("div");
+  const cardsContainer = cardsContainerEl;
   cardsContainer.id = "selection-cards";
 
   SONGS.forEach((song, i) => {
