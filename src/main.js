@@ -64,6 +64,7 @@ async function exit(s) {
       keyboard.hideKeyboard();
       ui.hideUI();
       scene.hideRenderer();
+      document.body.classList.remove("playing");
       break;
     case STATE.RESULT:
       // await fade.fadeIn(300);
@@ -96,6 +97,7 @@ function enter(s, ctx) {
       scene.initScene(); // ローディング画面の裏で Three.js シーン＋VRM をプリロード
       break;
     case STATE.PLAYING:
+      document.body.classList.add("playing"); // カーソルの切り替え
       scene.showRenderer();
       ui.showUI();
       fade.cover(); // T ポーズを即時隠蔽（初回ビート到達後に fadeOut で解除）
