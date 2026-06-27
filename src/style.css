@@ -8,16 +8,16 @@ body {
   background-position: center;
   user-select: none; /* 長押しによるテキスト範囲選択を無効化 */
   -webkit-user-select: none;
-  cursor:
+  /*cursor:
     url("/cursor.png") 8 8,
-    auto;
+    auto;*/
 }
 
-*:active {
+/**:active {
   cursor:
     url("/cursor-active.png") 8 8,
     auto;
-}
+}*/
 
 /* インラインSVG鍵盤：プレイエリア内に敷き詰め */
 #keyboard-wrapper {
