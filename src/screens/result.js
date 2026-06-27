@@ -8,8 +8,23 @@ const ENVELOPE_SRC = "/assets/envelope.svg";
 const LYRICCARD_SRC = "/assets/lyriccard.svg";
 const MIKU_HAPPY_SRC = "/assets/result_miku_happy.png";
 const MIKU_NORMAL_SRC = "/assets/result_miku_normal.png";
+const MIKU_CLOSE_SRC = "/assets/result_miku_close.png";
+const MIKU_HATYUNE_SRC = "/assets/result_miku_hatyune.png";
 
-const SCORE_HAPPY_THRESHOLD = 400;
+// スコア帯ごとの立ち絵差分
+const MIKU_THRESHOLDS = [
+  [45000, MIKU_HAPPY_SRC],
+  [40000, MIKU_NORMAL_SRC],
+  [35000, MIKU_CLOSE_SRC],
+];
+
+// スコアから表示する立ち絵のを選ぶ
+function mikuSrcForScore(score) {
+  for (const [min, src] of MIKU_THRESHOLDS) {
+    if (score >= min) return src;
+  }
+  return MIKU_HATYUNE_SRC;
+}
 
 // 判定→不透明度（PERFECT=くっきり、BAD=薄く）。触れられなかった単語も game 側で BAD 判定される
 const RATING_OPACITY = { PERFECT: 1.0, GOOD: 0.4, BAD: 0.2 };
@@ -46,7 +61,7 @@ export function showResultScreen({ score, collectedLyrics, title, artist }) {
   clearTimers();
 
   // スコアに応じて表情差分を切り替え
-  if (mikuEl) mikuEl.src = score >= SCORE_HAPPY_THRESHOLD ? MIKU_HAPPY_SRC : MIKU_NORMAL_SRC;
+  if (mikuEl) mikuEl.src = mikuSrcForScore(score);
 
   // テキスト反映
   if (titleTextEl) titleTextEl.textContent = title ?? "";
