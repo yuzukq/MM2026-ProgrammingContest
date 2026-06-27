@@ -145,9 +145,6 @@ body {
   position: absolute;
   cursor: pointer;
   transform-origin: left center; /* 左端固定で拡大して相対的にポジション操作する */
-  transition:
-    transform 0.25s ease,
-    opacity 0.25s ease;
   will-change: transform, opacity;
   line-height: 0; /* SVG下の隙間をなくす */
 }

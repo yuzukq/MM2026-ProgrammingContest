@@ -9,8 +9,9 @@ const CARD_SVG_SRC = "/assets/selectcard.svg";
 const TOP_UI_SRC = "/assets/topui.svg";
 const CARD_STEP = 170; // 隣カードまでの縦オフセット(px)
 const SELECTED_SCALE = 1.3; // 選択状態のカードスケール
-const SWIPE_THRESHOLD = 10; // スワイプ判定の最小移動量(px)
-const WHEEL_COOLDOWN = 300; // ホイール連続スクロール抑制(ms)
+
+const SNAP_DURATION = 250; // スナップアニメーション時間(ms)
+const FLICK_VEL = 0.5; // cards/sec  スナップの閾値
 
 let selectedIndex = 0;
 let cardElements = [];
@@ -21,10 +22,17 @@ let selTopScoreEl = null;
 let selTopTitleEl = null;
 let onSongSelectedCallback = null;
 
+// 連続スクロール状態
+let scrollOffset = 0; // float。整数値 = 対応カードが中央
+let rafId = null;
+
+// タッチ追跡
+let touchLastY = 0;
+let touchVelocity = 0; // cards/ms
+let touchLastTime = 0;
+
 // ── public ──────────────────────────────
 
-// main.js から await で呼ぶ。
-// SVG フェッチが完了してから DOM を構築する
 export async function initSelection(onSelected) {
   onSongSelectedCallback = onSelected;
   const [cardSvg, topUiSvg] = await Promise.all([
@@ -37,7 +45,8 @@ export async function initSelection(onSelected) {
 }
 
 export function showSelectionScreen() {
-  updateSelectionTopUI();
+  scrollOffset = selectedIndex; // 前回選択位置から再開
+  updateCards();
   screenEl.style.display = "flex";
 
   // カードを左からスライドイン
@@ -131,75 +140,163 @@ function buildDOM(svgTemplate) {
 }
 
 // ======== イベント登録 ========
+
 function bindEvents() {
-  let touchStartY = 0;
+  // ──────── スワイプ操作: 1:1 で追従し離したらスナップ ────────
   screenEl.addEventListener(
     "touchstart",
     (e) => {
-      touchStartY = e.touches[0].clientY;
-    },
-    { passive: true }
-  );
-  screenEl.addEventListener(
-    "touchend",
-    (e) => {
-      const delta = touchStartY - e.changedTouches[0].clientY;
-      if (delta > SWIPE_THRESHOLD) move(1);
-      else if (delta < -SWIPE_THRESHOLD) move(-1);
+      touchLastY = e.touches[0].clientY;
+      touchVelocity = 0;
+      touchLastTime = performance.now();
+      cancelAnim();
     },
     { passive: true }
   );
 
-  let wheelCooldown = false;
+  screenEl.addEventListener(
+    "touchmove",
+    (e) => {
+      const y = e.touches[0].clientY;
+      const now = performance.now();
+      const dt = now - touchLastTime;
+      const dy = touchLastY - y; // dy > 0  = 下スクロール
+      if (dt > 0) touchVelocity = dy / CARD_STEP / dt; // cards/ms
+      scrollOffset += dy / CARD_STEP;
+      touchLastY = y;
+      touchLastTime = now;
+      updateCards();
+    },
+    { passive: true }
+  );
+
+  screenEl.addEventListener(
+    "touchend",
+    () => {
+      startSnapWithMomentum(touchVelocity * 1000); // cards/sec に変換
+    },
+    { passive: true }
+  );
+
+  // 離したら最寄りにスナップ
+  screenEl.addEventListener("touchcancel", () => startSnap(), { passive: true });
+  // ────────────────────────────────────────────────
+
+  // ── ホイール(trackpad) の連続スクロール ──
   screenEl.addEventListener(
     "wheel",
     (e) => {
       e.preventDefault();
-      if (wheelCooldown) return;
-      wheelCooldown = true;
-      setTimeout(() => (wheelCooldown = false), WHEEL_COOLDOWN);
-      move(e.deltaY > 0 ? 1 : -1);
+      cancelAnim();
+      let delta = e.deltaY;
+      if (e.deltaMode === 1) delta *= 30; // lines → px
+      if (e.deltaMode === 2) delta *= 300; // pages → px
+      scrollOffset += delta / CARD_STEP; // deltaY を累積して、イベントが止まったらスナップ
+      updateCards();
+      startSnap();
     },
     { passive: false }
   );
 
+  // ── キーボード ──
   window.addEventListener("keydown", (e) => {
     if (screenEl.style.display === "none") return;
-    if (e.key === "ArrowDown") move(1);
-    else if (e.key === "ArrowUp") move(-1);
+    const n = SONGS.length;
+    if (e.key === "ArrowDown") moveTo((selectedIndex + 1) % n);
+    else if (e.key === "ArrowUp") moveTo((selectedIndex - 1 + n) % n);
     else if (e.key === "Enter") confirmSelection();
   });
 }
 
-// ======== 内部ロジック ========
-function move(delta) {
-  moveTo(selectedIndex + delta);
-}
-
-function moveTo(index) {
+function moveTo(targetIdx) {
   const n = SONGS.length;
-  selectedIndex = ((index % n) + n) % n; // 循環インデックス
-  updateCards();
-  updateSelectionTopUI();
+  const HALF = n / 2;
+  // 現在の整数位置から近い側の targetIdx へ
+  const currentInt = Math.round(scrollOffset);
+  const currentMod = ((currentInt % n) + n) % n;
+  let diff = targetIdx - currentMod;
+  if (diff > HALF) diff -= n;
+  if (diff < -HALF) diff += n;
+  snapToOffset(currentInt + diff);
 }
 
 function confirmSelection() {
   onSongSelectedCallback?.(SONGS[selectedIndex]);
 }
 
-// 循環距離に基づいてスケールを更新する
+// ======== スクロール＆スナップ ========
+
+function cancelAnim() {
+  if (rafId !== null) {
+    cancelAnimationFrame(rafId);
+    rafId = null;
+  }
+}
+
+// 最寄りカードへスナップする
+function startSnap() {
+  snapToOffset(Math.round(scrollOffset));
+}
+
+function startSnapWithMomentum(velocityCardsPerSec) {
+  // フリックなら次カードへ
+  if (Math.abs(velocityCardsPerSec) > FLICK_VEL) {
+    snapToOffset(Math.round(scrollOffset) + Math.sign(velocityCardsPerSec));
+  } // 停止で最寄りへスナップ
+  else {
+    startSnap();
+  }
+}
+
+// 指定オフセットへイーズアウトで移動
+function snapToOffset(target) {
+  const n = SONGS.length;
+  const startOffset = scrollOffset;
+  const startTime = performance.now();
+
+  cancelAnim();
+
+  const animate = (ts) => {
+    const t = Math.min((ts - startTime) / SNAP_DURATION, 1);
+    const eased = 1 - Math.pow(1 - t, 3); // cubic ease-out
+    scrollOffset = startOffset + (target - startOffset) * eased;
+    updateCards();
+    if (t < 1) {
+      rafId = requestAnimationFrame(animate);
+    } else {
+      scrollOffset = ((target % n) + n) % n; // 正規化
+      updateCards();
+      rafId = null;
+    }
+  };
+
+  rafId = requestAnimationFrame(animate);
+}
+
+// ======== カード描画 ========
+// 左端固定でアスペクト比を維持してスケールするので相対的に右端が画面中央方向へ伸びる
 function updateCards() {
   const n = SONGS.length;
   const HALF = n / 2;
+
+  // 最寄り整数インデックスを選択カードとして扱う
+  const newSelected = ((Math.round(scrollOffset) % n) + n) % n;
+  if (newSelected !== selectedIndex) {
+    selectedIndex = newSelected;
+    updateSelectionTopUI();
+  }
+
   cardElements.forEach((card, i) => {
-    const raw = (((i - selectedIndex) % n) + n) % n;
-    const dist = raw > HALF ? raw - n : raw;
-    const absDist = Math.abs(dist);
+    // i から scrollOffset までの循環距離 (-HALF .. +HALF)
+    let rawDist = i - scrollOffset;
+    rawDist = ((rawDist % n) + n) % n;
+    if (rawDist > HALF) rawDist -= n;
 
-    const scale = absDist === 0 ? SELECTED_SCALE : 1;
-    const opacity = absDist >= HALF ? 0 : 1;
+    const scale = i === selectedIndex ? SELECTED_SCALE : 1;
+    // 対向にある折り返しカードのみ非表示
+    const opacity = Math.abs(rawDist) > HALF ? 0 : 1;
 
-    card.style.transform = `translateY(${dist * CARD_STEP}px) scale(${scale})`;
+    card.style.transform = `translateY(${rawDist * CARD_STEP}px) scale(${scale})`;
     card.style.opacity = String(opacity);
   });
 }
