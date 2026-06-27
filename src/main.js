@@ -166,7 +166,7 @@ const fontReady = scene
 
 // TextAlive のイニシャライズ
 const player = new Player({
-  app: { token: "test" }, // TODO: 本番トークンに差し替える
+  app: { token: "6iTV3z1biAtAYXrr" },
   vocalAmplitudeEnabled: true,
 });
 
