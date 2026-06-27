@@ -65,7 +65,21 @@ export function showSelectionScreen() {
 }
 
 export function hideSelectionScreen() {
-  screenEl.style.display = "none";
+  const DURATION = 380;
+  const easing = "cubic-bezier(0.55, 0, 1, 0.45)"; // ease-in (スライドイン の逆)
+
+  cardsContainerEl.style.transition = `transform ${DURATION}ms ${easing}`;
+  cardsContainerEl.style.transform = "translateX(-620px)";
+
+  selTopUiEl.style.transition = `transform ${DURATION - 40}ms ${easing}`;
+  selTopUiEl.style.transform = "translateY(-10vh)";
+
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      screenEl.style.display = "none";
+      resolve();
+    }, DURATION);
+  });
 }
 
 // ── internal ────────────────────────────

@@ -53,7 +53,7 @@ async function exit(s) {
       credits.hideCreditsBtn();
       break;
     case STATE.SELECTION:
-      // await fade.fadeIn(100);
+      await selection.hideSelectionScreen(); // 退場はプロミスする
       break;
     case STATE.LOADING:
       loading.hideLoadingScreen();
@@ -85,7 +85,6 @@ function enter(s, ctx) {
       selection.showSelectionScreen(); // 選曲画面の描画
       break;
     case STATE.LOADING:
-      selection.hideSelectionScreen();
       loading.showLoadingScreen();
       ui.preloadUI(); // ロード画面の裏でプログレスバー素材を読み込み
       currentSong = ctx.song;
