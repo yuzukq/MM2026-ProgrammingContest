@@ -46,6 +46,7 @@ export async function initSelection(onSelected) {
 
 export function showSelectionScreen(dur) {
   scrollOffset = selectedIndex; // 前回選択位置から再開
+  refreshHighScores(); // リザルトで更新されたハイスコアを反映
   updateCards();
   screenEl.style.display = "flex";
 
@@ -135,8 +136,7 @@ function buildDOM(svgTemplate) {
       `<tspan x="0" y="0">SONG NAME</tspan><tspan x="0" dy="1.2em" font-size="34px" font-weight="bold">${song.title}</tspan>`;
     svg.querySelector("#artist").innerHTML =
       `<tspan x="0" y="0">ARTIST</tspan><tspan x="0" dy="1.2em" font-size="34px" font-weight="bold">${song.artist}</tspan>`;
-    svg.querySelector("#score").innerHTML =
-      `<tspan x="0" y="0">HIGH SCORE</tspan><tspan x="0" dy="1.2em" font-size="34px" font-weight="bold">${getHighScore(song.id)}</tspan>`;
+    svg.querySelector("#score").innerHTML = scoreTspan(song.id);
 
     const holder = svg.querySelector("#image_holder");
     holder.innerHTML = `<image href="${song.jacket}" x="0" y="0" width="303.28" height="303.28" preserveAspectRatio="xMidYMid slice"/>`;
@@ -323,4 +323,18 @@ function updateCards() {
 function getHighScore(songId) {
   const stored = localStorage.getItem(`highscore_${songId}`);
   return stored !== null ? Math.floor(Number(stored)) : "---";
+}
+
+// カードの #score に入れる tspan（ラベル＋スコア値）
+function scoreTspan(songId) {
+  return `<tspan x="0" y="0">HIGH SCORE</tspan><tspan x="0" dy="1.2em" font-size="34px" font-weight="bold">${getHighScore(songId)}</tspan>`;
+}
+
+// 各カードのハイスコア表示を localStorage の最新値で再描画する。
+// リザルトで更新された値を選曲復帰時に反映させるために showSelectionScreen から呼ぶ。
+function refreshHighScores() {
+  cardElements.forEach((card, i) => {
+    const scoreEl = card.querySelector("#score");
+    if (scoreEl) scoreEl.innerHTML = scoreTspan(SONGS[i].id);
+  });
 }
