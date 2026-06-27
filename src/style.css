@@ -11,11 +11,15 @@ body {
 }
 
 body.playing {
-  cursor: url("/assets/cursor.png") 8 8, auto;
+  cursor:
+    url("/assets/cursor.png") 8 8,
+    auto;
 }
 
 body.playing *:active {
-  cursor: url("/assets/cursor-active.png") 8 8, auto;
+  cursor:
+    url("/assets/cursor-active.png") 8 8,
+    auto;
 }
 
 /* インラインSVG鍵盤：プレイエリア内に敷き詰め */
@@ -191,7 +195,7 @@ body.playing *:active {
 /* 封筒（4レイヤーのインラインSVG）。中央配置。カード登場で隠れる前提なので z は低め */
 #result-envelope {
   position: fixed;
-  left: 50%;
+  left: 36.8vh; /* 左寄せカードの中心X（5vh + 半幅31.8vh）に合わせる */
   top: 50%;
   transform: translate(-50%, -50%);
   height: 60vh;
@@ -223,21 +227,21 @@ body.playing *:active {
     初期は小さく隠れ、card-in で拡大登場 */
 #result-card {
   position: fixed;
-  left: 50%;
+  left: 5vh; /* 画面左へ寄せる（上下の最小余白と対称） */
   top: 50%;
   height: 90vh;
   aspect-ratio: 595.24 / 842.42;
   z-index: 2;
   container-type: size; /* 子の cqw 基準にする */
   opacity: 0;
-  transform: translate(-50%, -50%) scale(0.12);
+  transform: translate(0, -50%) scale(0.12);
   transition:
     transform 0.55s cubic-bezier(0.22, 1.2, 0.36, 1),
     opacity 0.3s ease;
 }
 #result-screen.card-in #result-card {
   opacity: 1;
-  transform: translate(-50%, -50%) scale(1);
+  transform: translate(0, -50%) scale(1);
 }
 #result-card svg {
   display: block;
@@ -299,21 +303,19 @@ body.playing *:active {
   }
 }
 
-/* リザルトスチルの表情差分：lyriccard の左に配置
-    card-in と同タイミングでフェードイン */
-/* right: 50% + カード半幅(31.8vh) + ギャップ でカード左端に揃える */
+/* リザルトスチルの表情差分 */
+
 #result-miku {
   position: fixed;
-  right: calc(50% + 31.8vh + 8px);
-  bottom: 5vh;
-  height: 45vh;
-  width: auto;
-  object-fit: contain;
-  z-index: 1;
+  right: 0;
+  bottom: 0;
+  width: calc(100vw - 68.6vh); /* カード右端から画面右端まで伸ばす */
+  height: auto; /* アス比を維持 */
+  z-index: 1; /* カード(z:2)より背面 */
   opacity: 0;
-  transition: opacity 0.4s ease;
+  transition: opacity 0.4s ease; /* 封筒登場（opened）と同タイミングでフェードイン */
 }
-#result-screen.card-in #result-miku {
+#result-screen.opened #result-miku {
   opacity: 1;
 }
 
