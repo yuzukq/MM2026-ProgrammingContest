@@ -93,6 +93,31 @@ body {
   transition: opacity 0.3s ease;
 }
 
+/* 選曲画面上部情報バー */
+#selection-top-ui {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 10vh;
+  pointer-events: none;
+}
+#selection-top-ui svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+#selection-top-ui svg text {
+  font-family: "Mochiy Pop One", sans-serif;
+}
+#selection-top-ui svg #rating {
+  stroke: #fff;
+  stroke-width: 6;
+  paint-order: stroke fill;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
 /* z-index: 20  選曲画面（プレイシーン開始前のみ表示） */
 #selection-screen {
   position: fixed;
@@ -119,6 +144,7 @@ body {
 .song-card {
   position: absolute;
   cursor: pointer;
+  transform-origin: left center; /* 左端固定で拡大して相対的にポジション操作する */
   transition:
     transform 0.25s ease,
     opacity 0.25s ease;
