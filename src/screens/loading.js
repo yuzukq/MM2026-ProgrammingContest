@@ -32,7 +32,7 @@ export function startPlayTransition(onComplete) {
   if (inTransition) return;
   inTransition = true;
   screenEl.style.pointerEvents = "none";
-  setTimeout(onComplete, 3000);
+  onComplete();
 }
 
 // onVideoReady から呼ぶ：タップ受付を有効にしてヒントを切り替える
