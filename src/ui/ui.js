@@ -3,6 +3,7 @@
 // 画面下部: プログレスバー（茎レイヤー常時表示＋開花レイヤーを progress でクリップ開花、先端に蝶）
 
 import { inlineSvg } from "../inline-svg.js";
+import { keepTextAspect } from "../keep-text-aspect.js";
 
 const TOP_UI_SRC = "/assets/topui.svg";
 const TITLE_MAX_W = 1150;
@@ -97,6 +98,8 @@ async function buildTopUI() {
   topTitleEl.setAttribute("text-anchor", "end");
   topScoreEl = svgEl.querySelector("#score");
   topRatingEl = svgEl.querySelector("#rating");
+  // 全幅引き伸ばし時も文字だけアスペクト比を維持する
+  keepTextAspect(svgEl, [topTitleEl, topScoreEl, topRatingEl]);
 }
 
 // 曲名が TITLE_MAX_W を超えていたらフォントを縮小して収める
