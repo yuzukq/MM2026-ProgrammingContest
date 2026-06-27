@@ -5,8 +5,7 @@ import { inlineSvg } from "../inline-svg.js";
 
 const LYRICCARD_SRC = "/assets/lyriccard.svg";
 
-// TODO: 後で差し替え
-const GAME_TITLE = "- TITLE -";
+const GAME_TITLE = "初音シンセサイザー";
 
 const CARD_W = 595.24;
 
@@ -38,7 +37,7 @@ const CREDITS_HTML = `
 <p><b>クレジット</b></p>
 <p>
   プログラム / モーション撮影：Yuzu<br>
-  イラスト / UIデザイン：ハッピー星人<br>
+  イラスト / UIデザイン：k4geri<br>
   3Dモデリング / モーションビルダー：らだー
 </p>
 <br>
