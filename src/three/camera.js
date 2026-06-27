@@ -10,9 +10,9 @@ const DEBUG_CAMERA = false;
 const CAM_PRESETS = {
   // Aメロなどサビ以外の構図
   verse: {
-    position: [0.25, -0.03, 6.63],
-    target: [0.99, 0.66, 1.73],
-    staffPos: [0.46, 3.07, -7.11],
+    position: [-0.17, 0.23, 6.77],
+    target: [1.19, 0.36, 1.96],
+    staffPos: [2.3, 1.96, -7.11],
   },
   // サビの構図
   chorus: {
@@ -25,8 +25,8 @@ const CAM_PRESETS = {
 const EASE_MS = 1500; // プリセット切替の補間時間
 
 // デバッグ操作速度
-const MOVE = 0.1; // カメラ移動(WASD/QE)
-const ROT = 0.01; // 視点回転(矢印)
+const MOVE = 0.01; // カメラ移動(WASD/QE)
+const ROT = 0.001; // 視点回転(矢印)
 const STAFF_MOVE = 0.01; // 五線譜移動(IJKL/UO)
 
 let camera = null;
