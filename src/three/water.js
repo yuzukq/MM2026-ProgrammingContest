@@ -8,7 +8,8 @@ import * as THREE from "three";
 import { Water } from "three/addons/objects/Water.js";
 import RIPPLE_GLSL from "./ripple.glsl?raw"; // 波紋シェーダー
 // 湖本体
-const LAKE_SIZE = 50; // 湖の広さ
+const LAKE_RADIUS = 60; // 湖の半径
+const LAKE_SEGMENTS = 96; // 円周の分割数
 const LAKE_Y = -1.2; // 水面の高さ（ミク足元に合わせること）
 const WATER_COLOR = 0x0092b7;
 const FLOW_SPEED = 0.002; // 鏡面の法線スクロール速度
@@ -26,7 +27,7 @@ let rippleCursor = 0; // uRipples 配列への書き込み位置
 // ── public ──────────────────────────────
 
 export function initWater(scene, sunDirection) {
-  const geometry = new THREE.PlaneGeometry(LAKE_SIZE, LAKE_SIZE);
+  const geometry = new THREE.CircleGeometry(LAKE_RADIUS, LAKE_SEGMENTS);
   water = new Water(geometry, {
     textureWidth: REFLECTION_RES,
     textureHeight: REFLECTION_RES,
