@@ -6,6 +6,7 @@ import * as THREE from "three";
 import STAFF_VERT from "./staff.vert.glsl?raw";
 import STAFF_FRAG from "./staff.frag.glsl?raw";
 import * as cameraRig from "./camera.js";
+import { asset } from "../asset-url.js";
 
 // ── 五線譜──
 const STAFF_LINE_COUNT = 5; // 線の本数
@@ -27,7 +28,7 @@ const TEXT_COLOR = "#00fff2";
 const OUTLINE_COLOR = "#ffffff";
 const OUTLINE_WIDTH = 6; // 見えるフチの太さ(px)
 const FONT_FAMILY = "Mochiy Pop One";
-const FONT_URL = "/assets/fonts/MochiyPopOne-subset.woff2";
+const FONT_URL = asset("/assets/fonts/MochiyPopOne-subset.woff2");
 const TEXT_FONT = `84px '${FONT_FAMILY}', sans-serif`;
 const TEXT_RESOLUTION = 128; // Canvas の縦解像度（px）
 const TEXT_GAP = 0.05; // 単語ないでの文字の隙間

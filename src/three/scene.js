@@ -13,6 +13,7 @@ import * as lyric from "./lyric.js";
 import * as cameraRig from "./camera.js"; // 命名被るから名前空間わけた
 import * as animator from "./vrm-animator.js"; // VRMアニメの再生制御（ボーン）
 import * as expression from "./vrm-expression.js"; // VRM表情（リップシンク・感情）
+import { asset } from "../asset-url.js";
 
 let scene, camera, renderer, vrm;
 let clock; // VRMアニメ更新用の delta 取得
@@ -83,7 +84,7 @@ export function initScene() {
   loader.register((parser) => new VRMLoaderPlugin(parser));
   loader.register((parser) => new VRMAnimationLoaderPlugin(parser));
 
-  loader.load("/assets/vrm/miku/miku.vrm", (gltf) => {
+  loader.load(asset("/assets/vrm/miku/miku.vrm"), (gltf) => {
     vrm = gltf.userData.vrm;
     vrm.scene.position.set(0.8, -1.12, 5.0);
     vrm.scene.rotation.set(0, THREE.MathUtils.degToRad(-50), 0);
@@ -203,10 +204,10 @@ export function updateScene({
 // VRMA アニメをロードして animator に登録する。
 function loadVrmAnimations(loader) {
   // 基本ループanim
-  loadLoop(loader, "/assets/vrm/miku/animations/Loop_verse.vrma", "verse");
-  loadLoop(loader, "/assets/vrm/miku/animations/Loop_HandWave2.vrma", "chorus");
+  loadLoop(loader, asset("/assets/vrm/miku/animations/Loop_verse.vrma"), "verse");
+  loadLoop(loader, asset("/assets/vrm/miku/animations/Loop_HandWave2.vrma"), "chorus");
   // ワンショットanim
-  loader.load("/assets/vrm/miku/animations/perfect-phrase.vrma", (gltf) => {
+  loader.load(asset("/assets/vrm/miku/animations/perfect-phrase.vrma"), (gltf) => {
     const vrmAnim = gltf.userData.vrmAnimations?.[0];
     if (!vrmAnim) return;
     animator.register("perfect-phrase", createVRMAnimationClip(vrmAnim, vrm), { loop: false });

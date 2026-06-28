@@ -2,8 +2,9 @@
 // タイトル画面右上のボタンとクレジットモーダルを管理する
 
 import * as InlineSvgHelper from "../inline-svg-helper.js";
+import { asset } from "../asset-url.js";
 
-const LYRICCARD_SRC = "/assets/lyriccard.svg";
+const LYRICCARD_SRC = asset("/assets/lyriccard.svg");
 
 const GAME_TITLE = "初音シンセサイザー";
 

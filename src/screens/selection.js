@@ -4,9 +4,10 @@
 
 import { SONGS } from "../data/songs.js";
 import * as InlineSvgHelper from "../inline-svg-helper.js";
+import { asset } from "../asset-url.js";
 
-const CARD_SVG_SRC = "/assets/selectcard.svg";
-const TOP_UI_SRC = "/assets/topui.svg";
+const CARD_SVG_SRC = asset("/assets/selectcard.svg");
+const TOP_UI_SRC = asset("/assets/topui.svg");
 const CARD_STEP = 170; // 隣カードまでの縦オフセット(px)
 const SELECTED_SCALE = 1.3; // 選択状態のカードスケール
 

@@ -5,6 +5,7 @@
 import * as canvas from "../canvas/canvas.js";
 import { LANE_COUNT, toLane } from "../lane.js"; // gameで使うレーン量子化を共有する
 import * as InlineSvgHelper from "../inline-svg-helper.js";
+import { asset } from "../asset-url.js";
 
 const HIGHLIGHT_COLOR = "#20B2AA";
 // キー内の高さがこの割合ぶん境界に寄っていたら、近い側の隣接キーも点灯（指の太さ対策で直感性UP）
@@ -29,7 +30,7 @@ export async function initKeyboard() {
   if (initialized) return;
   initialized = true;
   // SVGファイルをテキストとして取得
-  const res = await fetch("/assets/keyboard.svg");
+  const res = await fetch(asset("/assets/keyboard.svg"));
   const svgText = await res.text();
 
   // 取得したSVGをDOMに直接埋め込み

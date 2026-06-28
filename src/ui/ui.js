@@ -3,13 +3,14 @@
 // 画面下部: プログレスバー（茎レイヤー常時表示＋開花レイヤーを progress でクリップ開花、先端に蝶）
 
 import * as InlineSvgHelper from "../inline-svg-helper.js";
+import { asset } from "../asset-url.js";
 
-const TOP_UI_SRC = "/assets/topui.svg";
+const TOP_UI_SRC = asset("/assets/topui.svg");
 const TITLE_MAX_W = 1150;
 const RATING_COLOR = { PERFECT: "#ce206e", GOOD: "#20ce3d", BAD: "#888888" };
-const PROGRESS_STEM_SRC = "/assets/progressbar-stem.svg"; // 下レイヤー（茎）
-const PROGRESS_BLOOM_SRC = "/assets/progressbar.svg"; // 上レイヤー（開花）
-const PROGRESS_BUTTERFLY_SRC = "/assets/progressIndicator.svg"; // 蝶（先端）
+const PROGRESS_STEM_SRC = asset("/assets/progressbar-stem.svg"); // 下レイヤー（茎）
+const PROGRESS_BLOOM_SRC = asset("/assets/progressbar.svg"); // 上レイヤー（開花）
+const PROGRESS_BUTTERFLY_SRC = asset("/assets/progressIndicator.svg"); // 蝶（先端）
 
 let topUiEl = null; // 上部UIのラッパ（初回のみ構築）
 let topTitleEl = null; // SVG <text id="title">
