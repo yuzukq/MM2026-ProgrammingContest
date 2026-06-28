@@ -16,7 +16,6 @@ import * as loading from "./screens/loading.js";
 import * as result from "./screens/result.js";
 import * as fade from "./transition.js";
 import { vowelOf } from "./vowel.js";
-import { startFpsMeter } from "./debug-fps.js"; // 完成前に消す
 
 // ===============ステートマシン===============
 const STATE = {
