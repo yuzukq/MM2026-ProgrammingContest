@@ -1,8 +1,6 @@
 // water.js
-// リアルな湖（three.js の Water addon を流用）を担当する。
-// シングルトンなのでモジュールスコープ変数＋関数エクスポート（呼び出し側は import * as water）。
-// 段階1: 空を反射する「凪いだ鏡面の湖」を立てる（細かい揺れ・波紋は段階2でシェーダーに数式で足す）。
-// 法線マップは配布素材を避けるためコードで生成（外部テクスチャ不要）。
+// 湖（three.js の Water addon ）を担当する。
+// ビートをもらい法線移動による波紋を進行させる
 
 import * as THREE from "three";
 import { Water } from "three/addons/objects/Water.js";
@@ -68,7 +66,7 @@ export function updateWater(sunDirection) {
 
 // ── internal ────────────────────────────
 
-// normal生成(時間があれば自前で作るかも)
+// normal生成
 function makeFlatNormalTexture() {
   const data = new Uint8Array([128, 128, 255, 255]); // RGB=(128,128,255) → 法線(0,0,1)
   const tex = new THREE.DataTexture(data, 1, 1, THREE.RGBAFormat);
