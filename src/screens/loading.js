@@ -68,6 +68,7 @@ function buildDOM() {
 
   hintEl = document.createElement("p");
   hintEl.id = "loading-hint";
+  hintEl.className = "tap-hint";
   hintEl.textContent = "";
 
   screenEl.appendChild(finishBgEl);
