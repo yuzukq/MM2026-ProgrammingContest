@@ -1,6 +1,6 @@
 // scene.js
 // Three.js シーン一式。3D背景・ミクモデル・演出を管理する。
-// TextAlive の処理・ゲームロジックは別スクリプトに分離している。
+// VRM関連のイベントや背景演出周りの発火はここで行う
 
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
@@ -10,14 +10,14 @@ import { VRMAnimationLoaderPlugin, createVRMAnimationClip } from "@pixiv/three-v
 import * as sky from "./sky.js";
 import * as water from "./water.js";
 import * as lyric from "./lyric.js";
-import * as cameraRig from "./camera.js"; // 命名被るから名前空間わけた
+import * as cameraRig from "./camera.js";
 import * as animator from "./vrm-animator.js"; // VRMアニメの再生制御（ボーン）
 import * as expression from "./vrm-expression.js"; // VRM表情（リップシンク・感情）
 import { asset } from "../asset-url.js";
 
 let scene, camera, renderer, vrm;
 let clock; // VRMアニメ更新用の delta 取得
-let initialized = false;
+let isInitialized = false;
 
 // 基本ループの位相駆動用
 let beatPhaseRaw = 0; // 小節内の連続拍位置 (= beat.position-1 + beat.progress)
@@ -36,8 +36,8 @@ function moodForRatio(ratio) {
 
 // 起動時に1回だけ呼ぶ。Three.js の初期化・アニメーションループの開始を行う。
 export function initScene() {
-  if (initialized) return;
-  initialized = true;
+  if (isInitialized) return;
+  isInitialized = true;
   // =============シーン初期化=================
   scene = new THREE.Scene();
 
@@ -47,8 +47,7 @@ export function initScene() {
   clock = new THREE.Clock();
 
   renderer.setSize(window.innerWidth, window.innerHeight);
-  // モバイル(タッチ端末)は塗る画素数(fillrate)が重いので解像度上限を下げる。
-  // 1.5でまだカクつくなら 1 にすると60fpsに張り付くと思う
+  // モバイル(タッチ端末)は塗る画素数(fillrate)が重いので解像度上限を下げる
   const maxPixelRatio = window.matchMedia("(pointer: coarse)").matches ? 1.5 : 2;
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, maxPixelRatio));
   // Sky のHDRな明るさを破綻なく表示するためのトーンマッピング
@@ -64,8 +63,7 @@ export function initScene() {
   camera.position.set(-0.45, -0.15, 9.1); // 横, 縦, 距離
 
   // =============ライト=================
-  // ミク専用キーライト（暫定）Mtoonの調整の兼ね合いもあるのでこの辺はテクスチャ来てから調整
-  // 前方やや上・右から当てる。角度・強さはテクスチャ適用後に詰める想定
+  // ミク専用キーライト
   const keyLight = new THREE.DirectionalLight(0xffffff, 4.0);
   keyLight.position.set(3, 4, 10); // カメラ側(前方)・上・右 → ミクの正面を照らす方向
   scene.add(keyLight);

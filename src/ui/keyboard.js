@@ -1,6 +1,6 @@
 // keyboard.js
 // インラインSVG鍵盤の初期化・タッチハイライト更新を担当する
-// main.js 経由では 20fpsに制限されうるので鍵盤ハイライトは別途RAFループ60fpsを使う
+// main.js のonTimeUpgate駆動では 20fpsに制限されうるので鍵盤ハイライトは別途RAFループ60fpsを使う
 
 import * as canvas from "../canvas/canvas.js";
 import { LANE_COUNT, toLane } from "../lane.js"; // gameで使うレーン量子化を共有する
@@ -8,11 +8,11 @@ import * as InlineSvgHelper from "../inline-svg-helper.js";
 import { asset } from "../asset-url.js";
 
 const HIGHLIGHT_COLOR = "#20B2AA";
-// キー内の高さがこの割合ぶん境界に寄っていたら、近い側の隣接キーも点灯（指の太さ対策で直感性UP）
+// キー内の高さがこの割合ぶん境界に寄っていたら、近い側の隣接キーも点灯
 const BOUNDARY_THRESHOLD = 0.4;
 
 let svgEl = null;
-let initialized = false;
+let isInitialized = false;
 let lastKeyIndex = -1;
 let lastNeighborIndex = -1; // 前フレームで隣接点灯したキー（なければ-1）
 
@@ -27,8 +27,8 @@ export function hideKeyboard() {
 }
 
 export async function initKeyboard() {
-  if (initialized) return;
-  initialized = true;
+  if (isInitialized) return;
+  isInitialized = true;
   // SVGファイルをテキストとして取得
   const res = await fetch(asset("/assets/keyboard.svg"));
   const svgText = await res.text();
@@ -37,7 +37,7 @@ export async function initKeyboard() {
   const wrapper = document.createElement("div");
   wrapper.id = "keyboard-wrapper";
   document.body.appendChild(wrapper);
-  svgEl = InlineSvgHelper.inlineSvg(wrapper, svgText); // （<style> をスコープ化）
+  svgEl = InlineSvgHelper.inlineSvg(wrapper, svgText); // （svgの<style>がグローバル化されるのを回避するため ）
   // デフォルトのアスペクト比維持を無効化しコンテナいっぱいに引き伸ばす
   svgEl.setAttribute("preserveAspectRatio", "none");
 
@@ -51,7 +51,7 @@ export async function initKeyboard() {
     const keyIndex = toLane(y);
     const fraction = y * LANE_COUNT - Math.floor(y * LANE_COUNT); // キー内の高さ(0-1)
 
-    // 境界に寄っている側の隣接キーを点灯（キー高さの BOUNDARY_THRESHOLD 以内）
+    // 境界に寄っている側の隣接キーを点灯
     let neighborIndex = -1;
     if (fraction > 1 - BOUNDARY_THRESHOLD && keyIndex < LANE_COUNT - 1) {
       neighborIndex = keyIndex + 1; // 上の隣

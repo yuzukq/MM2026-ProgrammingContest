@@ -1,6 +1,5 @@
 // lyric.js
 // 歌詞ビルボード演出。フレーズごとに「波打つ五線譜 + 歌詞テキスト」を出し入れする。
-// 時間軸は2系統に分離している：
 
 import * as THREE from "three";
 import STAFF_VERT from "./staff.vert.glsl?raw";

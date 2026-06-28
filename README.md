@@ -1,105 +1,109 @@
-## 開発参加手順（pnpm）
-Node.js / pnpm のセットアップがまだの場合は下記を先に行ってね
+# 初音ミク「マジカルミライ 2026」プログラミング・コンテスト エントリー作品「初音シンセサイザー」
+![タイトル](.github/images/prev-title.png)
+本アプリは[初音ミク「マジカルミライ 2026」プログラミング・コンテスト](https://magicalmirai.com/2026/procon/)のエントリー作品です。課題曲 6 曲に対応しており、Songle のデータベースに登録された任意の曲でも同じリリックゲームとして遊ぶことができます。
 
-### pnpmの導入
-<details>
-<summary>macOS: Node.js / pnpm セットアップ手順</summary>
+「初音シンセサイザー」は、TextAlive App API と Three.js を用いて制作した、3D リリックゲームです。
 
-1. Node.js（LTS）をインストール  
-   `brew install node`
-2. Corepack を有効化して pnpm を使えるようにする  
-   `corepack enable`
-3. 動作確認  
-   `node -v`  
-   `pnpm -v`
+マジカルミライ2026のテーマ「湖のソナーレ」をモチーフに、ミクが声を奏でるためのツールであるピアプロスタジオから着想を得た UI/UX で、湖の情景をイメージした幻想的な 3D セカイを舞台に、ミクと音楽を通じて共鳴できる体験を目指して制作しました。
 
-</details>
+流れてくる MIDIノートを正しいピッチでなぞると、歌詞が 3D 空間上の五線譜へと浮かび上がります。ミクは歌詞に合わせて歌いながらビートに乗って踊り、正しく回収できた歌詞の割合に応じて表情や動きが変化。曲の終わりには、ミクが奏でた歌が刻まれた歌詞カードが作られます。
 
-<details>
-<summary>Windows: Node.js / pnpm セットアップ手順</summary>
 
-1. Node.js（LTS）をインストール  
-   https://nodejs.org/ja
-2. PowerShell を開いて Corepack を有効化  
-   `corepack enable`
-3. 動作確認 (もしパスが通ってなかったら各自で設定して)
-   `node -v`  
-   `pnpm -v`
+## デプロイ先
 
-</details>
+https://yuzukq.github.io/MM2026-ProgrammingContest/
 
-### 開発環境の起動まで
-1. このリポジトリをクローンする  
-```
-git clone https://github.com/yuzukq/MM2026-ProgrammingContest.git
-```
-2. プロジェクトディレクトリへ移動する  
-```
-cd MM2026-ProgrammingContest
-```
-3. 依存パッケージをインストールする  
-```
+## ムービー
+
+サムネイルをクリックすると YouTube 動画にジャンプします。
+
+[![初音シンセサイザー デモ動画](https://img.youtube.com/vi/DuSsOBr_FqE/0.jpg)](https://youtu.be/DuSsOBr_FqE)
+
+## 推奨環境
+
+- **PC**（ラップトップ・一般的なモニター想定。極端なウルトラワイドモニターは非推奨）
+- **タブレット**（iPad）
+
+※スマートフォンでも動作しますが、大画面デバイスでの体験を推奨しています。  
+
+
+## 工夫点とこだわりなど
+
+###  ゲームプレイ関連
+- **MIDIノート譜面の自動生成**: 
+TextAlive で取得した歌詞の word 単位でノートブロックを自動生成。
+ブロックのピッチは各単語頭の声量（`getAmplitude`）をピッチに見立て、 MIDI キー 2 音階分に自動マッピングされ、課題曲 6 曲すべての譜面が構築されます。動的に譜面を構築するため、今回の課題曲以外であっても同じアルゴリズムのまま Songle に登録された任意の曲でもプレイが可能です。
+
+- **3D 五線譜の生成**: three.js のシーン上に五線譜を生成。
+フレーズごとの判定結果を管理し、Perfect 取得済みの単語は濃く表示されることで、ミクと一緒に歌を作っていく世界観を演出しています。
+
+- **フレーズ単位の特殊演出**: 五線譜をすべて埋めると、three-vrm のミキサーでワンショットアニメーションが再生され、ミクが特別なポージングをします。またこの時各フレーズごとの五線譜の埋まり具合に応じて、ミクの表情が変化するため、ユーザーのプレイに応じて毎回変わった演出が得られます。
+
+### VRM モデルとモーションのビート連携
+- **オリジナル VRM モデル**: Blender で制作した、今回のキービジュアルに即した白ワンピースとひまわりの装飾を施したオリジナルモデルを使用しています。
+![モデルのプレビュー](.github/images/prev-vrm.png)
+- **モーションキャプチャ**: 使用する VRMA アニメーションはライトハウス環境で実際にモーションキャプチャを行い、MotionBuilder で調整したアニメーションを使用しています。
+- **アニメーションとビートの同期の工夫**: TextAlive で取得したビート間隔から、アニメーションクリップの再生位相を曲中で動的に指定することで、ミクの着地タイミングや左右の揺れが直感的にリズムに乗るように調整しています。
+- **サビ連動切り替え**: TextAlive で判定できる楽曲の盛り上がり（コーラス）区間に合わせて、ループアニメーションとカメラ構図を切り替えます。サビでは特にノリのよい演出に変化します。
+- **リップシンクによる発声表現**: 
+TextAlive App API の `phrase.word.char` で 1 文字ずつ発声タイミングを取得し、各文字の母音を割り当て、VRM モデルのブレンドシェイプを制御することで、実際の発声タイミングに合わせてミクの口が動く動かすことで、MIDIで奏でる体験を演出しています。
+
+### 世界観構築のための演出の工夫
+- **水のシェーダー**: three.js の Water シェーダーにパッチを当て、ビートに連動した波紋を法線移動で表現。ミクのダンスと足元の湖面の波紋が連動して広がります。
+- **ひまわりの開花（2D プログレスバー）**: 曲の進行に合わせて先頭の蝶が通ったあとからひまわりが徐々に開花するデザインのプログレスバーで、曲の進行度を表現しています。
+- **朝〜夕日の空（3D 背景）**: ひまわりが太陽を追うことから着想を得て、曲の進行と連動して 3D 背景の空が朝から夕日へと移り変わります。
+- **ローディング演出（2D スチル）**: 3D空間の構築,曲の準備,譜面の構築など、SPAのステート移動時に負荷を分散させるために、ステートマシンでローディングのステートを設けてプリロードしています。この時選曲後のロード中はミクが目を閉じたスチルを表示し、ロード完了のタイミングで開眼したスチルに切り替わります。現実世界の自分と電子の世界のミクが手を合わせる過程を経ることで、ミクとともに音楽を作る3D プレイシーンへの入場を演出しています。
+
+### リザルトのフィードバック
+- **歌詞カード**: Perfect 判定で取得した単語のみ濃く印字された歌詞カードをリザルトとして生成します。歌を「奏でる」という体験が、カードとして手元に残ります(今回の企画展入場特典のインビテーションカード風)。
+- **ミクの表情差分**: 最終スコアに応じてリザルト画面のミクの表情が変化します。
+
+## 使用技術
+
+| カテゴリ | 技術 |
+|---|---|
+| 3D 描画 | [Three.js](https://threejs.org/) |
+| VRM モデル | [@pixiv/three-vrm](https://github.com/pixiv/three-vrm) / [@pixiv/three-vrm-animation](https://github.com/pixiv/three-vrm) |
+| 音楽・歌詞同期 | [TextAlive App API](https://developer.textalive.jp/) |
+| ビルドツール | [Vite](https://vitejs.dev/) |
+| モデリング | Blender |
+| モーションキャプチャ | VMC / MotionBuilder |
+| その他作画 | Figma / Illustrator / CLIP STUDIO PAINT |
+
+
+## 開発サーバでプレイする場合
+
+Node.js と pnpm がインストールされた環境で以下を実行してください。
+
+```sh
 pnpm install
-```
-4. 開発サーバーを起動する  
-```
 pnpm dev
 ```
-5. local で開発中のページを確認する  
-```
-http://localhost:5173
-```
 
+開発サーバーは `http://localhost:5173` で起動します。
 
+## ビルド
 
-## コードフォーマット（Prettier）
-
-時間的にci整備は厳しいのでローカルでjsのコーディングルールをある程度揃えたい。 [Prettier](https://prettier.io/) 
-
-### エディタ設定（保存時に自動フォーマット）
-
-<details>
-<summary>Zed</summary>
-
-設定ファイル（`~/.config/zed/settings.json`）に以下を追加：
-```json
-{
-  "formatter": "prettier",
-  "format_on_save": "on"
-}
+```sh
+pnpm build
 ```
 
-</details>
+`dist/` 以下にビルド済みファイルが生成されます。
 
-<details>
-<summary>VS Code</summary>
+## プロジェクト構成
 
-1. 拡張機能 [Prettier - Code formatter](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) をインストール
-2. `.vscode/settings.json`（なければ作成）に以下を追加：
-```json
-{
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "editor.formatOnSave": true
-}
 ```
-
-</details>
-
-### 手動フォーマット
-
-```bash
-pnpm format        # src/ 以下を一括フォーマット
-pnpm format:check  # フォーマットのチェックのみ（変更なし）
+src/
+├── main.js              # エントリーポイント・TextAlive 制御・全体のステートマシン
+├── game.js              # ゲームロジック（判定・スコア管理など）
+├── lane.js              # 譜面自動生成・MIDIノートマッピングのヘルパ
+├── vowel.js             # 母音判定の対応
+├── transition.js        # 2D to 3D のトランジションよう
+├── canvas/              # ノーツの描画やタッチ検出を行う2Dレイヤー
+├── screens/             # 各画面（タイトル・ゲーム・リザルトなど）
+├── three/               # Three.jsを利用するシーンや3D関連
+├── ui/                  # UI コンポーネント（上部UI・プログレスバー等）
+└── data/                # 楽曲のリビジョン指定や漢字の母音対応表など
+public/
+└── assets/              # VRM モデル・VRMA アニメーション・2D 素材等
 ```
-
----
-
-## 参考リンク
-- **3Dモデルの描画**：three.js
-  - リファレンス：https://threejs.org/manual/#ja/fundamentals
-  - 日本語チュートリアル：https://ics.media/tutorial-three/quickstart/
-- **歌詞・音楽連携**：TextAlive App API
-  - リファレンス：https://developer.textalive.jp/packages/textalive-app-api/#md:textalive-app-api
-
-- **企画書と設計，タスク等**
-  - notion: https://www.notion.so/MM2026-PG-3591989ac2648059889cd45f709b317d?source=copy_link

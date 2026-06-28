@@ -1,6 +1,6 @@
 // ゲームマネージャ
-// 全モジュールを import して各種 init・接続するだけで、それ自身はロジックを持たない。
-// TextAlive の onTimeUpdate がここに集約され、各モジュールへ振り分ける。
+// SPA全体をステートマシンで制御
+// TextAlive 周りの情報は onTimeUpdate から、各モジュールに振り分ける
 
 // ===============モジュール集約================
 import { Player } from "textalive-app-api";
@@ -16,7 +16,6 @@ import * as loading from "./screens/loading.js";
 import * as result from "./screens/result.js";
 import * as fade from "./transition.js";
 import { vowelOf } from "./vowel.js";
-import { startFpsMeter } from "./debug-fps.js"; // 完成前に消す
 
 // ===============ステートマシン===============
 const STATE = {
@@ -28,13 +27,13 @@ const STATE = {
 };
 // タイトル画面がエントリ
 let state = STATE.TITLE;
-let currentSong = null; // 現在プレイ中の曲（ハイスコア保存に使う）
+let currentSong = null;
 let lastBeatIndex = -1; // 直近に検知したビートの通し番号（拍の切り替わり検知に使う）
-let endRequested = false; // 終端で requestStop を多重発火させないためのフラグ
-let endArmed = false; // 本編内の正常な再生位置を観測したら true。これが立つまで onTimeUpdate を捨てる
-let playRevealDone = false; // 初回ビート到達でオーバーレイを剥がすフラグ
+let isEndRequested = false; // 終端で requestStop を多重発火させないためのフラグ
+let isEndArmed = false; // 本編内の正常な再生位置を観測したら true。これが立つまで onTimeUpdate を捨てる
+let isPlayRevealDone = false; // 初回ビート到達でオーバーレイを剥がすフラグ
 let beatsSinceStart = 0; // ビート間隔の安定検知よう
-let cameraRevealed = false; // 導入ショットから通常構図へ寄せたか
+let isCameraRevealed = false; // 導入ショットから通常構図へ寄せたか
 
 // 終端検知のマージン[ms]
 const END_DETECT_MARGIN_MS = 250;
@@ -97,9 +96,9 @@ function enter(s, ctx) {
       currentSong = ctx.song;
       lastBeatIndex = -1; // ビート検知をリセット
       beatsSinceStart = 0; // テンポ安定検知をリセット
-      cameraRevealed = false; // カメラ導入ショットをリセット
-      endRequested = false; // 終端検知フラグをリセット
-      endArmed = false; // 再生開始時の position 張り付き対策
+      isCameraRevealed = false;
+      isEndRequested = false;
+      isEndArmed = false; // 再生開始時の position 張り付き対策
       game.resetGame();
       player.createFromSongUrl(ctx.song.url, { video: ctx.song.video });
       scene.initScene(); // ローディング画面の裏で Three.js シーン＋VRM をプリロード
@@ -109,7 +108,7 @@ function enter(s, ctx) {
       scene.showRenderer();
       ui.showUI();
       fade.cover(); // T ポーズを即時隠蔽（初回ビート到達後に fadeOut で解除）
-      playRevealDone = false;
+      isPlayRevealDone = false;
       canvas.initCanvas();
       keyboard.initKeyboard();
       scene.resetSceneState(); // 2曲目以降の VRM 表情をリセット
@@ -179,7 +178,6 @@ const player = new Player({
   vocalAmplitudeEnabled: true,
 });
 
-startFpsMeter();
 player.addListener({
   // TextAlive の準備ができたら呼ばれる
   onAppReady(app) {
@@ -199,7 +197,7 @@ player.addListener({
 
   // 終端検知で自分が requestStop した時だけリザルトへ遷移する。
   onStop() {
-    if (state === STATE.PLAYING && endRequested) {
+    if (state === STATE.PLAYING && isEndRequested) {
       transition(STATE.RESULT);
     }
   },
@@ -213,17 +211,17 @@ player.addListener({
 
     // iPad で再生開始直後の数フレーム position が duration に張り付き、終端と誤判定してリザルトへ誤遷移する(詳細は#31)ので
     // 本編内（先頭〜終端margin手前）の正常位置を観測するまでフレームを捨てることで対処
-    if (!endArmed) {
+    if (!isEndArmed) {
       if (duration > END_DETECT_MARGIN_MS && position < duration - END_DETECT_MARGIN_MS) {
-        endArmed = true; // 正常な再生位置を観測 → 以降は通常処理
+        isEndArmed = true; // 正常な再生位置を観測 → 以降は通常処理
       } else {
         return; // 張り付き期間（position≈duration）はこのフレームを無視
       }
     }
 
     // 終端検知: 本来の終端へ到達したら requestStop → onStop でリザルトへ
-    if (!endRequested && position >= duration - END_DETECT_MARGIN_MS) {
-      endRequested = true;
+    if (!isEndRequested && position >= duration - END_DETECT_MARGIN_MS) {
+      isEndRequested = true;
       player.requestStop();
       transition(STATE.RESULT); // ステートを RESULT に変更して exit時 に fade
       return;
@@ -250,16 +248,16 @@ player.addListener({
     }
 
     // 初回ビート到達でオーバーレイを剥がす
-    if (isNewBeat && !playRevealDone) {
-      playRevealDone = true;
+    if (isNewBeat && !isPlayRevealDone) {
+      isPlayRevealDone = true;
       fade.fadeOut(400);
     }
 
     // テンポ確定(2拍目以降)後に、イントロ構図から戻す
-    if (isNewBeat && !cameraRevealed) {
+    if (isNewBeat && !isCameraRevealed) {
       beatsSinceStart++;
       if (beatsSinceStart >= REVEAL_AFTER_BEATS) {
-        cameraRevealed = true;
+        isCameraRevealed = true;
         scene.revealFromIntro(!!player.findChorus(position)); // 寄せ先を曲頭の状態(サビ/非サビ)に合わせる
       }
     }
