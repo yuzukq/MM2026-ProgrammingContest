@@ -117,6 +117,16 @@ export function resetSceneState() {
   expression.resetExpression();
 }
 
+// イントロ構図（ミクを映さない）へ即スナップする
+export function beginIntroShot() {
+  cameraRig.applyIntro();
+}
+
+// イントロから通常構図へ戻す。テンポ安定後に呼ぶこと
+export function revealFromIntro(isInChorus = false) {
+  cameraRig.revealFromIntro(isInChorus);
+}
+
 export function showRenderer() {
   if (renderer) renderer.domElement.style.display = "";
 }

@@ -33,9 +33,15 @@ let lastBeatIndex = -1; // 直近に検知したビートの通し番号（拍�
 let endRequested = false; // 終端で requestStop を多重発火させないためのフラグ
 let endArmed = false; // 本編内の正常な再生位置を観測したら true。これが立つまで onTimeUpdate を捨てる
 let playRevealDone = false; // 初回ビート到達でオーバーレイを剥がすフラグ
+let beatsSinceStart = 0; // ビート間隔の安定検知よう
+let cameraRevealed = false; // 導入ショットから通常構図へ寄せたか
 
 // 終端検知のマージン[ms]
 const END_DETECT_MARGIN_MS = 250;
+
+// 何拍ぶん経過したらカメラを導入ショットから通常構図へ寄せるか
+// 1拍目から2拍目が来るまでループの再生速度が安定しないので2拍目以降に寄せる
+const REVEAL_AFTER_BEATS = 2;
 
 // state遷移のトリガー
 async function transition(to, ctx = {}) {
@@ -90,6 +96,8 @@ function enter(s, ctx) {
       ui.preloadUI(); // ロード画面の裏でプログレスバー素材を読み込み
       currentSong = ctx.song;
       lastBeatIndex = -1; // ビート検知をリセット
+      beatsSinceStart = 0; // テンポ安定検知をリセット
+      cameraRevealed = false; // カメラ導入ショットをリセット
       endRequested = false; // 終端検知フラグをリセット
       endArmed = false; // 再生開始時の position 張り付き対策
       game.resetGame();
@@ -105,6 +113,7 @@ function enter(s, ctx) {
       canvas.initCanvas();
       keyboard.initKeyboard();
       scene.resetSceneState(); // 2曲目以降の VRM 表情をリセット
+      scene.beginIntroShot();
       scene.registerLyricTimeline(game.getLyricTimeline()); // gameロジックで作ったタイムラインをlyric.jsまで飛ばす
       ui.initUI(currentSong?.title);
       canvas.startCanvasLoop();
@@ -244,6 +253,15 @@ player.addListener({
     if (isNewBeat && !playRevealDone) {
       playRevealDone = true;
       fade.fadeOut(400);
+    }
+
+    // テンポ確定(2拍目以降)後に、イントロ構図から戻す
+    if (isNewBeat && !cameraRevealed) {
+      beatsSinceStart++;
+      if (beatsSinceStart >= REVEAL_AFTER_BEATS) {
+        cameraRevealed = true;
+        scene.revealFromIntro(!!player.findChorus(position)); // 寄せ先を曲頭の状態(サビ/非サビ)に合わせる
+      }
     }
     // 曲の進捗(0..1)
     const progress = position / player.video.duration;

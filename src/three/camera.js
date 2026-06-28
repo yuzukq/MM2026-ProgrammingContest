@@ -8,6 +8,13 @@ import * as THREE from "three";
 const DEBUG_CAMERA = false;
 
 const CAM_PRESETS = {
+  // 曲頭の構図(ミクを映さない画角に)
+  // ライブの導入間を出しつつ1拍目から2拍目がくるまでアニメーションの再生速度が安定するまでの区間を隠蔽する
+  intro: {
+    position: [-0.17, 0.23, 6.77],
+    target: [-3.8, 1.1, 2.2],
+    staffPos: [2.76, 1.96, -7.11],
+  },
   // Aメロなどサビ以外の構図
   verse: {
     position: [-0.17, 0.23, 6.77],
@@ -23,6 +30,7 @@ const CAM_PRESETS = {
 };
 
 const EASE_MS = 1500; // プリセット切替の補間時間
+const INTRO_REVEAL_MS = 2500; // イントロ → 通常構図への切り替え時間
 
 // デバッグ操作速度
 const MOVE = 0.01; // カメラ移動(WASD/QE)
@@ -44,7 +52,9 @@ const staffFrom = new THREE.Vector3();
 const staffTo = new THREE.Vector3();
 
 let transStart = -Infinity; // 補間開始時刻(ms)。-Infinity なら補間完了済み(=to に張り付き)
-let curPreset = "verse"; // 現在のプリセット名
+let transDur = EASE_MS;
+let curPreset = "verse";
+let isIntroHold = false; // イントロ遷移中のフラグtrue の間はサビ判定での切替を抑止する
 
 let debug = null; // デバッグ自由飛行の状態（DEBUG_CAMERA 時のみ）
 
@@ -76,9 +86,41 @@ export function initCamera(sceneCamera, controls) {
 // scene.updateScene からonTimeUpdate駆動でサビ判定でプリセット切替トリガーを打つ
 export function updateCamera({ isInChorus }) {
   if (DEBUG_CAMERA) return; // デバッグ中はプリセット駆動しない
+  if (isisIntroHold) return; // イントロは通常構図へ切り替えない
 
   const wantPreset = isInChorus ? "chorus" : "verse";
   if (wantPreset !== curPreset) startTransition(wantPreset);
+}
+
+// イントロアングルの制御
+export function applyIntro() {
+  if (DEBUG_CAMERA) return;
+  const p = CAM_PRESETS.intro;
+  posCurrent.fromArray(p.position);
+  targetCurrent.fromArray(p.target);
+  staffCurrent.fromArray(p.staffPos);
+  posFrom.copy(posCurrent);
+  posTo.copy(posCurrent);
+  targetFrom.copy(targetCurrent);
+  targetTo.copy(targetCurrent);
+  staffFrom.copy(staffCurrent);
+  staffTo.copy(staffCurrent);
+  transStart = -Infinity;
+  curPreset = "intro";
+  isIntroHold = true;
+  if (camera) {
+    camera.position.copy(posCurrent);
+    camera.lookAt(targetCurrent);
+  }
+}
+
+// 導入ショットから通常構図へパン
+// テンポ安定後に呼ぶ
+export function revealFromIntro(isInChorus = false) {
+  if (DEBUG_CAMERA) return;
+  if (!isIntroHold) return;
+  isIntroHold = false;
+  startTransition(isInChorus ? "chorus" : "verse", INTRO_REVEAL_MS); // 現在の状態に合わせて遷移
 }
 
 // sceneRenderLoop の RAF から毎フレーム。プリセット補間を実際の camera に適用する
@@ -92,7 +134,7 @@ export function tickCamera() {
   }
 
   // プリセット補間（現在値=from→to を ease で進める）
-  const e = easeInOutSine(clamp01((now - transStart) / EASE_MS));
+  const e = easeInOutSine(clamp01((now - transStart) / transDur));
   posCurrent.lerpVectors(posFrom, posTo, e);
   targetCurrent.lerpVectors(targetFrom, targetTo, e);
   staffCurrent.lerpVectors(staffFrom, staffTo, e);
@@ -110,7 +152,7 @@ export function getStaffTarget() {
 
 // プリセット切替を開始
 // 現在の補間途中値を起点にして新プリセットへ向かう
-function startTransition(name) {
+function startTransition(name, durationMs = EASE_MS) {
   const p = CAM_PRESETS[name];
   posFrom.copy(posCurrent);
   targetFrom.copy(targetCurrent);
@@ -119,6 +161,7 @@ function startTransition(name) {
   targetTo.fromArray(p.target);
   staffTo.fromArray(p.staffPos);
   transStart = performance.now();
+  transDur = durationMs;
   curPreset = name;
 }
 
