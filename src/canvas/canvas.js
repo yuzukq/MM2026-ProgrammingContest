@@ -161,13 +161,9 @@ function drawWordBlocks(position, wordBlocks) {
     ctx.fill();
     ctx.stroke();
 
-    const textWidth = ctx.measureText(block.text).width;
-    // 鬼ヒューリスティックでPIXELS_PER_MS = 0.65環境下,一単語duration60msくらいまでは入り切りそうだったので変更するときは要注意
-    if (textWidth < blockWidth - 2) {
-      ctx.fillStyle = "white";
-      ctx.fillText(block.text, blockPosX + 4, blockPosY + blockHeight / 2);
-      ctx.fillStyle = "#17605b"; // 次のブロックのために塗り色を戻す
-    }
+    ctx.fillStyle = "white";
+    ctx.fillText(block.text, blockPosX + 4, blockPosY + blockHeight / 2, blockWidth - 8);
+    ctx.fillStyle = "#17605b";
   }
 
   ctx.restore(); // クリップ解放
