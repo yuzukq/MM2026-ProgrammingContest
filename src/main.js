@@ -178,7 +178,6 @@ const player = new Player({
   vocalAmplitudeEnabled: true,
 });
 
-startFpsMeter();
 player.addListener({
   // TextAlive の準備ができたら呼ばれる
   onAppReady(app) {
