@@ -1,5 +1,6 @@
 // canvas.js
 // Canvas 2D への描画のみ。ロジックや状態は持たず、受け取ったデータを描くだけ。
+// ノーツの描画は,スワイプ位置の検知はここ
 
 import { particleSystem } from "./particles.js";
 
@@ -7,13 +8,12 @@ const PIXELS_PER_MS = 0.65; // 1ms あたりのピクセル数（スクロール
 const JUDGMENT_X_RATIO = 0.1; // 判定ラインのX位置（canvas幅の何割かで）
 const BLOCK_HEIGHT_RATIO = 0.04; // ブロックの高さ(縦幅,canvas高さの何割か）
 
-// プレイエリアの上下境界（canvas高さに対する比率）
-// SVG UI が入った時はここだけ調整する
+// プレイエリアの上下境界
 const PLAY_AREA_TOP = 0.1; // 上端から10%はステータスなどのUI領域
-const PLAY_AREA_BOTTOM = 0.9; // 下端から10%はプログレスーなどのスペース
+const PLAY_AREA_BOTTOM = 0.9; // 下端から10%はプログレスバー
 
 let canvas, ctx;
-let initialized = false;
+let isInitialized = false;
 let touchedY = 0;
 let rafId = null; // 正規化済みY座標（上=1, 下=0）
 
@@ -30,8 +30,8 @@ let judgmentX = 0; // onResize で更新
 
 // canvasを生成してDOMに挿入する main側でinit呼び出し
 export function initCanvas() {
-  if (initialized) return;
-  initialized = true;
+  if (isInitialized) return;
+  isInitialized = true;
   canvas = document.createElement("canvas");
   canvas.style.cssText = "position:fixed;top:0;left:0;z-index:2;pointer-events:auto;";
   document.body.appendChild(canvas);
