@@ -107,3 +107,8 @@ src/
 public/
 └── assets/              # VRM モデル・VRMA アニメーション・2D 素材等
 ```
+
+## ライセンス
+
+- **ソースコード**: [MIT License](./LICENSE)
+- **3Dモデル・イラスト等の素材**（`public/assets/` 配下、`fonts/` を除く）: 無断転載・改変・二次利用禁止。詳細は [public/assets/LICENSE](./public/assets/LICENSE) を参照してください。
