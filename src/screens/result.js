@@ -7,10 +7,10 @@ import { asset } from "../asset-url.js";
 
 const ENVELOPE_SRC = asset("/assets/envelope.svg");
 const LYRICCARD_SRC = asset("/assets/lyriccard.svg");
-const MIKU_HAPPY_SRC = asset("/assets/result_miku_happy.png");
-const MIKU_NORMAL_SRC = asset("/assets/result_miku_normal.png");
-const MIKU_CLOSE_SRC = asset("/assets/result_miku_close.png");
-const MIKU_HATYUNE_SRC = asset("/assets/result_miku_hatyune.png");
+const MIKU_HAPPY_SRC = asset("/assets/result_miku_happy.webp");
+const MIKU_NORMAL_SRC = asset("/assets/result_miku_normal.webp");
+const MIKU_CLOSE_SRC = asset("/assets/result_miku_close.webp");
+const MIKU_HATYUNE_SRC = asset("/assets/result_miku_hatyune.webp");
 
 // スコア帯ごとの立ち絵差分
 const MIKU_THRESHOLDS = [
