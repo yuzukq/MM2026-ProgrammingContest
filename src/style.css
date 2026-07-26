@@ -3,7 +3,7 @@ body {
   width: 100%;
   height: 100dvh; /* dvh: アドレスバー表示/非表示に合わせた実際の表示領域に合わせる */
   overflow: hidden; /* はみ出た部分は非表示 */
-  background-image: url("/assets/background.png"); /* 共通背景 */
+  background-image: url("/assets/background.webp"); /* 共通背景 */
   background-size: cover;
   background-position: center;
   user-select: none; /* 長押しによるテキスト範囲選択を無効化 */
@@ -121,7 +121,7 @@ body.playing *:active {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-image: url("/assets/loading.png");
+  background-image: url("/assets/loading.webp");
   background-size: cover;
   background-position: center;
   cursor: default;
@@ -130,7 +130,7 @@ body.playing *:active {
 #loading-finish-bg {
   position: absolute;
   inset: 0;
-  background-image: url("/assets/loading_finish.png");
+  background-image: url("/assets/loading_finish.webp");
   background-size: cover;
   background-position: center;
   opacity: 0;

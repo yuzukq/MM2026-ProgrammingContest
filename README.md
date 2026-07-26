@@ -1,5 +1,5 @@
 # 初音ミク「マジカルミライ 2026」プログラミング・コンテスト エントリー作品「初音シンセサイザー」
-![タイトル](.github/images/prev-title.png)
+[![タイトル](.github/images/prev-title.png)](https://hatsune-synthesizer.yuzu621.tech/)
 本アプリは[初音ミク「マジカルミライ 2026」プログラミング・コンテスト](https://magicalmirai.com/2026/procon/)のエントリー作品です。課題曲 6 曲に対応しており、Songle のデータベースに登録された任意の曲でも同じリリックゲームとして遊ぶことができます。
 
 「初音シンセサイザー」は、TextAlive App API と Three.js を用いて制作した、3D リリックゲームです。

@@ -44,7 +44,7 @@ function buildDOM() {
 
   logoEl = document.createElement("img");
   logoEl.id = "title-logo";
-  logoEl.src = asset("/assets/title_logo.png");
+  logoEl.src = asset("/assets/title_logo.webp");
   logoEl.alt = "初音シンセサイザー";
 
   // タップ誘導ヒント
