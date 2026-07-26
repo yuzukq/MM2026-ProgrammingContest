@@ -1,0 +1,71 @@
+3Dモデル・イラスト素材のライセンス / Asset License
+========================================
+
+対象 / Scope
+------------
+このディレクトリ（public/assets/）以下に含まれる3Dモデル・アニメーション
+（*.vrm, *.vrma）およびイラスト・画像ファイル（*.png, *.svg 等）。
+
+ただし public/assets/fonts/ 配下のフォントファイルは対象外です。
+これらは SIL Open Font License 1.1（Google Fonts 配布物）に基づく第三者の
+著作物であり、各フォントのライセンス条件がそのまま適用されます。
+
+The scope of this license is the 3D models/animations (*.vrm, *.vrma) and
+illustration/image files (*.png, *.svg, etc.) under this directory
+(public/assets/), EXCLUDING public/assets/fonts/. The font files there are
+third-party works distributed under the SIL Open Font License 1.1 (Google
+Fonts) and remain governed by their own license terms.
+
+権利者 / Copyright
+-------------------
+Copyright (c) 2026
+  イラスト / UI素材: k4geri
+  3Dモデリング / モーション: らだー, Yuzu
+
+これらの素材はすべて本プロジェクトのために制作メンバーがオリジナルで制作したもの
+であり、既存の配布モデル・素材をベースにしたものではありません。
+
+許諾範囲 / Permitted Use
+-------------------------
+これらの素材は、本アプリケーション（初音シンセサイザー）を通じて
+閲覧・プレイする目的でのみ利用を許可します。
+
+事前の書面による許諾なく、以下の行為を禁止します。
+
+  - ファイルの複製・転載・再配布（無加工の場合を含む）
+  - 改変・切り出し・トレース・再構築などによる二次利用・派生作品の制作
+  - 本アプリケーション外での利用（商用・非商用を問わない）
+
+These assets may be used only for viewing or playing within this application
+("Hatsune Synthesizer"). Without prior written permission, the following are
+prohibited: copying, reposting, or redistributing the files (including
+unmodified copies); modifying, extracting, tracing, or otherwise creating
+derivative works from them; and any use outside this application, whether
+commercial or non-commercial.
+
+初音ミクについて / About Hatsune Miku
+---------------------------------------
+この作品はピアプロ・キャラクター・ライセンスに基づいてクリプトン・
+フューチャー・メディア株式会社のキャラクター「初音ミク」を描いたものです。
+
+本素材は初音ミク（クリプトン・フューチャー・メディア株式会社）をモチーフと
+した二次創作物であり、上記に加えてピアプロ・キャラクター・ライセンス（PCL）
+の適用対象です。あわせてご確認ください。
+https://piapro.jp/license/pcl
+https://piapro.jp/license/character_guideline
+
+This work is based on Crypton Future Media, Inc.'s character "Hatsune Miku"
+under the Piapro Character License.
+
+These assets are derivative works based on the Hatsune Miku character
+(Crypton Future Media, Inc.) and are additionally subject to the Piapro
+Character License (PCL):
+https://piapro.jp/license/pcl
+https://piapro.jp/license/character_guideline
+
+利用許諾に関するお問い合わせ / Contact for permission requests
+----------------------------------------------------------------
+利用を希望される場合は、リポジトリの Issue または連絡先までご相談ください。
+
+For licensing inquiries, please open an issue on this repository or contact
+the maintainers directly.
