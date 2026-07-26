@@ -11,7 +11,7 @@
 > **ライセンスについて**
 > このリポジトリは **ソースコードとアセットで異なるライセンス** を適用しています。
 > - ソースコード: [MIT License](./LICENSE)（自由に利用・改変いただけます）
-> - 3Dモデル・イラスト等の素材（`public/assets/` 配下、`fonts/` を除く）: **無断転載・改変・二次利用を禁止**しています。詳細は [public/assets/LICENSE](./public/assets/LICENSE) を、経緯・理由は [NOTICE](./NOTICE) をご覧ください。
+> - 3Dモデル・イラスト等の素材（`public/assets/` 配下、`fonts/` を除く）: **無断転載・改変・二次利用を禁止**しています。詳細は [public/assets/LICENSE](./public/assets/LICENSE) をご覧ください。
 
 ## 遊んでみる
 
