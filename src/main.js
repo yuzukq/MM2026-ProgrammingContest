@@ -100,7 +100,7 @@ function enter(s, ctx) {
       isEndRequested = false;
       isEndArmed = false; // 再生開始時の position 張り付き対策
       game.resetGame();
-      player.createFromSongUrl(ctx.song.url, { video: ctx.song.video });
+      player.createFromCardUrl(ctx.song.cardUrl);
       scene.initScene(); // ローディング画面の裏で Three.js シーン＋VRM をプリロード
       break;
     case STATE.PLAYING:
